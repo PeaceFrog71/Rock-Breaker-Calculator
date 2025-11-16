@@ -11,6 +11,7 @@ import ResultDisplay from './components/ResultDisplay';
 import GadgetSelector from './components/GadgetSelector';
 import ConfigManager from './components/ConfigManager';
 import ShipPoolManager from './components/ShipPoolManager';
+import TabNavigation, { TabType } from './components/TabNavigation';
 
 function App() {
   // Load saved state or use defaults
@@ -31,6 +32,7 @@ function App() {
     gadgets: [null, null, null],
   });
   const [useMiningGroup, setUseMiningGroup] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   // Auto-save when config or ship changes
   useEffect(() => {
@@ -69,83 +71,96 @@ function App() {
         <p className="subtitle">Star Citizen Mining Tool</p>
       </header>
 
-      <div className="main-container">
-        <div className="left-panel">
-          <RockInput rock={rock} onChange={setRock} />
-
-          <ResultDisplay
-            result={result}
-            rock={rock}
-            miningGroup={useMiningGroup ? miningGroup : undefined}
-          />
-
-          {useMiningGroup ? (
-            <GadgetSelector
-              gadgets={miningGroup.gadgets}
-              onChange={(gadgets) => setMiningGroup({ ...miningGroup, gadgets })}
-            />
-          ) : (
-            <GadgetSelector
-              gadgets={config.gadgets}
-              onChange={(gadgets) => setConfig({ ...config, gadgets })}
-            />
-          )}
-
-          {!useMiningGroup && (
-            <ConfigManager
-              currentShip={selectedShip}
-              currentConfig={config}
-              onLoad={handleLoadConfiguration}
-            />
-          )}
+      <div className="content-wrapper">
+        {/* Mode toggle */}
+        <div className="mode-toggle">
+          <button
+            className={`mode-button ${!useMiningGroup ? 'active' : ''}`}
+            onClick={() => setUseMiningGroup(false)}
+          >
+            Single Ship
+          </button>
+          <button
+            className={`mode-button ${useMiningGroup ? 'active' : ''}`}
+            onClick={() => setUseMiningGroup(true)}
+          >
+            Mining Group
+          </button>
         </div>
 
-        <div className="right-panel">
-          {/* Mode toggle */}
-          <div className="mode-toggle">
-            <button
-              className={`mode-button ${!useMiningGroup ? 'active' : ''}`}
-              onClick={() => setUseMiningGroup(false)}
-            >
-              Single Ship
-            </button>
-            <button
-              className={`mode-button ${useMiningGroup ? 'active' : ''}`}
-              onClick={() => setUseMiningGroup(true)}
-            >
-              Mining Group
-            </button>
-          </div>
+        <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
-          {useMiningGroup ? (
-            <ShipPoolManager
-              miningGroup={miningGroup}
-              onChange={setMiningGroup}
-            />
-          ) : (
-            <>
-              <ShipSelector
-                selectedShip={selectedShip}
-                onShipChange={handleShipChange}
+        <div className="tab-content">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className="overview-tab">
+              <ResultDisplay
+                result={result}
+                rock={rock}
+                miningGroup={useMiningGroup ? miningGroup : undefined}
               />
+            </div>
+          )}
 
-              <div className="lasers-container">
-                <h2>Laser Configuration</h2>
-                {config.lasers.map((laser, index) => (
-                  <LaserPanel
-                    key={index}
-                    laserIndex={index}
-                    laser={laser}
+          {/* Rock Config Tab */}
+          {activeTab === 'rock' && (
+            <div className="rock-config-tab">
+              <RockInput rock={rock} onChange={setRock} />
+
+              {useMiningGroup ? (
+                <GadgetSelector
+                  gadgets={miningGroup.gadgets}
+                  onChange={(gadgets) => setMiningGroup({ ...miningGroup, gadgets })}
+                />
+              ) : (
+                <GadgetSelector
+                  gadgets={config.gadgets}
+                  onChange={(gadgets) => setConfig({ ...config, gadgets })}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Mining Config Tab */}
+          {activeTab === 'mining' && (
+            <div className="mining-config-tab">
+              {useMiningGroup ? (
+                <ShipPoolManager
+                  miningGroup={miningGroup}
+                  onChange={setMiningGroup}
+                />
+              ) : (
+                <>
+                  <ShipSelector
                     selectedShip={selectedShip}
-                    onChange={(updatedLaser) => {
-                      const newLasers = [...config.lasers];
-                      newLasers[index] = updatedLaser;
-                      setConfig({ ...config, lasers: newLasers });
-                    }}
+                    onShipChange={handleShipChange}
                   />
-                ))}
-              </div>
-            </>
+
+                  <div className="lasers-container">
+                    <h2>Laser Configuration</h2>
+                    {config.lasers.map((laser, index) => (
+                      <LaserPanel
+                        key={index}
+                        laserIndex={index}
+                        laser={laser}
+                        selectedShip={selectedShip}
+                        onChange={(updatedLaser) => {
+                          const newLasers = [...config.lasers];
+                          newLasers[index] = updatedLaser;
+                          setConfig({ ...config, lasers: newLasers });
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  <ConfigManager
+                    currentShip={selectedShip}
+                    currentConfig={config}
+                    onLoad={handleLoadConfiguration}
+                  />
+                </>
+              )}
+            </div>
           )}
         </div>
       </div>

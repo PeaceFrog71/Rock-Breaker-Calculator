@@ -1,0 +1,42 @@
+.tab-navigation {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--bg-medium);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  background: var(--bg-dark);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tab-button:hover {
+  border-color: var(--accent-blue);
+  color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+.tab-button.active {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  color: var(--bg-dark);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.3);
+}
+
+.tab-button.active:hover {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  transform: translateY(-1px);
+}
