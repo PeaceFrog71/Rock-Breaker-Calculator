@@ -25,7 +25,7 @@ function App() {
   const [rock, setRock] = useState<Rock>({
     mass: 8431,
     resistance: 32,
-    name: 'Example Rock',
+    name: 'The Rock',
   });
   const [miningGroup, setMiningGroup] = useState<MiningGroup>({
     ships: [],

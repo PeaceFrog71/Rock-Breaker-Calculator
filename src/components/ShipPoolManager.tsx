@@ -49,8 +49,8 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
         return;
       }
 
-      // Assign position at 45-degree intervals (0, 45, 90, 135, 180, 225, 270, 315)
-      const positions = [0, 45, 90, 135, 180, 225, 270, 315];
+      // Assign positions: left (180°), right (0°), bottom-left (225°), bottom-right (315°)
+      const positions = [180, 0, 225, 315];
       const usedPositions = miningGroup.ships.map(s => s.position);
       const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 0;
 

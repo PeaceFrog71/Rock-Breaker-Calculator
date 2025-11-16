@@ -190,6 +190,7 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
 
           {/* Rock in center */}
           <div className={`rock-icon ${getStatusClass()}`}>
+            {rock.name && <div className="rock-name">{rock.name}</div>}
             <div className="rock-symbol">
               ⬢
               {/* Gadget symbols ON the rock */}
@@ -205,7 +206,6 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                 </div>
               )}
             </div>
-            {rock.name && <div className="rock-name">{rock.name}</div>}
           </div>
         </div>
       </div>
