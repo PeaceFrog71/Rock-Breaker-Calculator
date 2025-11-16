@@ -63,23 +63,21 @@ export interface CalculationResult {
 export const SHIPS: Ship[] = [
   { id: 'prospector', name: 'MISC Prospector', laserSlots: 1, description: 'Solo mining ship' },
   { id: 'mole', name: 'Argo MOLE', laserSlots: 3, description: 'Multi-crew mining ship' },
-  { id: 'roc', name: 'Greycat ROC', laserSlots: 1, description: 'Ground vehicle' },
-  { id: 'roc-ds', name: 'Greycat ROC-DS', laserSlots: 1, description: 'Two-seat ground vehicle' },
   { id: 'golem', name: 'Greycat GOLEM', laserSlots: 1, description: 'Heavy mining vehicle - Fixed Pitman laser' },
 ];
 
 // Laser heads database
 export const LASER_HEADS: LaserHead[] = [
   { id: 'none', name: '---', maxPower: 0, resistModifier: 1, size: 1, moduleSlots: 0 },
-  { id: 'pitman', name: 'Pitman', maxPower: 3150, resistModifier: 1.25, size: 1, moduleSlots: 3 },
+  { id: 'pitman', name: 'Pitman', maxPower: 3150, resistModifier: 1.25, size: 1, moduleSlots: 2 },
   { id: 'arbor-mh1', name: 'Arbor MH1', maxPower: 1890, resistModifier: 1.25, size: 1, moduleSlots: 3 },
   { id: 'arbor-mh2', name: 'Arbor MH2', maxPower: 2400, resistModifier: 1.25, size: 2, moduleSlots: 2 },
   { id: 'helix-1', name: 'Helix I', maxPower: 3150, resistModifier: 0.7, size: 1, moduleSlots: 3 },
-  { id: 'helix-2', name: 'Helix II', maxPower: 4080, resistModifier: 0.7, size: 2, moduleSlots: 2 },
+  { id: 'helix-2', name: 'Helix II', maxPower: 4080, resistModifier: 0.7, size: 2, moduleSlots: 3 },
   { id: 'hofstede-s1', name: 'Hofstede-S1', maxPower: 2100, resistModifier: 0.7, size: 1, moduleSlots: 3 },
   { id: 'hofstede-s2', name: 'Hofstede-S2', maxPower: 3360, resistModifier: 0.7, size: 2, moduleSlots: 2 },
   { id: 'impact-1', name: 'Impact I', maxPower: 2100, resistModifier: 1.1, size: 1, moduleSlots: 3 },
-  { id: 'impact-2', name: 'Impact II', maxPower: 3360, resistModifier: 1.1, size: 2, moduleSlots: 2 },
+  { id: 'impact-2', name: 'Impact II', maxPower: 3360, resistModifier: 1.1, size: 2, moduleSlots: 3 },
   { id: 'klein-s1', name: 'Klein-S1', maxPower: 2220, resistModifier: 0.55, size: 1, moduleSlots: 3 },
   { id: 'klein-s2', name: 'Klein-S2', maxPower: 3600, resistModifier: 0.55, size: 2, moduleSlots: 2 },
   { id: 'lancet-mh1', name: 'Lancet MH1', maxPower: 2520, resistModifier: 1.0, size: 1, moduleSlots: 3 },
