@@ -1,0 +1,9 @@
+.gadget-description {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-dark);
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}

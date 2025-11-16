@@ -1,0 +1,187 @@
+.config-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.config-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 217, 255, 0.4);
+}
+
+.btn-secondary {
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-light);
+}
+
+.save-dialog {
+  background: var(--bg-dark);
+  border: 2px solid var(--accent-blue);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 4px 20px rgba(0, 217, 255, 0.3);
+}
+
+.save-dialog h3 {
+  margin-bottom: 1rem;
+  color: var(--accent-cyan);
+}
+
+.save-dialog input {
+  width: 100%;
+  padding: 0.75rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text-primary);
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.save-dialog input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.configs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 2rem;
+  font-style: italic;
+}
+
+.config-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.config-item:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-light);
+}
+
+.config-info {
+  flex: 1;
+}
+
+.config-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  margin-bottom: 0.25rem;
+}
+
+.config-meta {
+  font-size: 0.85rem;
+  color: var(--accent-blue);
+  margin-bottom: 0.25rem;
+}
+
+.config-date {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.config-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-load,
+.btn-export,
+.btn-delete {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-load:hover {
+  background: var(--accent-blue);
+  border-color: var(--accent-blue);
+  color: var(--bg-dark);
+}
+
+.btn-export:hover {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+}
+
+.btn-delete:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Scrollbar for configs list */
+.configs-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.configs-list::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+  border-radius: 4px;
+}
+
+.configs-list::-webkit-scrollbar-thumb {
+  background: var(--accent-blue);
+  border-radius: 4px;
+}
+
+.configs-list::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}

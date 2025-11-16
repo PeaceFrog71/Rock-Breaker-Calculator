@@ -1,0 +1,232 @@
+.result-display {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.rock-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background: radial-gradient(circle, var(--bg-light) 0%, var(--bg-medium) 100%);
+  border-radius: 12px;
+  border: 2px solid var(--border);
+  min-height: 200px;
+}
+
+.rock-icon {
+  text-align: center;
+}
+
+.rock-symbol {
+  font-size: 8rem;
+  color: var(--accent-gold);
+  text-shadow: 0 0 30px rgba(255, 165, 0, 0.5);
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.rock-name {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+.status-indicator {
+  padding: 1.5rem;
+  border-radius: 8px;
+  text-align: center;
+  border: 2px solid;
+  box-shadow: 0 4px 20px;
+}
+
+.status-indicator.can-break {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: var(--success);
+  box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+}
+
+.status-indicator.marginal {
+  background: rgba(255, 170, 0, 0.1);
+  border-color: var(--warning);
+  box-shadow: 0 4px 20px rgba(255, 170, 0, 0.2);
+}
+
+.status-indicator.cannot-break {
+  background: rgba(255, 51, 102, 0.1);
+  border-color: var(--danger);
+  box-shadow: 0 4px 20px rgba(255, 51, 102, 0.2);
+}
+
+.status-indicator h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.status-indicator.can-break h2 {
+  color: var(--success);
+}
+
+.status-indicator.marginal h2 {
+  color: var(--warning);
+}
+
+.status-indicator.cannot-break h2 {
+  color: var(--danger);
+}
+
+.margin-text {
+  margin-top: 0.5rem;
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.power-bar-container {
+  padding: 1rem;
+  background: var(--bg-medium);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.power-bar {
+  position: relative;
+  height: 30px;
+  background: var(--bg-dark);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+
+.power-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  border-radius: 13px;
+}
+
+.power-fill.can-break {
+  background: linear-gradient(90deg, var(--success), var(--accent-cyan));
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.power-fill.marginal {
+  background: linear-gradient(90deg, var(--warning), var(--accent-gold));
+  box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+}
+
+.power-fill.cannot-break {
+  background: linear-gradient(90deg, var(--danger), #ff6688);
+  box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
+}
+
+.power-required-marker {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
+  width: 2px;
+  background: var(--accent-blue);
+  box-shadow: 0 0 10px var(--accent-blue);
+}
+
+.power-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-card {
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+}
+
+.stat-card .stat-label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.stat-card .stat-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+.stat-card .stat-value.positive {
+  color: var(--success);
+}
+
+.stat-card .stat-value.negative {
+  color: var(--danger);
+}
+
+.calculation-details {
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.calculation-details h3 {
+  font-size: 1.1rem;
+  color: var(--accent-blue);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-row span:first-child {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.detail-row span:last-child {
+  color: var(--text-primary);
+  font-weight: 600;
+}

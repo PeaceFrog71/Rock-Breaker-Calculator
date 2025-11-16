@@ -1,0 +1,13 @@
+.rock-info {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: var(--bg-dark);
+  border-left: 3px solid var(--accent-gold);
+  border-radius: 4px;
+}
+
+.info-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}

@@ -1,0 +1,40 @@
+.ship-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.ship-button {
+  background: var(--bg-dark);
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: var(--text-primary);
+  text-align: center;
+}
+
+.ship-button:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-light);
+  transform: translateY(-2px);
+}
+
+.ship-button.active {
+  border-color: var(--accent-cyan);
+  background: var(--bg-light);
+  box-shadow: 0 0 15px rgba(0, 255, 204, 0.3);
+}
+
+.ship-name {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--accent-blue);
+}
+
+.ship-lasers {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
