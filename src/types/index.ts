@@ -64,7 +64,7 @@ export const SHIPS: Ship[] = [
   { id: 'mole', name: 'Argo MOLE', laserSlots: 3, description: 'Multi-crew mining ship' },
   { id: 'roc', name: 'Greycat ROC', laserSlots: 1, description: 'Ground vehicle' },
   { id: 'roc-ds', name: 'Greycat ROC-DS', laserSlots: 1, description: 'Two-seat ground vehicle' },
-  { id: 'golem', name: 'Greycat GOLEM', laserSlots: 2, description: 'Heavy mining vehicle' },
+  { id: 'golem', name: 'Greycat GOLEM', laserSlots: 1, description: 'Heavy mining vehicle - Fixed Pitman laser' },
 ];
 
 // Laser heads database
