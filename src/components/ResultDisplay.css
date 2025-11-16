@@ -14,6 +14,28 @@
   border-radius: 12px;
   border: 2px solid var(--border);
   min-height: 300px;
+  position: relative;
+}
+
+.rock-stats-topleft {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  z-index: 20;
+}
+
+.rock-stat-item {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(4px);
+  font-weight: 500;
 }
 
 .rock-container {
@@ -86,6 +108,31 @@
   text-shadow: 0 0 30px;
   animation: float 3s ease-in-out infinite;
   transition: all 0.3s ease;
+  position: relative;
+  display: inline-block;
+}
+
+.gadget-symbols-on-rock {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  gap: 0.3rem;
+  z-index: 10;
+}
+
+.gadget-symbol-small {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  background: rgba(0, 255, 204, 0.15);
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  border: 1.5px solid var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+  text-shadow: 0 0 4px rgba(0, 255, 204, 0.6);
+  backdrop-filter: blur(2px);
 }
 
 /* Rock color based on breakability status */

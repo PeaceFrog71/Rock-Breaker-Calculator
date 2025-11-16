@@ -9,7 +9,11 @@ interface ResultDisplayProps {
   miningGroup?: MiningGroup;
 }
 
-export default function ResultDisplay({ result, rock, miningGroup }: ResultDisplayProps) {
+interface SingleShipDisplayProps {
+  selectedShip?: { id: string; name: string };
+}
+
+export default function ResultDisplay({ result, rock, miningGroup, selectedShip }: ResultDisplayProps & SingleShipDisplayProps) {
   const getStatusClass = () => {
     if (!result.canBreak) return 'cannot-break';
     if (result.powerMarginPercent < 20) return 'marginal';
@@ -52,8 +56,70 @@ export default function ResultDisplay({ result, rock, miningGroup }: ResultDispl
   return (
     <div className="result-display">
       <div className="rock-display">
+        {/* Rock stats in upper-left */}
+        <div className="rock-stats-topleft">
+          <div className="rock-stat-item">Mass: {rock.mass.toFixed(0)}</div>
+          <div className="rock-stat-item">Size: {getRockSize()}</div>
+          <div className="rock-stat-item">Res: {rock.resistance.toFixed(1)}%</div>
+        </div>
+
         <div className="rock-container">
-          {/* Ships positioned around the rock */}
+          {/* Single ship positioned to the left */}
+          {!miningGroup && selectedShip && (
+            <div className="ships-around-rock">
+              <div>
+                {/* Laser beam from ship to rock */}
+                <svg
+                  className="laser-beam"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '300px',
+                    height: '300px',
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <line
+                    x1={30}
+                    y1={150}
+                    x2={150}
+                    y2={150}
+                    stroke="var(--accent)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                    opacity="0.6"
+                  >
+                    <animate
+                      attributeName="stroke-dashoffset"
+                      from="0"
+                      to="8"
+                      dur="0.5s"
+                      repeatCount="indefinite"
+                    />
+                  </line>
+                </svg>
+
+                {/* Ship icon */}
+                <div
+                  className="ship-icon active"
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: 'calc(50% - 120px)',
+                    transform: 'translate(-50%, -50%)',
+                  }}
+                  title={selectedShip.name}
+                >
+                  <div className="ship-symbol">{getShipIcon(selectedShip.id)}</div>
+                  <div className="ship-label">{selectedShip.name}</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Multiple ships positioned around the rock */}
           {miningGroup && miningGroup.ships.length > 0 && (
             <div className="ships-around-rock">
               {miningGroup.ships.map((shipInstance) => {
@@ -122,27 +188,22 @@ export default function ResultDisplay({ result, rock, miningGroup }: ResultDispl
 
           {/* Rock in center */}
           <div className={`rock-icon ${getStatusClass()}`}>
-            <div className="rock-symbol">⬢</div>
-            {rock.name && <div className="rock-name">{rock.name}</div>}
-
-            {/* Gadget symbols on rock */}
-            {miningGroup && miningGroup.gadgets && miningGroup.gadgets.length > 0 && (
-              <div className="gadget-symbols">
-                {miningGroup.gadgets
-                  .filter(g => g && g.id !== 'none')
-                  .map((gadget, index) => (
-                    <span key={index} className="gadget-symbol" title={gadget!.name}>
-                      {getGadgetSymbol(gadget!.id)}
-                    </span>
-                  ))}
-              </div>
-            )}
-
-            <div className="rock-stats-overlay">
-              <div className="rock-stat">Mass: {rock.mass.toFixed(0)}</div>
-              <div className="rock-stat">Size: {getRockSize()}</div>
-              <div className="rock-stat">Res: {rock.resistance.toFixed(1)}%</div>
+            <div className="rock-symbol">
+              ⬢
+              {/* Gadget symbols ON the rock */}
+              {miningGroup && miningGroup.gadgets && miningGroup.gadgets.length > 0 && (
+                <div className="gadget-symbols-on-rock">
+                  {miningGroup.gadgets
+                    .filter(g => g && g.id !== 'none')
+                    .map((gadget, index) => (
+                      <span key={index} className="gadget-symbol-small" title={gadget!.name}>
+                        {getGadgetSymbol(gadget!.id)}
+                      </span>
+                    ))}
+                </div>
+              )}
             </div>
+            {rock.name && <div className="rock-name">{rock.name}</div>}
           </div>
         </div>
       </div>

@@ -68,26 +68,9 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Rock Breaker Calculator</h1>
-        <p className="subtitle">Star Citizen Mining Tool</p>
       </header>
 
       <div className="content-wrapper">
-        {/* Mode toggle */}
-        <div className="mode-toggle">
-          <button
-            className={`mode-button ${!useMiningGroup ? 'active' : ''}`}
-            onClick={() => setUseMiningGroup(false)}
-          >
-            Single Ship
-          </button>
-          <button
-            className={`mode-button ${useMiningGroup ? 'active' : ''}`}
-            onClick={() => setUseMiningGroup(true)}
-          >
-            Mining Group
-          </button>
-        </div>
-
         <TabNavigation activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="tab-content">
@@ -98,6 +81,7 @@ function App() {
                 result={result}
                 rock={rock}
                 miningGroup={useMiningGroup ? miningGroup : undefined}
+                selectedShip={!useMiningGroup ? selectedShip : undefined}
               />
             </div>
           )}
@@ -124,6 +108,22 @@ function App() {
           {/* Mining Config Tab */}
           {activeTab === 'mining' && (
             <div className="mining-config-tab">
+              {/* Mode toggle */}
+              <div className="mode-toggle">
+                <button
+                  className={`mode-button ${!useMiningGroup ? 'active' : ''}`}
+                  onClick={() => setUseMiningGroup(false)}
+                >
+                  Single Ship
+                </button>
+                <button
+                  className={`mode-button ${useMiningGroup ? 'active' : ''}`}
+                  onClick={() => setUseMiningGroup(true)}
+                >
+                  Mining Group
+                </button>
+              </div>
+
               {useMiningGroup ? (
                 <ShipPoolManager
                   miningGroup={miningGroup}
