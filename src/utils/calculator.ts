@@ -131,14 +131,17 @@ export function formatPercent(percent: number): string {
 
 /**
  * Calculate breakability for a mining group (multiple ships)
- * Combines power from all ships and averages resistance modifiers
+ * Combines power from all active ships and applies group-level gadgets
  */
 export function calculateGroupBreakability(
   miningGroup: MiningGroup,
   rock: Rock
 ): CalculationResult {
-  if (miningGroup.ships.length === 0) {
-    // No ships in group, return empty result
+  // Filter only active ships
+  const activeShips = miningGroup.ships.filter(ship => ship.isActive !== false);
+
+  if (activeShips.length === 0) {
+    // No active ships in group, return empty result
     return {
       totalLaserPower: 0,
       totalResistModifier: 1,
@@ -151,42 +154,58 @@ export function calculateGroupBreakability(
     };
   }
 
-  // Calculate total laser power (sum from all ships)
+  // Calculate total laser power (sum from all active ships)
   let totalLaserPower = 0;
 
-  // Collect all resistance modifiers from all ships
+  // Collect all resistance modifiers from all active ships
   let allResistModifiers: number[] = [];
 
-  miningGroup.ships.forEach((shipInstance) => {
+  activeShips.forEach((shipInstance) => {
     const config = shipInstance.config;
 
-    // Add power from this ship's lasers
+    // Add power from this ship's lasers (only manned lasers for MOLE)
     config.lasers.forEach((laser) => {
-      totalLaserPower += calculateLaserPower(laser);
-    });
-
-    // Calculate this ship's resistance modifier
-    let shipResistMod = 1;
-
-    // Apply laser resist modifiers
-    config.lasers.forEach((laser) => {
-      if (laser.laserHead) {
-        shipResistMod *= calculateLaserResistModifier(laser);
+      // For MOLE, only count manned lasers
+      if (shipInstance.ship.id === 'mole') {
+        if (laser.isManned !== false) {
+          totalLaserPower += calculateLaserPower(laser);
+        }
+      } else {
+        totalLaserPower += calculateLaserPower(laser);
       }
     });
 
-    // Apply gadget resist modifiers
-    config.gadgets.forEach((gadget) => {
-      if (gadget) {
-        shipResistMod *= gadget.resistModifier;
+    // Calculate this ship's resistance modifier from lasers only
+    let shipResistMod = 1;
+
+    // Apply laser resist modifiers (only manned lasers for MOLE)
+    config.lasers.forEach((laser) => {
+      if (laser.laserHead) {
+        // For MOLE, only count manned lasers
+        if (shipInstance.ship.id === 'mole') {
+          if (laser.isManned !== false) {
+            shipResistMod *= calculateLaserResistModifier(laser);
+          }
+        } else {
+          shipResistMod *= calculateLaserResistModifier(laser);
+        }
       }
     });
 
     allResistModifiers.push(shipResistMod);
   });
 
-  // Average the resistance modifiers from all ships
-  const totalResistModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+  // Average the resistance modifiers from all active ships
+  let totalResistModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+
+  // Apply group-level gadget resist modifiers
+  if (miningGroup.gadgets) {
+    miningGroup.gadgets.forEach((gadget) => {
+      if (gadget && gadget.id !== 'none') {
+        totalResistModifier *= gadget.resistModifier;
+      }
+    });
+  }
 
   // Calculate adjusted resistance
   const adjustedResistance = rock.resistance * totalResistModifier;

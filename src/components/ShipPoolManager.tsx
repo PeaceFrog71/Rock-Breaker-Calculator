@@ -24,7 +24,14 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
 
   const handleRemoveShip = (shipId: string) => {
     const updatedShips = miningGroup.ships.filter((s) => s.id !== shipId);
-    onChange({ ships: updatedShips });
+    onChange({ ...miningGroup, ships: updatedShips });
+  };
+
+  const handleToggleActive = (shipId: string) => {
+    const updatedShips = miningGroup.ships.map((s) =>
+      s.id === shipId ? { ...s, isActive: !s.isActive } : s
+    );
+    onChange({ ...miningGroup, ships: updatedShips });
   };
 
   const handleSaveShip = (shipInstance: ShipInstance) => {
@@ -36,20 +43,23 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
         s.id === shipInstance.id ? shipInstance : s
       );
     } else {
-      // Add new ship
-      // Assign a position around the rock (evenly distributed)
-      const position = (miningGroup.ships.length * 360) / (miningGroup.ships.length + 1);
-      shipInstance.position = position;
+      // Add new ship (max 4 ships)
+      if (miningGroup.ships.length >= 4) {
+        alert('Maximum of 4 ships allowed in mining group');
+        return;
+      }
+
+      // Assign position at 45-degree intervals (0, 45, 90, 135, 180, 225, 270, 315)
+      const positions = [0, 45, 90, 135, 180, 225, 270, 315];
+      const usedPositions = miningGroup.ships.map(s => s.position);
+      const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 0;
+
+      shipInstance.position = availablePosition;
+      shipInstance.isActive = true; // New ships are active by default
       updatedShips = [...miningGroup.ships, shipInstance];
     }
 
-    // Recalculate positions to evenly distribute ships
-    updatedShips = updatedShips.map((ship, index) => ({
-      ...ship,
-      position: (index * 360) / updatedShips.length,
-    }));
-
-    onChange({ ships: updatedShips });
+    onChange({ ...miningGroup, ships: updatedShips });
   };
 
   return (
@@ -70,13 +80,23 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
         ) : (
           <div className="ships-list">
             {miningGroup.ships.map((ship) => (
-              <div key={ship.id} className="ship-card">
+              <div
+                key={ship.id}
+                className={`ship-card ${ship.isActive === false ? 'inactive' : 'active'}`}
+                onClick={() => handleToggleActive(ship.id)}
+                title={ship.isActive === false ? 'Click to activate ship' : 'Click to deactivate ship'}
+              >
                 <div className="ship-card-header">
                   <div className="ship-info">
-                    <h3>{ship.name}</h3>
+                    <h3>
+                      {ship.name}
+                      <span className={`status-indicator ${ship.isActive === false ? 'off' : 'on'}`}>
+                        {ship.isActive === false ? ' [OFF]' : ' [ON]'}
+                      </span>
+                    </h3>
                     <p className="ship-type">{ship.ship.name}</p>
                   </div>
-                  <div className="ship-actions">
+                  <div className="ship-actions" onClick={(e) => e.stopPropagation()}>
                     <button
                       className="edit-button"
                       onClick={() => handleEditShip(ship)}
@@ -99,12 +119,6 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                       <span className="label">Lasers:</span>
                       <span className="value">
                         {ship.config.lasers.filter((l) => l.laserHead && l.laserHead.id !== 'none').length} / {ship.ship.laserSlots}
-                      </span>
-                    </div>
-                    <div className="summary-item">
-                      <span className="label">Gadgets:</span>
-                      <span className="value">
-                        {ship.config.gadgets.filter((g) => g && g.id !== 'none').length} / 3
                       </span>
                     </div>
                   </div>

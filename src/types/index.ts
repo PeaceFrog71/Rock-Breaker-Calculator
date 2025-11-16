@@ -27,6 +27,7 @@ export interface Gadget {
 export interface LaserConfiguration {
   laserHead: LaserHead | null;
   modules: (Module | null)[]; // Up to 3 modules
+  isManned?: boolean; // For MOLE - whether this laser position is manned
 }
 
 export interface MiningConfiguration {
@@ -65,12 +66,14 @@ export interface ShipInstance {
   id: string; // Unique ID for this ship instance
   ship: Ship; // The ship type (Prospector, MOLE, GOLEM)
   name: string; // Custom name for this ship instance (e.g., "Ship 1", "Mining Lead")
-  config: MiningConfiguration; // Laser and gadget configuration for this ship
-  position?: number; // Position around the rock (0-360 degrees) for visual display
+  config: MiningConfiguration; // Laser configuration for this ship (no gadgets)
+  position?: number; // Position around the rock (0, 45, 90, 135, 180, 225, 270, 315 degrees)
+  isActive?: boolean; // Whether this ship is currently active (laser on)
 }
 
 export interface MiningGroup {
-  ships: ShipInstance[]; // Array of ships in the mining pool
+  ships: ShipInstance[]; // Array of ships in the mining pool (max 4)
+  gadgets: (Gadget | null)[]; // Up to 3 gadgets for the entire group
 }
 
 // Ship presets
@@ -139,3 +142,16 @@ export const GADGETS: Gadget[] = [
   { id: 'stalwart', name: 'Stalwart', resistModifier: 1.0, description: 'Neutral effect' },
   { id: 'waveshift', name: 'Waveshift', resistModifier: 1.0, description: 'Neutral effect' },
 ];
+
+// Helper function to get gadget symbol
+export function getGadgetSymbol(gadgetId: string): string {
+  const symbolMap: { [key: string]: string } = {
+    'boremax': 'B',
+    'okunis': 'O',
+    'optimax': 'Op',
+    'sabir': 'S',
+    'stalwart': 'St',
+    'waveshift': 'W',
+  };
+  return symbolMap[gadgetId] || '';
+}

@@ -3,7 +3,6 @@ import type { Ship, ShipInstance, MiningConfiguration, LaserConfiguration } from
 import { SHIPS, LASER_HEADS } from '../types';
 import { createEmptyConfig } from '../utils/calculator';
 import LaserPanel from './LaserPanel';
-import GadgetSelector from './GadgetSelector';
 import './ShipConfigModal.css';
 
 interface ShipConfigModalProps {
@@ -97,26 +96,35 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
           <div className="laser-configuration">
             <h3>Laser Configuration</h3>
             {config.lasers.map((laser, index) => (
-              <LaserPanel
-                key={index}
-                laserIndex={index}
-                laser={laser}
-                selectedShip={selectedShip}
-                onChange={(updatedLaser: LaserConfiguration) => {
-                  const newLasers = [...config.lasers];
-                  newLasers[index] = updatedLaser;
-                  setConfig({ ...config, lasers: newLasers });
-                }}
-              />
+              <div key={index} className="laser-config-row">
+                {selectedShip.id === 'mole' && (
+                  <div className="manned-toggle">
+                    <label>
+                      <input
+                        type="checkbox"
+                        checked={laser.isManned !== false}
+                        onChange={(e) => {
+                          const newLasers = [...config.lasers];
+                          newLasers[index] = { ...laser, isManned: e.target.checked };
+                          setConfig({ ...config, lasers: newLasers });
+                        }}
+                      />
+                      <span>Manned</span>
+                    </label>
+                  </div>
+                )}
+                <LaserPanel
+                  laserIndex={index}
+                  laser={laser}
+                  selectedShip={selectedShip}
+                  onChange={(updatedLaser: LaserConfiguration) => {
+                    const newLasers = [...config.lasers];
+                    newLasers[index] = updatedLaser;
+                    setConfig({ ...config, lasers: newLasers });
+                  }}
+                />
+              </div>
             ))}
-          </div>
-
-          <div className="gadget-configuration">
-            <h3>Gadgets</h3>
-            <GadgetSelector
-              gadgets={config.gadgets}
-              onChange={(gadgets) => setConfig({ ...config, gadgets })}
-            />
           </div>
         </div>
 

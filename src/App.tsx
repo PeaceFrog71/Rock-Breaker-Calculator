@@ -26,7 +26,10 @@ function App() {
     resistance: 32,
     name: 'Example Rock',
   });
-  const [miningGroup, setMiningGroup] = useState<MiningGroup>({ ships: [] });
+  const [miningGroup, setMiningGroup] = useState<MiningGroup>({
+    ships: [],
+    gadgets: [null, null, null],
+  });
   const [useMiningGroup, setUseMiningGroup] = useState(false);
 
   // Auto-save when config or ship changes
@@ -76,18 +79,25 @@ function App() {
             miningGroup={useMiningGroup ? miningGroup : undefined}
           />
 
-          {!useMiningGroup && (
+          {useMiningGroup ? (
+            <GadgetSelector
+              gadgets={miningGroup.gadgets}
+              onChange={(gadgets) => setMiningGroup({ ...miningGroup, gadgets })}
+            />
+          ) : (
             <GadgetSelector
               gadgets={config.gadgets}
               onChange={(gadgets) => setConfig({ ...config, gadgets })}
             />
           )}
 
-          <ConfigManager
-            currentShip={selectedShip}
-            currentConfig={config}
-            onLoad={handleLoadConfiguration}
-          />
+          {!useMiningGroup && (
+            <ConfigManager
+              currentShip={selectedShip}
+              currentConfig={config}
+              onLoad={handleLoadConfiguration}
+            />
+          )}
         </div>
 
         <div className="right-panel">

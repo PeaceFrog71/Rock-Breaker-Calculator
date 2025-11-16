@@ -67,11 +67,30 @@
   border-radius: 6px;
   padding: 1rem;
   transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.ship-card.active {
+  border-color: var(--success);
+  box-shadow: 0 2px 8px rgba(0, 255, 136, 0.15);
+}
+
+.ship-card.inactive {
+  opacity: 0.6;
+  border-color: var(--text-secondary);
 }
 
 .ship-card:hover {
   border-color: var(--accent);
-  box-shadow: 0 2px 8px rgba(0, 170, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 170, 255, 0.2);
+}
+
+.status-indicator.on {
+  color: var(--success);
+}
+
+.status-indicator.off {
+  color: var(--danger);
 }
 
 .ship-card-header {

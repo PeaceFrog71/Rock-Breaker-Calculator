@@ -1,5 +1,6 @@
 import type { CalculationResult, Rock, MiningGroup } from '../types';
 import { formatPower, formatPercent } from '../utils/calculator';
+import { getGadgetSymbol } from '../types';
 import './ResultDisplay.css';
 
 interface ResultDisplayProps {
@@ -60,52 +61,55 @@ export default function ResultDisplay({ result, rock, miningGroup }: ResultDispl
                 const radius = 120; // Distance from rock center
                 const x = Math.cos((angle * Math.PI) / 180) * radius;
                 const y = Math.sin((angle * Math.PI) / 180) * radius;
+                const isActive = shipInstance.isActive !== false;
 
                 return (
                   <div key={shipInstance.id}>
-                    {/* Laser beam from ship to rock */}
-                    <svg
-                      className="laser-beam"
-                      style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
-                        width: '300px',
-                        height: '300px',
-                        transform: 'translate(-50%, -50%)',
-                        pointerEvents: 'none',
-                      }}
-                    >
-                      <line
-                        x1={150 + x}
-                        y1={150 + y}
-                        x2={150}
-                        y2={150}
-                        stroke="var(--accent)"
-                        strokeWidth="2"
-                        strokeDasharray="4 4"
-                        opacity="0.6"
+                    {/* Laser beam from ship to rock - only show if active */}
+                    {isActive && (
+                      <svg
+                        className="laser-beam"
+                        style={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: '50%',
+                          width: '300px',
+                          height: '300px',
+                          transform: 'translate(-50%, -50%)',
+                          pointerEvents: 'none',
+                        }}
                       >
-                        <animate
-                          attributeName="stroke-dashoffset"
-                          from="0"
-                          to="8"
-                          dur="0.5s"
-                          repeatCount="indefinite"
-                        />
-                      </line>
-                    </svg>
+                        <line
+                          x1={150 + x}
+                          y1={150 + y}
+                          x2={150}
+                          y2={150}
+                          stroke="var(--accent)"
+                          strokeWidth="2"
+                          strokeDasharray="4 4"
+                          opacity="0.6"
+                        >
+                          <animate
+                            attributeName="stroke-dashoffset"
+                            from="0"
+                            to="8"
+                            dur="0.5s"
+                            repeatCount="indefinite"
+                          />
+                        </line>
+                      </svg>
+                    )}
 
                     {/* Ship icon */}
                     <div
-                      className="ship-icon"
+                      className={`ship-icon ${isActive ? 'active' : 'inactive'}`}
                       style={{
                         position: 'absolute',
                         top: `calc(50% + ${y}px)`,
                         left: `calc(50% + ${x}px)`,
                         transform: 'translate(-50%, -50%)',
                       }}
-                      title={`${shipInstance.name} (${shipInstance.ship.name})`}
+                      title={`${shipInstance.name} (${shipInstance.ship.name}) - ${isActive ? 'ACTIVE' : 'INACTIVE'}`}
                     >
                       <div className="ship-symbol">{getShipIcon(shipInstance.ship.id)}</div>
                       <div className="ship-label">{shipInstance.name}</div>
@@ -120,6 +124,20 @@ export default function ResultDisplay({ result, rock, miningGroup }: ResultDispl
           <div className={`rock-icon ${getStatusClass()}`}>
             <div className="rock-symbol">⬢</div>
             {rock.name && <div className="rock-name">{rock.name}</div>}
+
+            {/* Gadget symbols on rock */}
+            {miningGroup && miningGroup.gadgets && miningGroup.gadgets.length > 0 && (
+              <div className="gadget-symbols">
+                {miningGroup.gadgets
+                  .filter(g => g && g.id !== 'none')
+                  .map((gadget, index) => (
+                    <span key={index} className="gadget-symbol" title={gadget!.name}>
+                      {getGadgetSymbol(gadget!.id)}
+                    </span>
+                  ))}
+              </div>
+            )}
+
             <div className="rock-stats-overlay">
               <div className="rock-stat">Mass: {rock.mass.toFixed(0)}</div>
               <div className="rock-stat">Size: {getRockSize()}</div>
