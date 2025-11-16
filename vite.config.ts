@@ -26,7 +26,7 @@ export default defineConfig({
     // ]),
     // electronRenderer(),
   ],
-  base: './',
+  base: '/BreakIt-Calculator/',
   server: {
     port: 5173
   }
