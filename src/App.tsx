@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import type { MiningConfiguration, Ship, Rock } from './types';
+import type { MiningConfiguration, Ship, Rock, MiningGroup } from './types';
 import { SHIPS, LASER_HEADS } from './types';
-import { createEmptyConfig, calculateBreakability } from './utils/calculator';
+import { createEmptyConfig, calculateBreakability, calculateGroupBreakability } from './utils/calculator';
 import { saveCurrentConfiguration, loadCurrentConfiguration } from './utils/storage';
 import ShipSelector from './components/ShipSelector';
 import LaserPanel from './components/LaserPanel';
@@ -10,6 +10,7 @@ import RockInput from './components/RockInput';
 import ResultDisplay from './components/ResultDisplay';
 import GadgetSelector from './components/GadgetSelector';
 import ConfigManager from './components/ConfigManager';
+import ShipPoolManager from './components/ShipPoolManager';
 
 function App() {
   // Load saved state or use defaults
@@ -25,13 +26,18 @@ function App() {
     resistance: 32,
     name: 'Example Rock',
   });
+  const [miningGroup, setMiningGroup] = useState<MiningGroup>({ ships: [] });
+  const [useMiningGroup, setUseMiningGroup] = useState(false);
 
   // Auto-save when config or ship changes
   useEffect(() => {
     saveCurrentConfiguration(selectedShip, config);
   }, [selectedShip, config]);
 
-  const result = calculateBreakability(config, rock);
+  // Calculate result based on mode (single ship or mining group)
+  const result = useMiningGroup
+    ? calculateGroupBreakability(miningGroup, rock)
+    : calculateBreakability(config, rock);
 
   const handleShipChange = (ship: Ship) => {
     setSelectedShip(ship);
@@ -64,12 +70,18 @@ function App() {
         <div className="left-panel">
           <RockInput rock={rock} onChange={setRock} />
 
-          <ResultDisplay result={result} rock={rock} />
-
-          <GadgetSelector
-            gadgets={config.gadgets}
-            onChange={(gadgets) => setConfig({ ...config, gadgets })}
+          <ResultDisplay
+            result={result}
+            rock={rock}
+            miningGroup={useMiningGroup ? miningGroup : undefined}
           />
+
+          {!useMiningGroup && (
+            <GadgetSelector
+              gadgets={config.gadgets}
+              onChange={(gadgets) => setConfig({ ...config, gadgets })}
+            />
+          )}
 
           <ConfigManager
             currentShip={selectedShip}
@@ -79,27 +91,52 @@ function App() {
         </div>
 
         <div className="right-panel">
-          <ShipSelector
-            selectedShip={selectedShip}
-            onShipChange={handleShipChange}
-          />
-
-          <div className="lasers-container">
-            <h2>Laser Configuration</h2>
-            {config.lasers.map((laser, index) => (
-              <LaserPanel
-                key={index}
-                laserIndex={index}
-                laser={laser}
-                selectedShip={selectedShip}
-                onChange={(updatedLaser) => {
-                  const newLasers = [...config.lasers];
-                  newLasers[index] = updatedLaser;
-                  setConfig({ ...config, lasers: newLasers });
-                }}
-              />
-            ))}
+          {/* Mode toggle */}
+          <div className="mode-toggle">
+            <button
+              className={`mode-button ${!useMiningGroup ? 'active' : ''}`}
+              onClick={() => setUseMiningGroup(false)}
+            >
+              Single Ship
+            </button>
+            <button
+              className={`mode-button ${useMiningGroup ? 'active' : ''}`}
+              onClick={() => setUseMiningGroup(true)}
+            >
+              Mining Group
+            </button>
           </div>
+
+          {useMiningGroup ? (
+            <ShipPoolManager
+              miningGroup={miningGroup}
+              onChange={setMiningGroup}
+            />
+          ) : (
+            <>
+              <ShipSelector
+                selectedShip={selectedShip}
+                onShipChange={handleShipChange}
+              />
+
+              <div className="lasers-container">
+                <h2>Laser Configuration</h2>
+                {config.lasers.map((laser, index) => (
+                  <LaserPanel
+                    key={index}
+                    laserIndex={index}
+                    laser={laser}
+                    selectedShip={selectedShip}
+                    onChange={(updatedLaser) => {
+                      const newLasers = [...config.lasers];
+                      newLasers[index] = updatedLaser;
+                      setConfig({ ...config, lasers: newLasers });
+                    }}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

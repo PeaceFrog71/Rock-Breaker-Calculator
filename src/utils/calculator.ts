@@ -1,4 +1,4 @@
-import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration } from '../types';
+import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration, MiningGroup } from '../types';
 
 /**
  * Calculate power for a single laser with its modules
@@ -127,4 +127,93 @@ export function formatPower(power: number): string {
  */
 export function formatPercent(percent: number): string {
   return percent >= 0 ? `+${percent.toFixed(1)}%` : `${percent.toFixed(1)}%`;
+}
+
+/**
+ * Calculate breakability for a mining group (multiple ships)
+ * Combines power from all ships and averages resistance modifiers
+ */
+export function calculateGroupBreakability(
+  miningGroup: MiningGroup,
+  rock: Rock
+): CalculationResult {
+  if (miningGroup.ships.length === 0) {
+    // No ships in group, return empty result
+    return {
+      totalLaserPower: 0,
+      totalResistModifier: 1,
+      adjustedResistance: rock.resistance,
+      baseLPNeeded: (rock.mass * rock.resistance) / 108.7,
+      adjustedLPNeeded: (rock.mass * rock.resistance) / 108.7,
+      canBreak: false,
+      powerMargin: 0,
+      powerMarginPercent: 0,
+    };
+  }
+
+  // Calculate total laser power (sum from all ships)
+  let totalLaserPower = 0;
+
+  // Collect all resistance modifiers from all ships
+  let allResistModifiers: number[] = [];
+
+  miningGroup.ships.forEach((shipInstance) => {
+    const config = shipInstance.config;
+
+    // Add power from this ship's lasers
+    config.lasers.forEach((laser) => {
+      totalLaserPower += calculateLaserPower(laser);
+    });
+
+    // Calculate this ship's resistance modifier
+    let shipResistMod = 1;
+
+    // Apply laser resist modifiers
+    config.lasers.forEach((laser) => {
+      if (laser.laserHead) {
+        shipResistMod *= calculateLaserResistModifier(laser);
+      }
+    });
+
+    // Apply gadget resist modifiers
+    config.gadgets.forEach((gadget) => {
+      if (gadget) {
+        shipResistMod *= gadget.resistModifier;
+      }
+    });
+
+    allResistModifiers.push(shipResistMod);
+  });
+
+  // Average the resistance modifiers from all ships
+  const totalResistModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+
+  // Calculate adjusted resistance
+  const adjustedResistance = rock.resistance * totalResistModifier;
+
+  // Calculate base LP needed
+  const baseLPNeeded = (rock.mass * rock.resistance) / 108.7;
+
+  // Calculate adjusted LP needed
+  const adjustedLPNeeded = (rock.mass * adjustedResistance) / 108.7;
+
+  // Determine if rock can be broken
+  const canBreak = totalLaserPower >= adjustedLPNeeded;
+
+  // Calculate power margin
+  const powerMargin = totalLaserPower - adjustedLPNeeded;
+  const powerMarginPercent = adjustedLPNeeded > 0
+    ? (powerMargin / adjustedLPNeeded) * 100
+    : 0;
+
+  return {
+    totalLaserPower,
+    totalResistModifier,
+    adjustedResistance,
+    baseLPNeeded,
+    adjustedLPNeeded,
+    canBreak,
+    powerMargin,
+    powerMarginPercent,
+  };
 }

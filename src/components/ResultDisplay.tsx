@@ -1,13 +1,14 @@
-import type { CalculationResult, Rock } from '../types';
+import type { CalculationResult, Rock, MiningGroup } from '../types';
 import { formatPower, formatPercent } from '../utils/calculator';
 import './ResultDisplay.css';
 
 interface ResultDisplayProps {
   result: CalculationResult;
   rock: Rock;
+  miningGroup?: MiningGroup;
 }
 
-export default function ResultDisplay({ result, rock }: ResultDisplayProps) {
+export default function ResultDisplay({ result, rock, miningGroup }: ResultDisplayProps) {
   const getStatusClass = () => {
     if (!result.canBreak) return 'cannot-break';
     if (result.powerMarginPercent < 20) return 'marginal';
@@ -33,16 +34,97 @@ export default function ResultDisplay({ result, rock }: ResultDisplayProps) {
     return 'Huge';
   };
 
+  // Get ship icon based on ship type
+  const getShipIcon = (shipId: string) => {
+    switch (shipId) {
+      case 'prospector':
+        return '◆';
+      case 'mole':
+        return '◈';
+      case 'golem':
+        return '◇';
+      default:
+        return '◆';
+    }
+  };
+
   return (
     <div className="result-display">
       <div className="rock-display">
-        <div className={`rock-icon ${getStatusClass()}`}>
-          <div className="rock-symbol">⬢</div>
-          {rock.name && <div className="rock-name">{rock.name}</div>}
-          <div className="rock-stats-overlay">
-            <div className="rock-stat">Mass: {rock.mass.toFixed(0)}</div>
-            <div className="rock-stat">Size: {getRockSize()}</div>
-            <div className="rock-stat">Res: {rock.resistance.toFixed(1)}%</div>
+        <div className="rock-container">
+          {/* Ships positioned around the rock */}
+          {miningGroup && miningGroup.ships.length > 0 && (
+            <div className="ships-around-rock">
+              {miningGroup.ships.map((shipInstance) => {
+                const angle = shipInstance.position || 0;
+                const radius = 120; // Distance from rock center
+                const x = Math.cos((angle * Math.PI) / 180) * radius;
+                const y = Math.sin((angle * Math.PI) / 180) * radius;
+
+                return (
+                  <div key={shipInstance.id}>
+                    {/* Laser beam from ship to rock */}
+                    <svg
+                      className="laser-beam"
+                      style={{
+                        position: 'absolute',
+                        top: '50%',
+                        left: '50%',
+                        width: '300px',
+                        height: '300px',
+                        transform: 'translate(-50%, -50%)',
+                        pointerEvents: 'none',
+                      }}
+                    >
+                      <line
+                        x1={150 + x}
+                        y1={150 + y}
+                        x2={150}
+                        y2={150}
+                        stroke="var(--accent)"
+                        strokeWidth="2"
+                        strokeDasharray="4 4"
+                        opacity="0.6"
+                      >
+                        <animate
+                          attributeName="stroke-dashoffset"
+                          from="0"
+                          to="8"
+                          dur="0.5s"
+                          repeatCount="indefinite"
+                        />
+                      </line>
+                    </svg>
+
+                    {/* Ship icon */}
+                    <div
+                      className="ship-icon"
+                      style={{
+                        position: 'absolute',
+                        top: `calc(50% + ${y}px)`,
+                        left: `calc(50% + ${x}px)`,
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                      title={`${shipInstance.name} (${shipInstance.ship.name})`}
+                    >
+                      <div className="ship-symbol">{getShipIcon(shipInstance.ship.id)}</div>
+                      <div className="ship-label">{shipInstance.name}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Rock in center */}
+          <div className={`rock-icon ${getStatusClass()}`}>
+            <div className="rock-symbol">⬢</div>
+            {rock.name && <div className="rock-name">{rock.name}</div>}
+            <div className="rock-stats-overlay">
+              <div className="rock-stat">Mass: {rock.mass.toFixed(0)}</div>
+              <div className="rock-stat">Size: {getRockSize()}</div>
+              <div className="rock-stat">Res: {rock.resistance.toFixed(1)}%</div>
+            </div>
           </div>
         </div>
       </div>

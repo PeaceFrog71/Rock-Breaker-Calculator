@@ -60,6 +60,19 @@ export interface CalculationResult {
   powerMarginPercent: number;
 }
 
+// Mining Group types for multi-ship operations
+export interface ShipInstance {
+  id: string; // Unique ID for this ship instance
+  ship: Ship; // The ship type (Prospector, MOLE, GOLEM)
+  name: string; // Custom name for this ship instance (e.g., "Ship 1", "Mining Lead")
+  config: MiningConfiguration; // Laser and gadget configuration for this ship
+  position?: number; // Position around the rock (0-360 degrees) for visual display
+}
+
+export interface MiningGroup {
+  ships: ShipInstance[]; // Array of ships in the mining pool
+}
+
 // Ship presets
 export const SHIPS: Ship[] = [
   { id: 'prospector', name: 'MISC Prospector', laserSlots: 1, maxLaserSize: 1, description: 'Solo mining ship - Size 1 lasers only' },

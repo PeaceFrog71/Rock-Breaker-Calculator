@@ -13,12 +13,56 @@
   background: radial-gradient(circle, var(--bg-light) 0%, var(--bg-medium) 100%);
   border-radius: 12px;
   border: 2px solid var(--border);
-  min-height: 200px;
+  min-height: 300px;
+}
+
+.rock-container {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ships-around-rock {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.ship-icon {
+  text-align: center;
+  z-index: 10;
+}
+
+.ship-symbol {
+  font-size: 2rem;
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent);
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+
+.ship-label {
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: rgba(0, 0, 0, 0.7);
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.laser-beam line {
+  filter: drop-shadow(0 0 3px var(--accent));
 }
 
 .rock-icon {
   text-align: center;
   position: relative;
+  z-index: 5;
 }
 
 .rock-symbol {
