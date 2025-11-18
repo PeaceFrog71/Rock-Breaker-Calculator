@@ -91,6 +91,11 @@
   font-size: 2rem;
 }
 
+.ship-image {
+  display: block;
+  margin: 0 auto;
+}
+
 .ship-label {
   margin-top: 0.25rem;
   font-size: 0.7rem;

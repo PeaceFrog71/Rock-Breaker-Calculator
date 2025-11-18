@@ -2,6 +2,7 @@ import type { CalculationResult, Rock, MiningGroup } from '../types';
 import { formatPower, formatPercent } from '../utils/calculator';
 import { getGadgetSymbol } from '../types';
 import './ResultDisplay.css';
+import golemShipImage from '../assets/mining_ship_golem_pixel_120x48.png';
 
 interface ResultDisplayProps {
   result: CalculationResult;
@@ -109,11 +110,20 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                     position: 'absolute',
                     top: '50%',
                     left: 'calc(50% - 120px)',
-                    transform: 'translate(-50%, -50%)',
+                    transform: 'translate(-50%, -50%) scaleX(-1)', // Mirror for left side
                   }}
                   title={selectedShip.name}
                 >
-                  <div className="ship-symbol">{getShipIcon(selectedShip.id)}</div>
+                  {selectedShip.id === 'golem' ? (
+                    <img
+                      src={golemShipImage}
+                      alt="GOLEM"
+                      className="ship-image"
+                      style={{ width: '60px', height: '24px', imageRendering: 'pixelated' }}
+                    />
+                  ) : (
+                    <div className="ship-symbol">{getShipIcon(selectedShip.id)}</div>
+                  )}
                   <div className="ship-label">{selectedShip.name.split(' ').slice(1).join(' ')}</div>
                 </div>
               </div>
@@ -174,12 +184,21 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                         position: 'absolute',
                         top: `calc(50% + ${y}px)`,
                         left: `calc(50% + ${x}px)`,
-                        transform: 'translate(-50%, -50%)',
+                        transform: `translate(-50%, -50%) ${x < 0 ? 'scaleX(-1)' : ''}`, // Mirror if on left side
                       }}
                       onClick={() => onToggleShip && onToggleShip(shipInstance.id)}
                       title={`${shipInstance.name} (${shipInstance.ship.name.split(' ').slice(1).join(' ')}) - ${isActive ? 'ACTIVE' : 'INACTIVE'} (Click to toggle)`}
                     >
-                      <div className="ship-symbol">{getShipIcon(shipInstance.ship.id)}</div>
+                      {shipInstance.ship.id === 'golem' ? (
+                        <img
+                          src={golemShipImage}
+                          alt="GOLEM"
+                          className="ship-image"
+                          style={{ width: '60px', height: '24px', imageRendering: 'pixelated' }}
+                        />
+                      ) : (
+                        <div className="ship-symbol">{getShipIcon(shipInstance.ship.id)}</div>
+                      )}
                       <div className="ship-label">{shipInstance.ship.name.split(' ').slice(1).join(' ')}</div>
                     </div>
                   </div>
