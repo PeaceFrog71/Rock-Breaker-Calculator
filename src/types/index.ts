@@ -40,6 +40,7 @@ export interface Ship {
   name: string;
   laserSlots: number; // Number of mining lasers the ship can equip
   maxLaserSize: 1 | 2; // Maximum laser size the ship can equip (1 or 2)
+  minLaserSize?: 1 | 2; // Minimum laser size (optional - for ships that only accept specific sizes)
   description: string;
 }
 
@@ -79,7 +80,7 @@ export interface MiningGroup {
 // Ship presets
 export const SHIPS: Ship[] = [
   { id: 'prospector', name: 'MISC Prospector', laserSlots: 1, maxLaserSize: 1, description: 'Solo mining ship - Size 1 lasers only' },
-  { id: 'mole', name: 'Argo MOLE', laserSlots: 3, maxLaserSize: 2, description: 'Multi-crew mining ship - Up to Size 2 lasers' },
+  { id: 'mole', name: 'Argo MOLE', laserSlots: 3, maxLaserSize: 2, minLaserSize: 2, description: 'Multi-crew mining ship - Size 2 lasers only' },
   { id: 'golem', name: 'Drake GOLEM', laserSlots: 1, maxLaserSize: 1, description: 'Heavy mining vehicle - Fixed Pitman laser' },
 ];
 
