@@ -18,7 +18,7 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
   const [savedShips, setSavedShips] = useState<SavedShipInstance[]>(
     getSavedShipInstances()
   );
-  const [savedConfigs, setSavedConfigs] = useState<SavedConfiguration[]>(
+  const [savedConfigs] = useState<SavedConfiguration[]>(
     getSavedConfigurations()
   );
 

@@ -52,10 +52,10 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
         return;
       }
 
-      // Assign positions: left (180°), right (0°), bottom-left (225°), bottom-right (315°)
-      const positions = [180, 0, 225, 315];
+      // Assign positions at 60°, 120°, 240°, 300° (top is 0°, clockwise)
+      const positions = [60, 120, 240, 300];
       const usedPositions = miningGroup.ships.map(s => s.position);
-      const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 0;
+      const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 60;
 
       shipInstance.position = availablePosition;
       shipInstance.isActive = true; // New ships are active by default
@@ -79,10 +79,10 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
       return;
     }
 
-    // Assign position
-    const positions = [180, 0, 225, 315];
+    // Assign positions at 60°, 120°, 240°, 300° (top is 0°, clockwise)
+    const positions = [60, 120, 240, 300];
     const usedPositions = miningGroup.ships.map(s => s.position);
-    const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 0;
+    const availablePosition = positions.find(pos => !usedPositions.includes(pos)) || 60;
 
     shipInstance.position = availablePosition;
     shipInstance.isActive = true;

@@ -5,6 +5,7 @@ import './ResultDisplay.css';
 import golemShipImage from '../assets/mining_ship_golem_pixel_120x48.png';
 import moleShipImage from '../assets/mining_ship_mole_pixel_120x48_transparent.png';
 import prospectorShipImage from '../assets/mining_ship_prospector_pixel_120x48.png';
+import asteroidImage from '../assets/asteroid_pixel_120x48_true_transparent.png';
 
 interface ResultDisplayProps {
   result: CalculationResult;
@@ -36,11 +37,20 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
 
   // Calculate rock size category based on mass
   const getRockSize = () => {
-    if (rock.mass < 1000) return 'Tiny';
-    if (rock.mass < 3000) return 'Small';
-    if (rock.mass < 8000) return 'Medium';
-    if (rock.mass < 15000) return 'Large';
+    if (rock.mass < 15000) return 'Tiny';
+    if (rock.mass < 25000) return 'Small';
+    if (rock.mass < 50000) return 'Medium';
+    if (rock.mass < 100000) return 'Large';
     return 'Huge';
+  };
+
+  // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
+  const getAsteroidSize = () => {
+    if (rock.mass < 15000) return { width: 200, height: 200 }; // Tiny
+    if (rock.mass < 25000) return { width: 250, height: 250 }; // Small
+    if (rock.mass < 50000) return { width: 300, height: 300 }; // Medium
+    if (rock.mass < 100000) return { width: 350, height: 350 }; // Large
+    return { width: 400, height: 400 }; // Huge
   };
 
   // Get ship icon based on ship type
@@ -60,18 +70,28 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
   return (
     <div className="result-display">
       <div className="rock-display">
-        {/* Rock stats in upper-left */}
-        <div className="rock-stats-topleft">
-          <div className="rock-stat-item">Mass: {rock.mass.toFixed(0)}</div>
-          <div className="rock-stat-item">Size: {getRockSize()}</div>
-          <div className="rock-stat-item">Res: {rock.resistance.toFixed(1)}%</div>
-        </div>
-
         <div className="rock-container">
           {/* Single ship positioned to the left */}
-          {!miningGroup && selectedShip && (
-            <div className="ships-around-rock">
-              <div>
+          {!miningGroup && selectedShip && (() => {
+            const asteroidSize = getAsteroidSize();
+            const angle = 180; // Left side
+            const asteroidRadius = asteroidSize.width / 2;
+            const radius = asteroidRadius * 1.1; // 110% of asteroid radius
+            const shipX = Math.cos((angle * Math.PI) / 180) * radius;
+            const shipY = Math.sin((angle * Math.PI) / 180) * radius;
+
+            const svgSize = 800;
+            const center = svgSize / 2;
+            const laserStartX = center + shipX;
+            const laserStartY = center + shipY;
+            // Laser ends 5% of asteroid radius from center, towards the ship
+            const directionX = -shipX / radius; // Normalized direction
+            const directionY = -shipY / radius;
+            const laserEndX = center + directionX * asteroidRadius * 0.05;
+            const laserEndY = center + directionY * asteroidRadius * 0.05;
+
+            return (
+              <div className="ships-around-rock">
                 {/* Laser beam from ship to rock - always show for single ship */}
                 <svg
                   className="laser-beam"
@@ -79,17 +99,17 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                     position: 'absolute',
                     top: '50%',
                     left: '50%',
-                    width: '300px',
-                    height: '300px',
+                    width: `${svgSize}px`,
+                    height: `${svgSize}px`,
                     transform: 'translate(-50%, -50%)',
                     pointerEvents: 'none',
                   }}
                 >
                   <line
-                    x1={50}
-                    y1={150}
-                    x2={130}
-                    y2={150}
+                    x1={laserStartX}
+                    y1={laserStartY}
+                    x2={laserEndX}
+                    y2={laserEndY}
                     stroke="var(--warning)"
                     strokeWidth="2"
                     strokeDasharray="4 4"
@@ -110,8 +130,8 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                   className="ship-icon active"
                   style={{
                     position: 'absolute',
-                    top: '50%',
-                    left: 'calc(50% - 120px)',
+                    top: `calc(50% + ${shipY}px)`,
+                    left: `calc(50% + ${shipX}px)`,
                     transform: 'translate(-50%, -50%)',
                   }}
                   title={selectedShip.name}
@@ -121,14 +141,14 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                       src={golemShipImage}
                       alt="GOLEM"
                       className="ship-image"
-                      style={{ width: '90px', height: '36px', imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
+                      style={{ width: '60px', height: '24px', imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
                     />
                   ) : selectedShip.id === 'mole' ? (
                     <img
                       src={moleShipImage}
                       alt="MOLE"
                       className="ship-image"
-                      style={{ width: '90px', height: '36px', imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
+                      style={{ width: '135px', height: '54px', imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
                     />
                   ) : selectedShip.id === 'prospector' ? (
                     <img
@@ -143,15 +163,18 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                   <div className="ship-label">{selectedShip.name.split(' ').slice(1).join(' ')}</div>
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Multiple ships positioned around the rock */}
           {miningGroup && miningGroup.ships.length > 0 && (
             <div className="ships-around-rock">
               {miningGroup.ships.map((shipInstance) => {
                 const angle = shipInstance.position || 0;
-                const radius = 120; // Distance from rock center
+                const asteroidSize = getAsteroidSize();
+                // Position ships at 110% of asteroid radius
+                const asteroidRadius = asteroidSize.width / 2;
+                const radius = asteroidRadius * 1.1;
                 const x = Math.cos((angle * Math.PI) / 180) * radius;
                 const y = Math.sin((angle * Math.PI) / 180) * radius;
                 const isActive = shipInstance.isActive !== false;
@@ -159,39 +182,53 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                 return (
                   <div key={shipInstance.id}>
                     {/* Laser beam from ship to rock - only show if active */}
-                    {isActive && (
-                      <svg
-                        className="laser-beam"
-                        style={{
-                          position: 'absolute',
-                          top: '50%',
-                          left: '50%',
-                          width: '300px',
-                          height: '300px',
-                          transform: 'translate(-50%, -50%)',
-                          pointerEvents: 'none',
-                        }}
-                      >
-                        <line
-                          x1={150 + x * 0.7}
-                          y1={150 + y * 0.7}
-                          x2={150}
-                          y2={150}
-                          stroke="var(--warning)"
-                          strokeWidth="2"
-                          strokeDasharray="4 4"
-                          opacity="0.8"
+                    {isActive && (() => {
+                      const svgSize = 800;
+                      const center = svgSize / 2;
+                      // Laser starts at ship position (behind ship)
+                      const laserStartX = center + x;
+                      const laserStartY = center + y;
+                      // Laser ends 5% of asteroid radius from center, towards the ship
+                      const asteroidRadius = asteroidSize.width / 2;
+                      const directionX = -x / Math.sqrt(x * x + y * y); // Normalized direction from ship to center
+                      const directionY = -y / Math.sqrt(x * x + y * y);
+                      const laserEndX = center + directionX * asteroidRadius * 0.05;
+                      const laserEndY = center + directionY * asteroidRadius * 0.05;
+
+                      return (
+                        <svg
+                          className="laser-beam"
+                          style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            width: `${svgSize}px`,
+                            height: `${svgSize}px`,
+                            transform: 'translate(-50%, -50%)',
+                            pointerEvents: 'none',
+                          }}
                         >
-                          <animate
-                            attributeName="stroke-dashoffset"
-                            from="8"
-                            to="0"
-                            dur="0.3s"
-                            repeatCount="indefinite"
-                          />
-                        </line>
-                      </svg>
-                    )}
+                          <line
+                            x1={laserStartX}
+                            y1={laserStartY}
+                            x2={laserEndX}
+                            y2={laserEndY}
+                            stroke="var(--warning)"
+                            strokeWidth="2"
+                            strokeDasharray="4 4"
+                            opacity="0.8"
+                          >
+                            <animate
+                              attributeName="stroke-dashoffset"
+                              from="8"
+                              to="0"
+                              dur="0.3s"
+                              repeatCount="indefinite"
+                            />
+                          </line>
+                        </svg>
+                      );
+                    })()}
 
                     {/* Ship icon */}
                     <div
@@ -211,8 +248,8 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                           alt="GOLEM"
                           className="ship-image"
                           style={{
-                            width: '90px',
-                            height: '36px',
+                            width: '60px',
+                            height: '24px',
                             imageRendering: 'pixelated',
                             transform: x < 0 ? 'scaleX(-1)' : 'none'
                           }}
@@ -223,8 +260,8 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                           alt="MOLE"
                           className="ship-image"
                           style={{
-                            width: '90px',
-                            height: '36px',
+                            width: '135px',
+                            height: '54px',
                             imageRendering: 'pixelated',
                             transform: x < 0 ? 'scaleX(-1)' : 'none'
                           }}
@@ -254,9 +291,19 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
 
           {/* Rock in center */}
           <div className={`rock-icon ${getStatusClass()}`}>
+            <div className="rock-stats-above">
+              <div className="rock-stat-item">Mass: {rock.mass.toFixed(0)}</div>
+              <div className="rock-stat-item">Size: {getRockSize()}</div>
+              <div className="rock-stat-item">Res: {rock.resistance.toFixed(1)}%</div>
+            </div>
             {rock.name && <div className="rock-name">{rock.name}</div>}
             <div className="rock-symbol">
-              ⬢
+              <img
+                src={asteroidImage}
+                alt="Asteroid"
+                className="asteroid-image"
+                style={{ width: `${getAsteroidSize().width}px`, height: `${getAsteroidSize().height}px`, imageRendering: 'pixelated' }}
+              />
               {/* Gadget symbols ON the rock */}
               {miningGroup && miningGroup.gadgets && miningGroup.gadgets.length > 0 && (
                 <div className="gadget-symbols-on-rock">
@@ -312,7 +359,7 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
         </div>
 
         <div className="stat-card">
-          <div className="stat-label">LP Required</div>
+          <div className="stat-label">Laser Power Required</div>
           <div className="stat-value">{formatPower(result.adjustedLPNeeded)}</div>
           <div className="stat-subtitle">
             Base: {formatPower(result.baseLPNeeded)}

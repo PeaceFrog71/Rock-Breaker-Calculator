@@ -19,21 +19,23 @@
 }
 
 .add-ship-button {
-  background: var(--accent);
-  color: var(--text-primary);
-  border: none;
+  background: var(--bg-secondary);
+  color: var(--accent-cyan);
+  border: 2px solid var(--accent-cyan);
   padding: 0.6rem 1.2rem;
   border-radius: 6px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.add-ship-button:hover {
-  background: var(--accent-hover);
+.add-ship-button:hover,
+.add-ship-button:active {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 255, 204, 0.4);
 }
 
 .ship-pool-content {

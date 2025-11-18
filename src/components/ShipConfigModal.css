@@ -142,14 +142,17 @@
 }
 
 .btn-primary {
-  background: var(--accent);
-  color: var(--text-primary);
+  background: var(--bg-secondary);
+  color: var(--accent-cyan);
+  border: 2px solid var(--accent-cyan) !important;
 }
 
-.btn-primary:hover {
-  background: var(--accent-hover);
+.btn-primary:hover,
+.btn-primary:active {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 170, 255, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 255, 204, 0.4);
 }
 
 .btn-secondary {

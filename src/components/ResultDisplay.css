@@ -101,9 +101,14 @@
   font-size: 0.7rem;
   color: var(--text-secondary);
   background: rgba(0, 0, 0, 0.7);
-  padding: 0.2rem 0.4rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 3px;
   white-space: nowrap;
+  display: inline-block;
+}
+
+.laser-beam {
+  z-index: 10;
 }
 
 .laser-beam line {
@@ -116,6 +121,15 @@
   z-index: 5;
 }
 
+.rock-stats-above {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 .rock-symbol {
   font-size: 8rem;
   text-shadow: 0 0 30px;
@@ -123,6 +137,12 @@
   transition: all 0.3s ease;
   position: relative;
   display: inline-block;
+}
+
+.asteroid-image {
+  display: block;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 20px currentColor);
 }
 
 .gadget-symbols-on-rock {

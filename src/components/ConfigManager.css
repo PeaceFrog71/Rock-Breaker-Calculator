@@ -138,23 +138,27 @@
 .btn-load,
 .btn-export,
 .btn-delete {
-  width: 36px;
-  height: 36px;
+  padding: 0.4rem 0.8rem;
   border-radius: 6px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   background: var(--bg-medium);
+  color: var(--accent-cyan);
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 1.1rem;
-  display: flex;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  white-space: nowrap;
 }
 
-.btn-load:hover {
-  background: var(--accent-blue);
-  border-color: var(--accent-blue);
+.btn-load:hover,
+.btn-load:active {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
   color: var(--bg-dark);
+  box-shadow: 0 2px 8px rgba(0, 255, 204, 0.3);
 }
 
 .btn-export:hover {

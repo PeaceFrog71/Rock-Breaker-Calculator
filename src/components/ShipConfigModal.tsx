@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Ship, ShipInstance, MiningConfiguration, LaserConfiguration } from '../types';
 import { SHIPS, LASER_HEADS } from '../types';
 import { createEmptyConfig } from '../utils/calculator';
@@ -13,18 +13,27 @@ interface ShipConfigModalProps {
 }
 
 export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }: ShipConfigModalProps) {
-  const [selectedShip, setSelectedShip] = useState<Ship>(
-    editingShip?.ship || SHIPS[0]
-  );
-  const [shipName, setShipName] = useState<string>(
-    editingShip?.name || SHIPS[0].name
-  );
-  const [config, setConfig] = useState<MiningConfiguration>(
-    editingShip?.config || createEmptyConfig(SHIPS[0].laserSlots)
-  );
-  const [isNameCustomized, setIsNameCustomized] = useState<boolean>(
-    editingShip ? editingShip.name !== editingShip.ship.name : false
-  );
+  const [selectedShip, setSelectedShip] = useState<Ship>(SHIPS[0]);
+  const [shipName, setShipName] = useState<string>(SHIPS[0].name);
+  const [config, setConfig] = useState<MiningConfiguration>(createEmptyConfig(SHIPS[0].laserSlots));
+  const [isNameCustomized, setIsNameCustomized] = useState<boolean>(false);
+
+  // Update state when editingShip or isOpen changes
+  useEffect(() => {
+    if (isOpen) {
+      if (editingShip) {
+        setSelectedShip(editingShip.ship);
+        setShipName(editingShip.name);
+        setConfig(editingShip.config);
+        setIsNameCustomized(editingShip.name !== editingShip.ship.name);
+      } else {
+        setSelectedShip(SHIPS[0]);
+        setShipName(SHIPS[0].name);
+        setConfig(createEmptyConfig(SHIPS[0].laserSlots));
+        setIsNameCustomized(false);
+      }
+    }
+  }, [isOpen, editingShip]);
 
   if (!isOpen) return null;
 

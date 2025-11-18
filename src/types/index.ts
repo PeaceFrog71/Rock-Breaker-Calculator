@@ -136,12 +136,12 @@ export const MODULES: Module[] = [
 // Gadgets database
 export const GADGETS: Gadget[] = [
   { id: 'none', name: '---', resistModifier: 1, description: 'No gadget' },
-  { id: 'boremax', name: 'BoreMax', resistModifier: 1.1, description: 'Increases resistance (harder)' },
-  { id: 'okunis', name: 'Okunis', resistModifier: 1.0, description: 'Neutral effect' },
-  { id: 'optimax', name: 'OptiMax', resistModifier: 0.7, description: 'Reduces resistance by 30%' },
-  { id: 'sabir', name: 'Sabir', resistModifier: 0.5, description: 'Reduces resistance by 50%' },
-  { id: 'stalwart', name: 'Stalwart', resistModifier: 1.0, description: 'Neutral effect' },
-  { id: 'waveshift', name: 'Waveshift', resistModifier: 1.0, description: 'Neutral effect' },
+  { id: 'boremax', name: 'BoreMax', resistModifier: 1.1, description: 'Increases resistance (10% harder). Benefit: Increases mineral yield by making the rock more stable during extraction.' },
+  { id: 'okunis', name: 'Okunis', resistModifier: 1.0, description: 'Neutral resistance effect. Benefit: Reduces overcharge window, allowing finer laser power control.' },
+  { id: 'optimax', name: 'OptiMax', resistModifier: 0.7, description: 'Reduces resistance by 30%. Benefit: Increases optimal charge window for easier rock breaking.' },
+  { id: 'sabir', name: 'Sabir', resistModifier: 0.5, description: 'Reduces resistance by 50%. Benefit: Significantly extends optimal charge window, making difficult rocks much easier to break.' },
+  { id: 'stalwart', name: 'Stalwart', resistModifier: 1.0, description: 'Neutral resistance effect. Benefit: Reduces rock instability, preventing premature fracturing.' },
+  { id: 'waveshift', name: 'Waveshift', resistModifier: 1.0, description: 'Neutral resistance effect. Benefit: Increases inert material percentage, making the rock more stable overall.' },
 ];
 
 // Helper function to get gadget symbol
