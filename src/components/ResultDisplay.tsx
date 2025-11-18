@@ -95,14 +95,14 @@ export default function ResultDisplay({
               const center = svgSize / 2;
               // Laser starts at ship position (center of ship image)
               const laserStartX = center + shipX;
-              const laserStartY = center + shipY;
+              const laserStartY = center + shipY - 10;
               // Laser ends 5% short of asteroid center
               const distance = Math.sqrt(shipX * shipX + shipY * shipY);
               const directionX = -shipX / distance; // Normalized direction from ship to center
               const directionY = -shipY / distance;
-              const shortfall = (asteroidSize.width / 2) * 0.05; // 5% of radius
-              const laserEndX = center + directionX * shortfall;
-              const laserEndY = center + directionY * shortfall;
+              const shortfall = (asteroidSize.width / 2) * 0.2; // 10% of radius
+              const laserEndX = center - directionX * shortfall;
+              const laserEndY = center - directionY * shortfall;
 
               return (
                 <div className="ships-around-rock">
@@ -235,14 +235,14 @@ export default function ResultDisplay({
                         const center = svgSize / 2;
                         // Laser starts at ship position (center of ship image)
                         const laserStartX = center + x;
-                        const laserStartY = center + y;
+                        const laserStartY = center + y - 10;
                         // Laser ends 5% short of asteroid center
                         const distance = Math.sqrt(x * x + y * y);
                         const directionX = -x / distance; // Normalized direction from ship to center
                         const directionY = -y / distance;
-                        const shortfall = (asteroidSize.width / 2) * 0.05; // 5% of radius
-                        const laserEndX = center + directionX * shortfall;
-                        const laserEndY = center + directionY * shortfall;
+                        const shortfall = (asteroidSize.width / 2) * 0.25; // 5% of radius
+                        const laserEndX = center - directionX * shortfall;
+                        const laserEndY = center - directionY * shortfall;
 
                         return (
                           <svg
@@ -305,12 +305,16 @@ export default function ResultDisplay({
 
                         // Lower left position (index 2): mirrored + counter-clockwise 30°
                         if (index === 2) {
-                          shipTransform = "rotate(30deg)";
+                          shipTransform = isLeftSide
+                            ? "scaleX(-1) rotate(30deg)"
+                            : "rotate(30deg)";
                         }
 
                         // Lower right position (index 1): clockwise 30°
                         if (index === 1) {
-                          shipTransform = "rotate(-30deg)";
+                          shipTransform = isLeftSide
+                            ? "scaleX(-1) rotate(-30deg)"
+                            : "rotate(30deg)";
                         }
 
                         if (shipInstance.ship.id === "golem") {
