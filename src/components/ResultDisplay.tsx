@@ -110,7 +110,7 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                     position: 'absolute',
                     top: '50%',
                     left: 'calc(50% - 120px)',
-                    transform: 'translate(-50%, -50%) scaleX(-1)', // Mirror for left side
+                    transform: 'translate(-50%, -50%)',
                   }}
                   title={selectedShip.name}
                 >
@@ -119,7 +119,7 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                       src={golemShipImage}
                       alt="GOLEM"
                       className="ship-image"
-                      style={{ width: '60px', height: '24px', imageRendering: 'pixelated' }}
+                      style={{ width: '90px', height: '36px', imageRendering: 'pixelated', transform: 'scaleX(-1)' }}
                     />
                   ) : (
                     <div className="ship-symbol">{getShipIcon(selectedShip.id)}</div>
@@ -184,7 +184,7 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                         position: 'absolute',
                         top: `calc(50% + ${y}px)`,
                         left: `calc(50% + ${x}px)`,
-                        transform: `translate(-50%, -50%) ${x < 0 ? 'scaleX(-1)' : ''}`, // Mirror if on left side
+                        transform: 'translate(-50%, -50%)',
                       }}
                       onClick={() => onToggleShip && onToggleShip(shipInstance.id)}
                       title={`${shipInstance.name} (${shipInstance.ship.name.split(' ').slice(1).join(' ')}) - ${isActive ? 'ACTIVE' : 'INACTIVE'} (Click to toggle)`}
@@ -194,7 +194,12 @@ export default function ResultDisplay({ result, rock, miningGroup, selectedShip,
                           src={golemShipImage}
                           alt="GOLEM"
                           className="ship-image"
-                          style={{ width: '60px', height: '24px', imageRendering: 'pixelated' }}
+                          style={{
+                            width: '90px',
+                            height: '36px',
+                            imageRendering: 'pixelated',
+                            transform: x < 0 ? 'scaleX(-1)' : 'none'
+                          }}
                         />
                       ) : (
                         <div className="ship-symbol">{getShipIcon(shipInstance.ship.id)}</div>
