@@ -14,10 +14,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const rock: Rock = { mass: 11187, resistance: 17 };
       const emptyConfig: MiningConfiguration = {
         lasers: [{ laserHead: null, modules: [null, null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
-      const result = calculateBreakability(emptyConfig, rock);
+      const result = calculateBreakability(emptyConfig, rock, gadgets);
 
       // Base LP Needed = (11187 / (1 - (17 * 0.01))) / 5 = 2695.6627
       expect(result.baseLPNeeded).toBeCloseTo(2695.6627, 2);
@@ -32,10 +32,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: hofstedeS2,
           modules: [null, null, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Adjusted Resistance = 17 * 0.7 = 11.9
       expect(result.adjustedResistance).toBeCloseTo(11.9, 2);
@@ -50,10 +50,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: hofstedeS2,
           modules: [null, null, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Adjusted LP Needed = (11187 / (1 - (11.9 * 0.01))) / 5 = 2539.6141
       expect(result.adjustedLPNeeded).toBeCloseTo(2539.6141, 2);
@@ -71,11 +71,11 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: hofstedeS2,
           modules: [riegerC3, focusIII, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 11187, resistance: 17 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Laser Power = 3360 * 1.25 * 0.95 = 3990
       expect(result.totalLaserPower).toBeCloseTo(3990, 0);
@@ -102,10 +102,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(3150);
     });
@@ -114,10 +114,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: helixI, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(3150);
     });
@@ -126,10 +126,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const kleinS1 = LASER_HEADS.find(l => l.id === 'klein-s1')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: kleinS1, modules: [] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(2220);
     });
@@ -138,10 +138,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: helixII, modules: [null, null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(4080);
     });
@@ -157,10 +157,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: pitman,
           modules: [brandt, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // 3150 * 1.35 = 4252.5
       expect(result.totalLaserPower).toBeCloseTo(4252.5, 1);
@@ -175,10 +175,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: pitman,
           modules: [surge, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // 3150 * 1.5 = 4725
       expect(result.totalLaserPower).toBeCloseTo(4725, 0);
@@ -194,10 +194,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: pitman,
           modules: [stampede, riegerC3],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // 3150 * 1.35 * 1.25 = 5315.625
       expect(result.totalLaserPower).toBeCloseTo(5315.625, 1);
@@ -209,10 +209,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: helixI, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Adjusted Resistance = 20 * 0.7 = 14
       expect(result.adjustedResistance).toBeCloseTo(14, 1);
@@ -222,10 +222,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const kleinS1 = LASER_HEADS.find(l => l.id === 'klein-s1')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: kleinS1, modules: [] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Adjusted Resistance = 20 * 0.55 = 11
       expect(result.adjustedResistance).toBeCloseTo(11, 1);
@@ -240,10 +240,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: pitman, // resist = 1.25
           modules: [brandt, null], // resist = 1.15
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 * 1.15 = 1.4375
       // Adjusted Resistance = 20 * 1.4375 = 28.75
@@ -260,10 +260,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: pitman, // resist = 1.25
           modules: [rime, null], // resist = 0.75
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 * 0.75 = 0.9375
       // Adjusted Resistance = 20 * 0.9375 = 18.75
@@ -281,10 +281,10 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: helixI,
           modules: [lifeline, rime],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 0.7 * 0.85 * 0.75 = 0.44625
       // Adjusted Resistance = 20 * 0.44625 = 8.925
@@ -300,10 +300,10 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [optimax, null, null],
       };
+      const gadgets = [optimax, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 (pitman) * 0.7 (optimax) = 0.875
       // Adjusted Resistance = 20 * 0.875 = 17.5
@@ -317,10 +317,10 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [sabir, null, null],
       };
+      const gadgets = [sabir, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 (pitman) * 0.5 (sabir) = 0.625
       // Adjusted Resistance = 20 * 0.625 = 12.5
@@ -334,10 +334,10 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [boremax, null, null],
       };
+      const gadgets = [boremax, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 (pitman) * 1.1 (boremax) = 1.375
       // Adjusted Resistance = 20 * 1.375 = 27.5
@@ -352,10 +352,10 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [optimax, sabir, null],
       };
+      const gadgets = [optimax, sabir, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 1.25 * 0.7 * 0.5 = 0.4375
       // Adjusted Resistance = 20 * 0.4375 = 8.75
@@ -373,10 +373,10 @@ describe('Mining Calculator - Core Formulas', () => {
           { laserHead: pitman, modules: [null, null] },
           { laserHead: pitman, modules: [null, null] },
         ],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Power = 3150 + 3150 = 6300
       expect(result.totalLaserPower).toBe(6300);
@@ -390,10 +390,10 @@ describe('Mining Calculator - Core Formulas', () => {
           { laserHead: helixI, modules: [null, null] },
           { laserHead: helixI, modules: [null, null] },
         ],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Resist Modifier = 0.7 * 0.7 = 0.49
       // Adjusted Resistance = 20 * 0.49 = 9.8
@@ -411,10 +411,10 @@ describe('Mining Calculator - Core Formulas', () => {
           { laserHead: helixII, modules: [surge, null, null] },
           { laserHead: helixII, modules: [surge, null, null] },
         ],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 15000, resistance: 25 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Total Power = (4080 * 1.5) * 3 = 18360
       expect(result.totalLaserPower).toBeCloseTo(18360, 0);
@@ -435,11 +435,11 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: hofstedeS2,
           modules: [riegerC3, focusIII, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 11187, resistance: 17 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.canBreak).toBe(true);
       expect(result.totalLaserPower).toBeGreaterThan(result.adjustedLPNeeded);
@@ -450,11 +450,11 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: arborMH1, modules: [null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 50000, resistance: 50 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.canBreak).toBe(false);
       expect(result.totalLaserPower).toBeLessThan(result.adjustedLPNeeded);
@@ -465,8 +465,8 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       // Pitman power = 3150, resist modifier = 1.25
       // Adjusted LP = (mass / (1 - (resist * 1.25 * 0.01))) / 5
@@ -474,7 +474,7 @@ describe('Mining Calculator - Core Formulas', () => {
       // 3150 = (mass / (1 - (25 * 0.01))) / 5
       // mass = 3150 * 5 * 0.75 = 11812.5
       const rock: Rock = { mass: 11812.5, resistance: 20 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.canBreak).toBe(true);
       expect(result.totalLaserPower).toBeCloseTo(result.adjustedLPNeeded, 0);
@@ -493,11 +493,11 @@ describe('Mining Calculator - Core Formulas', () => {
           laserHead: hofstedeS2,
           modules: [riegerC3, focusIII, null],
         }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 11187, resistance: 17 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // Power Margin = 3990 - 2539.6141 = 1450.3859
       expect(result.powerMargin).toBeCloseTo(1450.3859, 2);
@@ -511,11 +511,11 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [{ laserHead: arborMH1, modules: [null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 10000, resistance: 30 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.powerMargin).toBeLessThan(0);
       expect(result.powerMarginPercent).toBeLessThan(0);
@@ -526,10 +526,10 @@ describe('Mining Calculator - Core Formulas', () => {
     it('should handle no laser configuration', () => {
       const config: MiningConfiguration = {
         lasers: [{ laserHead: null, modules: [null, null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(0);
       expect(result.canBreak).toBe(false);
@@ -539,10 +539,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 0, resistance: 10 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.baseLPNeeded).toBe(0);
       expect(result.adjustedLPNeeded).toBe(0);
@@ -553,10 +553,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
       const config: MiningConfiguration = {
         lasers: [{ laserHead: pitman, modules: [null, null] }],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 1000, resistance: 0 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       // With resist=0: LP = (1000 / (1 - 0)) / 5 = 200
       expect(result.baseLPNeeded).toBe(200);
@@ -574,10 +574,10 @@ describe('Mining Calculator - Core Formulas', () => {
           { laserHead: helixII, modules: [surge, null, null] },
           { laserHead: helixII, modules: [surge, null, null] },
         ],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
       const rock: Rock = { mass: 100000, resistance: 50 };
-      const result = calculateBreakability(config, rock);
+      const result = calculateBreakability(config, rock, gadgets);
 
       expect(result.baseLPNeeded).toBeGreaterThan(0);
       expect(result.adjustedLPNeeded).toBeGreaterThan(0);
@@ -597,7 +597,6 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 1',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
@@ -608,18 +607,17 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 2',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
 
       const group: MiningGroup = {
         ships: [ship1, ship2],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 20000, resistance: 30 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       // Total Power = 3150 + 3150 = 6300
       expect(result.totalLaserPower).toBe(6300);
@@ -636,7 +634,6 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 1',
         config: {
           lasers: [{ laserHead: helixI, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
@@ -647,18 +644,17 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 2',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
 
       const group: MiningGroup = {
         ships: [ship1, ship2],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 20000, resistance: 30 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       // Average Resist Modifier = (0.7 + 1.25) / 2 = 0.975
       expect(result.totalResistModifier).toBeCloseTo(0.975, 3);
@@ -674,7 +670,6 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 1',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
@@ -685,18 +680,17 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 2',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: false, // Inactive
       };
 
       const group: MiningGroup = {
         ships: [ship1, ship2],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 20000, resistance: 30 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       // Only ship1 power should count
       expect(result.totalLaserPower).toBe(3150);
@@ -716,18 +710,17 @@ describe('Mining Calculator - Group Operations', () => {
             { laserHead: helixII, modules: [null, null, null], isManned: true },
             { laserHead: helixII, modules: [null, null, null], isManned: false },
           ],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
 
       const group: MiningGroup = {
         ships: [ship],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 20000, resistance: 30 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       // Only 2 manned lasers: 4080 * 2 = 8160
       expect(result.totalLaserPower).toBe(8160);
@@ -744,18 +737,17 @@ describe('Mining Calculator - Group Operations', () => {
         name: 'Ship 1',
         config: {
           lasers: [{ laserHead: pitman, modules: [null, null] }],
-          gadgets: [null, null, null],
         },
         isActive: true,
       };
 
       const group: MiningGroup = {
         ships: [ship],
-        gadgets: [sabir, null, null],
       };
+      const gadgets = [sabir, null, null];
 
       const rock: Rock = { mass: 10000, resistance: 20 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       // Resist Modifier = 1.25 (pitman) * 0.5 (sabir) = 0.625
       expect(result.totalResistModifier).toBeCloseTo(0.625, 3);
@@ -764,11 +756,11 @@ describe('Mining Calculator - Group Operations', () => {
     it('should handle empty group (no active ships)', () => {
       const group: MiningGroup = {
         ships: [],
-        gadgets: [null, null, null],
       };
+      const gadgets = [null, null, null];
 
       const rock: Rock = { mass: 10000, resistance: 20 };
-      const result = calculateGroupBreakability(group, rock);
+      const result = calculateGroupBreakability(group, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(0);
       expect(result.canBreak).toBe(false);

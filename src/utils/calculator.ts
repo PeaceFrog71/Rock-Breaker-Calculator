@@ -1,4 +1,4 @@
-import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration, MiningGroup } from '../types';
+import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration, MiningGroup, Gadget } from '../types';
 
 /**
  * Calculate power for a single laser with its modules
