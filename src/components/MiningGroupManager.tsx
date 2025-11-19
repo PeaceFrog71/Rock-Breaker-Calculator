@@ -35,18 +35,16 @@ export default function MiningGroupManager({
       return;
     }
 
-    const newGroup = saveMiningGroup(groupName, currentMiningGroup);
+    saveMiningGroup(groupName, currentMiningGroup);
     setSavedGroups(getSavedMiningGroups());
     setGroupName('');
     setShowDialog(false);
-    alert(`Mining group "${newGroup.name}" saved!`);
   };
 
   const handleLoad = (id: string) => {
     const group = loadMiningGroup(id);
     if (group) {
       onLoad(group.miningGroup);
-      alert(`Loaded mining group "${group.name}"`);
     }
   };
 

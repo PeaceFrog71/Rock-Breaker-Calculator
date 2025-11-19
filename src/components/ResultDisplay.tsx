@@ -77,6 +77,23 @@ export default function ResultDisplay({
   return (
     <div className="result-display">
       <div className="rock-display">
+        {/* Rock stats column on the left */}
+        <div className="rock-stats-sidebar">
+          {rock.name && <div className="rock-title">{rock.name}</div>}
+          <div className="rock-stat-item">
+            <div className="stat-label-top">Mass</div>
+            <div className="stat-value-bottom">{rock.mass.toFixed(0)}</div>
+          </div>
+          <div className="rock-stat-item">
+            <div className="stat-label-top">Size</div>
+            <div className="stat-value-bottom">{getRockSize()}</div>
+          </div>
+          <div className="rock-stat-item">
+            <div className="stat-label-top">Resistance</div>
+            <div className="stat-value-bottom">{rock.resistance.toFixed(1)}%</div>
+          </div>
+        </div>
+
         <div className="rock-container">
           {/* Single ship positioned to the left */}
           {!miningGroup &&
@@ -217,13 +234,18 @@ export default function ResultDisplay({
                 const positions = [60, 120, 240, 300];
                 const angle = positions[index] || 60;
                 const asteroidSize = getAsteroidSize();
-                // Position ships at 110% of asteroid radius
+                // Position ships at radius that scales with rock size
                 const asteroidRadius = asteroidSize.width / 2;
-                const radius = asteroidRadius * 1.1;
+                // Add extra spacing for tiny and small rocks
+                let radiusMultiplier = 1.15;
+                if (rock.mass < 15000) radiusMultiplier = 1.65; // Tiny
+                else if (rock.mass < 25000) radiusMultiplier = 1.35; // Small
+                const radius = asteroidRadius * radiusMultiplier;
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
                 const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius;
+                // Move ships up by 20% of asteroid height
+                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius - (asteroidSize.height * 0.2);
                 const isActive = shipInstance.isActive !== false;
 
                 return (
@@ -305,16 +327,12 @@ export default function ResultDisplay({
 
                         // Lower left position (index 2): mirrored + counter-clockwise 30°
                         if (index === 2) {
-                          shipTransform = isLeftSide
-                            ? "scaleX(-1) rotate(30deg)"
-                            : "rotate(30deg)";
+                          shipTransform = "scaleX(-1) rotate(30deg)";
                         }
 
                         // Lower right position (index 1): clockwise 30°
                         if (index === 1) {
-                          shipTransform = isLeftSide
-                            ? "scaleX(-1) rotate(-30deg)"
-                            : "rotate(30deg)";
+                          shipTransform = "rotate(30deg)";
                         }
 
                         if (shipInstance.ship.id === "golem") {
@@ -378,15 +396,7 @@ export default function ResultDisplay({
           )}
 
           {/* Rock in center */}
-          <div className={`rock-icon ${getStatusClass()}`}>
-            <div className="rock-stats-above">
-              <div className="rock-stat-item">Mass: {rock.mass.toFixed(0)}</div>
-              <div className="rock-stat-item">Size: {getRockSize()}</div>
-              <div className="rock-stat-item">
-                Res: {rock.resistance.toFixed(1)}%
-              </div>
-            </div>
-            {rock.name && <div className="rock-name">{rock.name}</div>}
+          <div className={`rock-icon ${getStatusClass()}`} style={{ position: 'relative', top: '-15%' }}>
             <div className="rock-symbol">
               <img
                 src={asteroidImage}

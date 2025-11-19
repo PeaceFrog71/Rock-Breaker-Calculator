@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import type { MiningGroup, ShipInstance } from '../types';
-import { SHIPS, LASER_HEADS } from '../types';
 import ShipConfigModal from './ShipConfigModal';
 import ShipPoolLibrary from './ShipPoolLibrary';
 import MiningGroupManager from './MiningGroupManager';
 import { saveShipInstance } from '../utils/storage';
-import { createEmptyConfig } from '../utils/calculator';
 import './ShipPoolManager.css';
 
 interface ShipPoolManagerProps {
@@ -24,24 +22,9 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
       return;
     }
 
-    // Create default Prospector with Arbor MH1
-    const prospectorShip = SHIPS.find(s => s.id === 'prospector');
-    const arborMH1 = LASER_HEADS.find(h => h.id === 'arbor-mh1');
-
-    if (!prospectorShip || !arborMH1) return;
-
-    const config = createEmptyConfig(prospectorShip.laserSlots);
-    config.lasers[0].laserHead = arborMH1;
-
-    const newShip: ShipInstance = {
-      id: `ship-${Date.now()}`,
-      ship: prospectorShip,
-      name: `${prospectorShip.name} ${miningGroup.ships.length + 1}`,
-      config: config,
-      isActive: true,
-    };
-
-    onChange({ ...miningGroup, ships: [...miningGroup.ships, newShip] });
+    // Open modal to configure new ship
+    setEditingShip(undefined);
+    setIsModalOpen(true);
   };
 
   const handleEditShip = (ship: ShipInstance) => {
@@ -87,7 +70,6 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
     const name = prompt('Enter a name for this ship configuration:', ship.name);
     if (name && name.trim()) {
       saveShipInstance(name, ship);
-      alert(`Ship "${name}" saved to library!`);
     }
   };
 

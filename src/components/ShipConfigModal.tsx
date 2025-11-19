@@ -27,9 +27,37 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
         setConfig(editingShip.config);
         setIsNameCustomized(editingShip.name !== editingShip.ship.name);
       } else {
-        setSelectedShip(SHIPS[0]);
-        setShipName(SHIPS[0].name);
-        setConfig(createEmptyConfig(SHIPS[0].laserSlots));
+        const defaultShip = SHIPS[0];
+        setSelectedShip(defaultShip);
+        setShipName(defaultShip.name);
+
+        const newConfig = createEmptyConfig(defaultShip.laserSlots);
+
+        // Set default laser heads based on ship type
+        if (defaultShip.id === 'prospector') {
+          const arborMH1 = LASER_HEADS.find((h) => h.id === 'arbor-mh1');
+          if (arborMH1) {
+            newConfig.lasers[0].laserHead = arborMH1;
+            newConfig.lasers[0].modules = Array(arborMH1.moduleSlots).fill(null);
+          }
+        } else if (defaultShip.id === 'golem') {
+          const pitmanLaser = LASER_HEADS.find((h) => h.id === 'pitman');
+          if (pitmanLaser) {
+            newConfig.lasers[0].laserHead = pitmanLaser;
+            newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
+          }
+        } else if (defaultShip.id === 'mole') {
+          // MOLE: Default all 3 lasers to Arbor MH2
+          const arborMH2 = LASER_HEADS.find((h) => h.id === 'arbor-mh2');
+          if (arborMH2) {
+            newConfig.lasers.forEach((laser) => {
+              laser.laserHead = arborMH2;
+              laser.modules = Array(arborMH2.moduleSlots).fill(null);
+            });
+          }
+        }
+
+        setConfig(newConfig);
         setIsNameCustomized(false);
       }
     }
@@ -50,11 +78,27 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
 
     const newConfig = createEmptyConfig(ship.laserSlots);
 
-    // If GOLEM, automatically set Pitman laser
-    if (ship.id === 'golem') {
+    // Set default laser heads based on ship type
+    if (ship.id === 'prospector') {
+      const arborMH1 = LASER_HEADS.find((h) => h.id === 'arbor-mh1');
+      if (arborMH1) {
+        newConfig.lasers[0].laserHead = arborMH1;
+        newConfig.lasers[0].modules = Array(arborMH1.moduleSlots).fill(null);
+      }
+    } else if (ship.id === 'golem') {
       const pitmanLaser = LASER_HEADS.find((h) => h.id === 'pitman');
       if (pitmanLaser) {
         newConfig.lasers[0].laserHead = pitmanLaser;
+        newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
+      }
+    } else if (ship.id === 'mole') {
+      // MOLE: Default all 3 lasers to Arbor MH2
+      const arborMH2 = LASER_HEADS.find((h) => h.id === 'arbor-mh2');
+      if (arborMH2) {
+        newConfig.lasers.forEach((laser) => {
+          laser.laserHead = arborMH2;
+          laser.modules = Array(arborMH2.moduleSlots).fill(null);
+        });
       }
     }
 
@@ -73,7 +117,6 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
       ship: selectedShip,
       name: shipName,
       config: config,
-      position: editingShip?.position,
       isActive: editingShip?.isActive !== undefined ? editingShip.isActive : true,
     };
 

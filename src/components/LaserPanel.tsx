@@ -13,7 +13,10 @@ interface LaserPanelProps {
 export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, showMannedToggle }: LaserPanelProps) {
   const handleLaserHeadChange = (headId: string) => {
     const head = LASER_HEADS.find((h) => h.id === headId) || null;
-    onChange({ ...laser, laserHead: head });
+    // Reset modules array to match the new laser head's module slot count
+    const moduleSlots = head?.moduleSlots || 3;
+    const newModules = Array(moduleSlots).fill(null);
+    onChange({ ...laser, laserHead: head, modules: newModules });
   };
 
   const handleModuleChange = (moduleIndex: number, moduleId: string) => {

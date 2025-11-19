@@ -61,12 +61,14 @@ function App() {
       const pitmanLaser = LASER_HEADS.find((h) => h.id === "pitman");
       if (pitmanLaser) {
         newConfig.lasers[0].laserHead = pitmanLaser;
+        newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
       }
     } else if (ship.id === "prospector") {
       // Prospector: Default to first S1 laser (Arbor MH1)
       const defaultS1Laser = LASER_HEADS.find((h) => h.size === 1 && h.id !== 'none' && h.id !== 'pitman');
       if (defaultS1Laser) {
         newConfig.lasers[0].laserHead = defaultS1Laser;
+        newConfig.lasers[0].modules = Array(defaultS1Laser.moduleSlots).fill(null);
       }
     } else if (ship.id === "mole") {
       // MOLE: Default all 3 lasers to first S2 laser (Arbor MH2)
@@ -74,6 +76,7 @@ function App() {
       if (defaultS2Laser) {
         newConfig.lasers.forEach((laser) => {
           laser.laserHead = defaultS2Laser;
+          laser.modules = Array(defaultS2Laser.moduleSlots).fill(null);
         });
       }
     }

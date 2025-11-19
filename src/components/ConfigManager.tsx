@@ -34,18 +34,16 @@ export default function ConfigManager({
       return;
     }
 
-    const newConfig = saveConfiguration(configName, currentShip, currentConfig);
+    saveConfiguration(configName, currentShip, currentConfig);
     setSavedConfigs(getSavedConfigurations());
     setConfigName('');
     setShowDialog(false);
-    alert(`Configuration "${newConfig.name}" saved!`);
   };
 
   const handleLoad = (id: string) => {
     const config = loadConfiguration(id);
     if (config) {
       onLoad(config.ship, config.config);
-      alert(`Loaded configuration "${config.name}"`);
     }
   };
 

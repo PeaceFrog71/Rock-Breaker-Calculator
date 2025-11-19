@@ -31,7 +31,6 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
         id: `ship-${Date.now()}`,
       };
       onLoadShip(newShipInstance);
-      alert(`Loaded ship "${ship.name}"`);
     }
   };
 
@@ -54,7 +53,6 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
         isActive: true,
       };
       onLoadShip(newShipInstance);
-      alert(`Loaded ship "${config.name}" from Single Ship Library`);
     }
   };
 
