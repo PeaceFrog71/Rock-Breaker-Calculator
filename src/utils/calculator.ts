@@ -68,11 +68,11 @@ export function calculateBreakability(
   // Calculate adjusted resistance
   const adjustedResistance = rock.resistance * totalResistModifier;
 
-  // Calculate base LP needed (from Excel: Rock Mass * Base Resistance / 108.7)
-  const baseLPNeeded = (rock.mass * rock.resistance) / 108.7;
+  // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
+  const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
 
   // Calculate adjusted LP needed
-  const adjustedLPNeeded = (rock.mass * adjustedResistance) / 108.7;
+  const adjustedLPNeeded = (rock.mass / (1 - (adjustedResistance * 0.01))) / 5;
 
   // Determine if rock can be broken
   const canBreak = totalLaserPower >= adjustedLPNeeded;
@@ -142,12 +142,13 @@ export function calculateGroupBreakability(
 
   if (activeShips.length === 0) {
     // No active ships in group, return empty result
+    const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
     return {
       totalLaserPower: 0,
       totalResistModifier: 1,
       adjustedResistance: rock.resistance,
-      baseLPNeeded: (rock.mass * rock.resistance) / 108.7,
-      adjustedLPNeeded: (rock.mass * rock.resistance) / 108.7,
+      baseLPNeeded,
+      adjustedLPNeeded: baseLPNeeded,
       canBreak: false,
       powerMargin: 0,
       powerMarginPercent: 0,
@@ -210,11 +211,11 @@ export function calculateGroupBreakability(
   // Calculate adjusted resistance
   const adjustedResistance = rock.resistance * totalResistModifier;
 
-  // Calculate base LP needed
-  const baseLPNeeded = (rock.mass * rock.resistance) / 108.7;
+  // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
+  const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
 
   // Calculate adjusted LP needed
-  const adjustedLPNeeded = (rock.mass * adjustedResistance) / 108.7;
+  const adjustedLPNeeded = (rock.mass / (1 - (adjustedResistance * 0.01))) / 5;
 
   // Determine if rock can be broken
   const canBreak = totalLaserPower >= adjustedLPNeeded;

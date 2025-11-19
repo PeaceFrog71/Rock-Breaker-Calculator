@@ -10,7 +10,7 @@ import type { MiningConfiguration, Rock, MiningGroup, ShipInstance } from '../ty
 
 describe('Mining Calculator - Core Formulas', () => {
   describe('Basic Formula Verification', () => {
-    it('should calculate base LP needed correctly: (mass * resistance) / 108.7', () => {
+    it('should calculate base LP needed correctly: (mass / (1 - (resistance * 0.01))) / 5', () => {
       const rock: Rock = { mass: 11187, resistance: 17 };
       const emptyConfig: MiningConfiguration = {
         lasers: [{ laserHead: null, modules: [null, null, null] }],
@@ -19,8 +19,8 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const result = calculateBreakability(emptyConfig, rock);
 
-      // Base LP Needed = (11187 * 17) / 108.7 = 1749.5768
-      expect(result.baseLPNeeded).toBeCloseTo(1749.5768, 2);
+      // Base LP Needed = (11187 / (1 - (17 * 0.01))) / 5 = 2695.6627
+      expect(result.baseLPNeeded).toBeCloseTo(2695.6627, 2);
     });
 
     it('should calculate adjusted resistance: rock.resistance * totalResistModifier', () => {
@@ -41,7 +41,7 @@ describe('Mining Calculator - Core Formulas', () => {
       expect(result.adjustedResistance).toBeCloseTo(11.9, 2);
     });
 
-    it('should calculate adjusted LP needed: (mass * adjustedResistance) / 108.7', () => {
+    it('should calculate adjusted LP needed: (mass / (1 - (adjustedResistance * 0.01))) / 5', () => {
       const rock: Rock = { mass: 11187, resistance: 17 };
       const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
 
@@ -55,8 +55,8 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const result = calculateBreakability(config, rock);
 
-      // Adjusted LP Needed = (11187 * 11.9) / 108.7 = 1224.7038
-      expect(result.adjustedLPNeeded).toBeCloseTo(1224.7038, 2);
+      // Adjusted LP Needed = (11187 / (1 - (11.9 * 0.01))) / 5 = 2539.6141
+      expect(result.adjustedLPNeeded).toBeCloseTo(2539.6141, 2);
     });
   });
 
@@ -86,14 +86,14 @@ describe('Mining Calculator - Core Formulas', () => {
       // Adjusted Resistance = 17 * 0.7 = 11.9
       expect(result.adjustedResistance).toBeCloseTo(11.9, 1);
 
-      // Adjusted LP Needed = (11187 * 11.9) / 108.7 = 1224.7038
-      expect(result.adjustedLPNeeded).toBeCloseTo(1224.7038, 2);
+      // Adjusted LP Needed = (11187 / (1 - (11.9 * 0.01))) / 5 = 2539.6141
+      expect(result.adjustedLPNeeded).toBeCloseTo(2539.6141, 2);
 
-      // Can Break? 3990 >= 1224.7038 = Yes
+      // Can Break? 3990 >= 2539.6141 = Yes
       expect(result.canBreak).toBe(true);
 
-      // Power Margin = 3990 - 1224.7038 = 2765.2962
-      expect(result.powerMargin).toBeCloseTo(2765.2962, 2);
+      // Power Margin = 3990 - 2539.6141 = 1450.3859
+      expect(result.powerMargin).toBeCloseTo(1450.3859, 2);
     });
   });
 
@@ -469,12 +469,11 @@ describe('Mining Calculator - Core Formulas', () => {
       };
 
       // Pitman power = 3150, resist modifier = 1.25
-      // Adjusted LP = (mass * resist * 1.25) / 108.7
+      // Adjusted LP = (mass / (1 - (resist * 1.25 * 0.01))) / 5
       // We want exactly 3150
-      // 3150 = (mass * resist * 1.25) / 108.7
-      // mass * resist = 3150 * 108.7 / 1.25 = 273,924
-      // Let's use mass=13696.2, resist=20 -> 13696.2 * 20 = 273,924
-      const rock: Rock = { mass: 13696.2, resistance: 20 };
+      // 3150 = (mass / (1 - (25 * 0.01))) / 5
+      // mass = 3150 * 5 * 0.75 = 11812.5
+      const rock: Rock = { mass: 11812.5, resistance: 20 };
       const result = calculateBreakability(config, rock);
 
       expect(result.canBreak).toBe(true);
@@ -500,11 +499,11 @@ describe('Mining Calculator - Core Formulas', () => {
       const rock: Rock = { mass: 11187, resistance: 17 };
       const result = calculateBreakability(config, rock);
 
-      // Power Margin = 3990 - 1224.7038 = 2765.2962
-      expect(result.powerMargin).toBeCloseTo(2765.2962, 2);
+      // Power Margin = 3990 - 2539.6141 = 1450.3859
+      expect(result.powerMargin).toBeCloseTo(1450.3859, 2);
 
-      // Power Margin % = (2765.2962 / 1224.7038) * 100 = 225.82%
-      expect(result.powerMarginPercent).toBeCloseTo(225.82, 1);
+      // Power Margin % = (1450.3859 / 2539.6141) * 100 = 57.11%
+      expect(result.powerMarginPercent).toBeCloseTo(57.11, 1);
     });
 
     it('should calculate negative power margin correctly', () => {
@@ -559,9 +558,10 @@ describe('Mining Calculator - Core Formulas', () => {
       const rock: Rock = { mass: 1000, resistance: 0 };
       const result = calculateBreakability(config, rock);
 
-      expect(result.baseLPNeeded).toBe(0);
-      expect(result.adjustedLPNeeded).toBe(0);
-      expect(result.canBreak).toBe(true);
+      // With resist=0: LP = (1000 / (1 - 0)) / 5 = 200
+      expect(result.baseLPNeeded).toBe(200);
+      expect(result.adjustedLPNeeded).toBe(200);
+      expect(result.canBreak).toBe(true); // Pitman has 3150 power
     });
 
     it('should handle very large rock', () => {
