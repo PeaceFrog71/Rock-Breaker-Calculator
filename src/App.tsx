@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import "./App.css";
-import type { MiningConfiguration, Ship, Rock, MiningGroup } from "./types";
+import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
 import { SHIPS, LASER_HEADS } from "./types";
 import {
   createEmptyConfig,
@@ -36,8 +36,8 @@ function App() {
   });
   const [miningGroup, setMiningGroup] = useState<MiningGroup>({
     ships: [],
-    gadgets: [null, null, null],
   });
+  const [gadgets, setGadgets] = useState<(Gadget | null)[]>([null, null, null]);
   const [useMiningGroup, setUseMiningGroup] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
 
@@ -48,8 +48,8 @@ function App() {
 
   // Calculate result based on mode (single ship or mining group)
   const result = useMiningGroup
-    ? calculateGroupBreakability(miningGroup, rock)
-    : calculateBreakability(config, rock);
+    ? calculateGroupBreakability(miningGroup, rock, gadgets)
+    : calculateBreakability(config, rock, gadgets);
 
   const handleShipChange = (ship: Ship) => {
     setSelectedShip(ship);
@@ -116,6 +116,7 @@ function App() {
               <ResultDisplay
                 result={result}
                 rock={rock}
+                gadgets={gadgets}
                 miningGroup={useMiningGroup ? miningGroup : undefined}
                 config={!useMiningGroup ? config : undefined}
                 selectedShip={!useMiningGroup ? selectedShip : undefined}
@@ -129,19 +130,10 @@ function App() {
             <div className="rock-config-tab">
               <RockInput rock={rock} onChange={setRock} />
 
-              {useMiningGroup ? (
-                <GadgetSelector
-                  gadgets={miningGroup.gadgets}
-                  onChange={(gadgets) =>
-                    setMiningGroup({ ...miningGroup, gadgets })
-                  }
-                />
-              ) : (
-                <GadgetSelector
-                  gadgets={config.gadgets}
-                  onChange={(gadgets) => setConfig({ ...config, gadgets })}
-                />
-              )}
+              <GadgetSelector
+                gadgets={gadgets}
+                onChange={setGadgets}
+              />
             </div>
           )}
 

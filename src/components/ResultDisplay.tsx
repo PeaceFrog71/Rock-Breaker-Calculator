@@ -1,4 +1,4 @@
-import type { CalculationResult, Rock, MiningGroup, MiningConfiguration } from "../types";
+import type { CalculationResult, Rock, MiningGroup, Gadget } from "../types";
 import { formatPower, formatPercent } from "../utils/calculator";
 import { getGadgetSymbol } from "../types";
 import "./ResultDisplay.css";
@@ -10,8 +10,8 @@ import asteroidImage from "../assets/asteroid_pixel_120x48_true_transparent.png"
 interface ResultDisplayProps {
   result: CalculationResult;
   rock: Rock;
+  gadgets: (Gadget | null)[];
   miningGroup?: MiningGroup;
-  config?: MiningConfiguration;
   onToggleShip?: (shipId: string) => void;
 }
 
@@ -22,8 +22,8 @@ interface SingleShipDisplayProps {
 export default function ResultDisplay({
   result,
   rock,
+  gadgets,
   miningGroup,
-  config,
   selectedShip,
   onToggleShip,
 }: ResultDisplayProps & SingleShipDisplayProps) {
@@ -411,26 +411,20 @@ export default function ResultDisplay({
                 }}
               />
               {/* Gadget symbols ON the rock */}
-              {/* Show gadgets from mining group OR single ship config */}
-              {(() => {
-                const gadgets = miningGroup?.gadgets || config?.gadgets;
-                if (!gadgets || gadgets.length === 0) return null;
-
-                return (
-                  <div className="gadget-symbols-on-rock">
-                    {gadgets
-                      .filter((g) => g && g.id !== "none")
-                      .map((gadget, index) => (
-                        <span
-                          key={index}
-                          className="gadget-symbol-small"
-                          title={gadget!.name}>
-                          {getGadgetSymbol(gadget!.id)}
-                        </span>
-                      ))}
-                  </div>
-                );
-              })()}
+              {gadgets && gadgets.length > 0 && (
+                <div className="gadget-symbols-on-rock">
+                  {gadgets
+                    .filter((g) => g && g.id !== "none")
+                    .map((gadget, index) => (
+                      <span
+                        key={index}
+                        className="gadget-symbol-small"
+                        title={gadget!.name}>
+                        {getGadgetSymbol(gadget!.id)}
+                      </span>
+                    ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

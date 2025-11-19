@@ -101,7 +101,7 @@ export default function MiningGroupManager({
               <div className="config-info">
                 <div className="config-name">{group.name}</div>
                 <div className="config-meta">
-                  {group.miningGroup.ships.length} ship{group.miningGroup.ships.length > 1 ? 's' : ''} • {group.miningGroup.gadgets.filter(g => g && g.id !== 'none').length} gadget{group.miningGroup.gadgets.filter(g => g && g.id !== 'none').length > 1 ? 's' : ''}
+                  {group.miningGroup.ships.length} ship{group.miningGroup.ships.length > 1 ? 's' : ''}
                 </div>
                 <div className="config-date">
                   {new Date(group.updatedAt).toLocaleDateString()}

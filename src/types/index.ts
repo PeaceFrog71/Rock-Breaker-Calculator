@@ -32,7 +32,6 @@ export interface LaserConfiguration {
 
 export interface MiningConfiguration {
   lasers: LaserConfiguration[]; // Multiple lasers (1-6 depending on ship)
-  gadgets: (Gadget | null)[]; // Up to 3 gadgets
 }
 
 export interface Ship {
@@ -73,7 +72,6 @@ export interface ShipInstance {
 
 export interface MiningGroup {
   ships: ShipInstance[]; // Array of ships in the mining pool (max 4)
-  gadgets: (Gadget | null)[]; // Up to 3 gadgets for the entire group
 }
 
 // Ship presets

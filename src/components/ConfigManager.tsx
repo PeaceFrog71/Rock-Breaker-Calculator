@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import type { MiningConfiguration, Ship } from '../types';
-import type { SavedConfiguration } from '../utils/storage';
+import type { SavedShipConfig } from '../utils/storage';
 import {
-  getSavedConfigurations,
-  saveConfiguration,
-  deleteConfiguration,
-  loadConfiguration,
-  exportConfiguration,
-  importConfiguration,
+  getSavedShipConfigs,
+  saveShipConfig,
+  deleteShipConfig,
+  loadShipConfig,
+  exportShipConfig,
+  importShipConfig,
 } from '../utils/storage';
 import './ConfigManager.css';
 
@@ -22,8 +22,8 @@ export default function ConfigManager({
   currentConfig,
   onLoad,
 }: ConfigManagerProps) {
-  const [savedConfigs, setSavedConfigs] = useState<SavedConfiguration[]>(
-    getSavedConfigurations()
+  const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
+    getSavedShipConfigs()
   );
   const [showDialog, setShowDialog] = useState(false);
   const [configName, setConfigName] = useState('');
@@ -34,14 +34,14 @@ export default function ConfigManager({
       return;
     }
 
-    saveConfiguration(configName, currentShip, currentConfig);
-    setSavedConfigs(getSavedConfigurations());
+    saveShipConfig(configName, currentShip, currentConfig);
+    setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);
   };
 
   const handleLoad = (id: string) => {
-    const config = loadConfiguration(id);
+    const config = loadShipConfig(id);
     if (config) {
       onLoad(config.ship, config.config);
     }
@@ -49,22 +49,22 @@ export default function ConfigManager({
 
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Delete configuration "${name}"?`)) {
-      deleteConfiguration(id);
-      setSavedConfigs(getSavedConfigurations());
+      deleteShipConfig(id);
+      setSavedConfigs(getSavedShipConfigs());
     }
   };
 
-  const handleExport = (config: SavedConfiguration) => {
-    exportConfiguration(config);
+  const handleExport = (config: SavedShipConfig) => {
+    exportShipConfig(config);
   };
 
   const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    importConfiguration(file)
+    importShipConfig(file)
       .then((imported) => {
-        setSavedConfigs(getSavedConfigurations());
+        setSavedConfigs(getSavedShipConfigs());
         alert(`Imported configuration "${imported.name}"`);
       })
       .catch((error) => {

@@ -1,11 +1,15 @@
 import type { MiningConfiguration, Ship, MiningGroup, ShipInstance } from '../types';
 
-const STORAGE_KEY = 'rock-breaker-configs';
+// Unified ship library (replaces both single configs and ship pool)
+const SHIP_LIBRARY_KEY = 'rock-breaker-ship-library';
 const CURRENT_CONFIG_KEY = 'rock-breaker-current';
 const MINING_GROUPS_KEY = 'rock-breaker-mining-groups';
-const SHIP_POOL_KEY = 'rock-breaker-ship-pool';
 
-export interface SavedConfiguration {
+// Legacy keys for migration
+const LEGACY_CONFIGS_KEY = 'rock-breaker-configs';
+const LEGACY_SHIP_POOL_KEY = 'rock-breaker-ship-pool';
+
+export interface SavedShipConfig {
   id: string;
   name: string;
   ship: Ship;
@@ -17,43 +21,84 @@ export interface SavedConfiguration {
 export interface SavedMiningGroup {
   id: string;
   name: string;
-  miningGroup: MiningGroup;
+  miningGroup: MiningGroup; // Contains full ShipInstance data (no references)
   createdAt: number;
   updatedAt: number;
 }
 
-export interface SavedShipInstance {
-  id: string;
-  name: string;
-  shipInstance: ShipInstance;
-  createdAt: number;
-  updatedAt: number;
-}
+// Legacy interface for backward compatibility
+export interface SavedConfiguration extends SavedShipConfig {}
 
 /**
- * Get all saved configurations
+ * Migrate legacy data to unified ship library (runs automatically)
  */
-export function getSavedConfigurations(): SavedConfiguration[] {
+function migrateLegacyData(): void {
   try {
-    const data = localStorage.getItem(STORAGE_KEY);
+    const shipLibrary = localStorage.getItem(SHIP_LIBRARY_KEY);
+    if (shipLibrary) return; // Already migrated
+
+    const ships: SavedShipConfig[] = [];
+
+    // Migrate old single ship configs
+    const legacyConfigs = localStorage.getItem(LEGACY_CONFIGS_KEY);
+    if (legacyConfigs) {
+      const configs: SavedConfiguration[] = JSON.parse(legacyConfigs);
+      ships.push(...configs);
+    }
+
+    // Migrate old ship pool instances
+    const legacyPool = localStorage.getItem(LEGACY_SHIP_POOL_KEY);
+    if (legacyPool) {
+      const pool = JSON.parse(legacyPool);
+      pool.forEach((savedInstance: any) => {
+        const instance: ShipInstance = savedInstance.shipInstance;
+        ships.push({
+          id: savedInstance.id,
+          name: savedInstance.name,
+          ship: instance.ship,
+          config: instance.config,
+          createdAt: savedInstance.createdAt,
+          updatedAt: savedInstance.updatedAt,
+        });
+      });
+    }
+
+    if (ships.length > 0) {
+      localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(ships));
+      console.log(`Migrated ${ships.length} ships to unified library`);
+    }
+  } catch (error) {
+    console.error('Error migrating legacy data:', error);
+  }
+}
+
+// ===== UNIFIED SHIP LIBRARY =====
+
+/**
+ * Get all saved ship configurations from unified library
+ */
+export function getSavedShipConfigs(): SavedShipConfig[] {
+  migrateLegacyData(); // Auto-migrate on first access
+  try {
+    const data = localStorage.getItem(SHIP_LIBRARY_KEY);
     return data ? JSON.parse(data) : [];
   } catch (error) {
-    console.error('Error loading saved configurations:', error);
+    console.error('Error loading ship library:', error);
     return [];
   }
 }
 
 /**
- * Save a new configuration
+ * Save a new ship configuration to library
  */
-export function saveConfiguration(
+export function saveShipConfig(
   name: string,
   ship: Ship,
   config: MiningConfiguration
-): SavedConfiguration {
-  const configs = getSavedConfigurations();
+): SavedShipConfig {
+  const ships = getSavedShipConfigs();
 
-  const newConfig: SavedConfiguration = {
+  const newShip: SavedShipConfig = {
     id: Date.now().toString(),
     name,
     ship,
@@ -62,14 +107,81 @@ export function saveConfiguration(
     updatedAt: Date.now(),
   };
 
-  configs.push(newConfig);
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(configs));
+  ships.push(newShip);
+  localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(ships));
 
-  return newConfig;
+  return newShip;
 }
 
 /**
- * Update an existing configuration
+ * Update an existing ship configuration
+ */
+export function updateShipConfig(
+  id: string,
+  name: string,
+  ship: Ship,
+  config: MiningConfiguration
+): SavedShipConfig | null {
+  const ships = getSavedShipConfigs();
+  const index = ships.findIndex((s) => s.id === id);
+
+  if (index === -1) return null;
+
+  ships[index] = {
+    ...ships[index],
+    name,
+    ship,
+    config,
+    updatedAt: Date.now(),
+  };
+
+  localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(ships));
+  return ships[index];
+}
+
+/**
+ * Delete a ship configuration
+ */
+export function deleteShipConfig(id: string): boolean {
+  const ships = getSavedShipConfigs();
+  const filtered = ships.filter((s) => s.id !== id);
+
+  if (filtered.length === ships.length) return false;
+
+  localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(filtered));
+  return true;
+}
+
+/**
+ * Load a ship configuration by ID
+ */
+export function loadShipConfig(id: string): SavedShipConfig | null {
+  const ships = getSavedShipConfigs();
+  return ships.find((s) => s.id === id) || null;
+}
+
+// ===== LEGACY FUNCTIONS (for backward compatibility) =====
+
+/**
+ * @deprecated Use getSavedShipConfigs() instead
+ */
+export function getSavedConfigurations(): SavedConfiguration[] {
+  return getSavedShipConfigs();
+}
+
+/**
+ * @deprecated Use saveShipConfig() instead
+ */
+export function saveConfiguration(
+  name: string,
+  ship: Ship,
+  config: MiningConfiguration
+): SavedConfiguration {
+  return saveShipConfig(name, ship, config);
+}
+
+/**
+ * @deprecated Use updateShipConfig() instead
  */
 export function updateConfiguration(
   id: string,
@@ -77,42 +189,21 @@ export function updateConfiguration(
   ship: Ship,
   config: MiningConfiguration
 ): SavedConfiguration | null {
-  const configs = getSavedConfigurations();
-  const index = configs.findIndex((c) => c.id === id);
-
-  if (index === -1) return null;
-
-  configs[index] = {
-    ...configs[index],
-    name,
-    ship,
-    config,
-    updatedAt: Date.now(),
-  };
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(configs));
-  return configs[index];
+  return updateShipConfig(id, name, ship, config);
 }
 
 /**
- * Delete a configuration
+ * @deprecated Use deleteShipConfig() instead
  */
 export function deleteConfiguration(id: string): boolean {
-  const configs = getSavedConfigurations();
-  const filtered = configs.filter((c) => c.id !== id);
-
-  if (filtered.length === configs.length) return false;
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
-  return true;
+  return deleteShipConfig(id);
 }
 
 /**
- * Load a configuration by ID
+ * @deprecated Use loadShipConfig() instead
  */
 export function loadConfiguration(id: string): SavedConfiguration | null {
-  const configs = getSavedConfigurations();
-  return configs.find((c) => c.id === id) || null;
+  return loadShipConfig(id);
 }
 
 /**
@@ -145,9 +236,9 @@ export function loadCurrentConfiguration(): { ship: Ship; config: MiningConfigur
 }
 
 /**
- * Export configuration as JSON file
+ * Export ship configuration as JSON file
  */
-export function exportConfiguration(savedConfig: SavedConfiguration): void {
+export function exportShipConfig(savedConfig: SavedShipConfig): void {
   const dataStr = JSON.stringify(savedConfig, null, 2);
   const dataBlob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(dataBlob);
@@ -161,17 +252,17 @@ export function exportConfiguration(savedConfig: SavedConfiguration): void {
 }
 
 /**
- * Import configuration from JSON file
+ * Import ship configuration from JSON file
  */
-export function importConfiguration(file: File): Promise<SavedConfiguration> {
+export function importShipConfig(file: File): Promise<SavedShipConfig> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
     reader.onload = (e) => {
       try {
         const imported = JSON.parse(e.target?.result as string);
-        const newConfig = saveConfiguration(
-          imported.name || 'Imported Config',
+        const newConfig = saveShipConfig(
+          imported.name || 'Imported Ship',
           imported.ship,
           imported.config
         );
@@ -184,6 +275,20 @@ export function importConfiguration(file: File): Promise<SavedConfiguration> {
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsText(file);
   });
+}
+
+/**
+ * @deprecated Use exportShipConfig() instead
+ */
+export function exportConfiguration(savedConfig: SavedConfiguration): void {
+  exportShipConfig(savedConfig);
+}
+
+/**
+ * @deprecated Use importShipConfig() instead
+ */
+export function importConfiguration(file: File): Promise<SavedConfiguration> {
+  return importShipConfig(file);
 }
 
 // ===== MINING GROUP STORAGE =====
@@ -266,82 +371,18 @@ export function loadMiningGroup(id: string): SavedMiningGroup | null {
   return groups.find((g) => g.id === id) || null;
 }
 
-// ===== SHIP POOL STORAGE =====
+// ===== HELPER FUNCTIONS =====
 
 /**
- * Get all saved ship instances
+ * Create a ShipInstance from a SavedShipConfig (for adding to mining groups)
+ * This creates a copy - changes to the group won't affect the library
  */
-export function getSavedShipInstances(): SavedShipInstance[] {
-  try {
-    const data = localStorage.getItem(SHIP_POOL_KEY);
-    return data ? JSON.parse(data) : [];
-  } catch (error) {
-    console.error('Error loading saved ship instances:', error);
-    return [];
-  }
-}
-
-/**
- * Save a new ship instance
- */
-export function saveShipInstance(name: string, shipInstance: ShipInstance): SavedShipInstance {
-  const ships = getSavedShipInstances();
-
-  const newShip: SavedShipInstance = {
-    id: Date.now().toString(),
-    name,
-    shipInstance,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+export function createShipInstanceFromConfig(savedConfig: SavedShipConfig, customName?: string): ShipInstance {
+  return {
+    id: Date.now().toString() + Math.random(), // Unique ID for this instance
+    ship: savedConfig.ship,
+    name: customName || savedConfig.name,
+    config: JSON.parse(JSON.stringify(savedConfig.config)), // Deep copy to break reference
+    isActive: true,
   };
-
-  ships.push(newShip);
-  localStorage.setItem(SHIP_POOL_KEY, JSON.stringify(ships));
-
-  return newShip;
-}
-
-/**
- * Update an existing ship instance
- */
-export function updateShipInstance(
-  id: string,
-  name: string,
-  shipInstance: ShipInstance
-): SavedShipInstance | null {
-  const ships = getSavedShipInstances();
-  const index = ships.findIndex((s) => s.id === id);
-
-  if (index === -1) return null;
-
-  ships[index] = {
-    ...ships[index],
-    name,
-    shipInstance,
-    updatedAt: Date.now(),
-  };
-
-  localStorage.setItem(SHIP_POOL_KEY, JSON.stringify(ships));
-  return ships[index];
-}
-
-/**
- * Delete a ship instance
- */
-export function deleteShipInstance(id: string): boolean {
-  const ships = getSavedShipInstances();
-  const filtered = ships.filter((s) => s.id !== id);
-
-  if (filtered.length === ships.length) return false;
-
-  localStorage.setItem(SHIP_POOL_KEY, JSON.stringify(filtered));
-  return true;
-}
-
-/**
- * Load a ship instance by ID
- */
-export function loadShipInstance(id: string): SavedShipInstance | null {
-  const ships = getSavedShipInstances();
-  return ships.find((s) => s.id === id) || null;
 }

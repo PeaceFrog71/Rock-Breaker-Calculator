@@ -41,7 +41,8 @@ function calculateLaserResistModifier(laser: LaserConfiguration): number {
  */
 export function calculateBreakability(
   config: MiningConfiguration,
-  rock: Rock
+  rock: Rock,
+  gadgets: (Gadget | null)[] = []
 ): CalculationResult {
   // Calculate total laser power (sum of all lasers)
   let totalLaserPower = 0;
@@ -59,8 +60,8 @@ export function calculateBreakability(
   });
 
   // Apply gadget resist modifiers
-  config.gadgets.forEach((gadget) => {
-    if (gadget) {
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none') {
       totalResistModifier *= gadget.resistModifier;
     }
   });
@@ -111,7 +112,6 @@ export function createEmptyLaser(): LaserConfiguration {
 export function createEmptyConfig(numLasers: number): MiningConfiguration {
   return {
     lasers: Array(numLasers).fill(null).map(() => createEmptyLaser()),
-    gadgets: [null, null, null],
   };
 }
 
@@ -131,11 +131,12 @@ export function formatPercent(percent: number): string {
 
 /**
  * Calculate breakability for a mining group (multiple ships)
- * Combines power from all active ships and applies group-level gadgets
+ * Combines power from all active ships and applies gadgets
  */
 export function calculateGroupBreakability(
   miningGroup: MiningGroup,
-  rock: Rock
+  rock: Rock,
+  gadgets: (Gadget | null)[] = []
 ): CalculationResult {
   // Filter only active ships
   const activeShips = miningGroup.ships.filter(ship => ship.isActive !== false);
@@ -199,14 +200,12 @@ export function calculateGroupBreakability(
   // Average the resistance modifiers from all active ships
   let totalResistModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
 
-  // Apply group-level gadget resist modifiers
-  if (miningGroup.gadgets) {
-    miningGroup.gadgets.forEach((gadget) => {
-      if (gadget && gadget.id !== 'none') {
-        totalResistModifier *= gadget.resistModifier;
-      }
-    });
-  }
+  // Apply gadget resist modifiers
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none') {
+      totalResistModifier *= gadget.resistModifier;
+    }
+  });
 
   // Calculate adjusted resistance
   const adjustedResistance = rock.resistance * totalResistModifier;
