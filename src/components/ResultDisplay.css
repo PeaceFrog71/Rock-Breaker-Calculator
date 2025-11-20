@@ -288,13 +288,13 @@
   50% { transform: translateY(-10px); }
 }
 
-/* Overcharge warning animation - simple opacity pulse with no filters to avoid artifacts */
-@keyframes overcharge-pulse-opacity {
+/* Overcharge warning animation - color pulse between red and green */
+@keyframes overcharge-pulse-color {
   0%, 100% {
-    opacity: 1;
+    color: #ff3366;
   }
   50% {
-    opacity: 0.7;
+    color: #00ff88;
   }
 }
 
@@ -306,12 +306,7 @@
 }
 
 .rock-icon.overcharge-warning .rock-symbol {
-  animation: overcharge-pulse-opacity 1s ease-in-out infinite;
-}
-
-/* Remove drop-shadow filter from asteroid image when overcharge warning is active */
-.rock-icon.overcharge-warning .asteroid-image {
-  filter: none !important;
+  animation: overcharge-pulse-color 1s ease-in-out infinite;
 }
 
 .rock-name {
