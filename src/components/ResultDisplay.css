@@ -288,26 +288,30 @@
   50% { transform: translateY(-10px); }
 }
 
-@keyframes overcharge-pulse-shadow {
+/* Overcharge warning animation - simple opacity pulse with no filters to avoid artifacts */
+@keyframes overcharge-pulse-opacity {
   0%, 100% {
-    filter:
-      drop-shadow(0px 0px 15px rgba(0, 255, 136, 0.8))
-      drop-shadow(0px 0px 30px rgba(0, 255, 136, 0.6));
+    opacity: 1;
   }
   50% {
-    filter:
-      drop-shadow(0px 0px 15px rgba(255, 51, 102, 0.8))
-      drop-shadow(0px 0px 30px rgba(255, 51, 102, 0.6));
+    opacity: 0.7;
   }
 }
 
+/* Override the generic .overcharge-warning styles for rock-icon */
+.rock-icon.overcharge-warning {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.rock-icon.overcharge-warning .rock-symbol {
+  animation: overcharge-pulse-opacity 1s ease-in-out infinite;
+}
+
+/* Remove drop-shadow filter from asteroid image when overcharge warning is active */
 .rock-icon.overcharge-warning .asteroid-image {
-  animation: overcharge-pulse-shadow 1s ease-in-out infinite;
-  background-color: transparent !important;
-  background-image: none !important;
-  /* Reduce the intensity of the drop shadow to minimize artifacts on transparent areas */
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
+  filter: none !important;
 }
 
 .rock-name {
