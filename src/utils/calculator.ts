@@ -42,12 +42,21 @@ function calculateLaserResistModifier(laser: LaserConfiguration): number {
 export function calculateBreakability(
   config: MiningConfiguration,
   rock: Rock,
-  gadgets: (Gadget | null)[] = []
+  gadgets: (Gadget | null)[] = [],
+  shipId?: string
 ): CalculationResult {
   // Calculate total laser power (sum of all lasers)
   let totalLaserPower = 0;
   config.lasers.forEach((laser) => {
-    totalLaserPower += calculateLaserPower(laser);
+    const laserPower = calculateLaserPower(laser);
+    // For MOLE in single ship mode, only count manned lasers
+    if (shipId === 'mole') {
+      if (laser.isManned !== false) {
+        totalLaserPower += laserPower;
+      }
+    } else {
+      totalLaserPower += laserPower;
+    }
   });
 
   // Calculate total resistance modifier
@@ -55,7 +64,14 @@ export function calculateBreakability(
   let totalResistModifier = 1;
   config.lasers.forEach((laser) => {
     if (laser.laserHead) {
-      totalResistModifier *= calculateLaserResistModifier(laser);
+      // For MOLE in single ship mode, only count manned lasers
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          totalResistModifier *= calculateLaserResistModifier(laser);
+        }
+      } else {
+        totalResistModifier *= calculateLaserResistModifier(laser);
+      }
     }
   });
 

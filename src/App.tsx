@@ -68,7 +68,7 @@ function App() {
   // Calculate result based on mode (single ship or mining group)
   const result = useMiningGroup
     ? calculateGroupBreakability(miningGroup, rock, enabledGadgets)
-    : calculateBreakability(config, rock, enabledGadgets);
+    : calculateBreakability(config, rock, enabledGadgets, selectedShip.id);
 
   // Handle toggling gadget enabled state
   const handleToggleGadget = (index: number) => {
