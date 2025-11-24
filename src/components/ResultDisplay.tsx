@@ -178,7 +178,8 @@ export default function ResultDisplay({
 
   // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
   const getAsteroidSize = () => {
-    if (rock.mass < 25000) return { width: 175, height: 175 }; // Tiny and Small
+    if (rock.mass < 15000) return { width: 100, height: 100 }; // Tiny
+    if (rock.mass < 25000) return { width: 175, height: 175 }; // Small
     if (rock.mass < 50000) return { width: 250, height: 250 }; // Medium
     if (rock.mass < 100000) return { width: 325, height: 325 }; // Large
     return { width: 400, height: 400 }; // Huge
@@ -235,9 +236,15 @@ export default function ResultDisplay({
               const shipWidth = selectedShip.id === 'mole' ? 135 : selectedShip.id === 'prospector' ? 90 : 60;
 
               // Adjust radius multiplier based on rock size
+              // For tiny rocks, use the same positioning as small rocks (radius 87.5 * 1.6 = 140)
               let radiusMultiplier = 1.1;
-              if (rock.mass < 25000) {
-                // Tiny and small rocks - same multiplier
+              let positioningRadius = asteroidRadius; // Default: use actual asteroid radius
+              if (rock.mass < 15000) {
+                // Tiny rocks - use small rock positioning (87.5 radius)
+                positioningRadius = 87.5;
+                radiusMultiplier = 1.6;
+              } else if (rock.mass < 25000) {
+                // Small rocks
                 radiusMultiplier = 1.6;
               } else if (rock.mass >= 100000) {
                 // Huge rocks - use same positioning as large rocks
@@ -247,7 +254,7 @@ export default function ResultDisplay({
                 radiusMultiplier = 0.9;
               }
 
-              const radius = asteroidRadius * radiusMultiplier;
+              const radius = positioningRadius * radiusMultiplier;
               // Subtract 90° to make 0° point to top instead of right
               const adjustedAngle = angle - 90;
               let shipX = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
