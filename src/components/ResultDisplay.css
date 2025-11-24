@@ -11,13 +11,74 @@
   justify-content: flex-start;
   align-items: stretch;
   padding: 2rem;
-  background: radial-gradient(circle, var(--bg-light) 0%, var(--bg-medium) 100%);
+  background: #020508;
   border-radius: 12px;
   border: 2px solid var(--border);
   min-height: 500px;
   position: relative;
   gap: 1rem;
   overflow: hidden;
+}
+
+/* Background layer using image */
+.rock-display::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  transition: background-image 0.3s ease;
+}
+
+/* Starfield background */
+.rock-display.bg-starfield::before {
+  background-image: url('../assets/starfield_background_1920x1080.png');
+}
+
+/* Landscape background */
+.rock-display.bg-landscape::before {
+  background-image: url('../assets/landscape.jpg');
+}
+
+/* Cursor indicator for clickable background */
+.rock-display {
+  cursor: pointer;
+}
+
+/* Flying prospector easter egg */
+.flying-prospector {
+  position: absolute;
+  left: -60px;
+  z-index: 2;
+  pointer-events: none;
+  animation: fly-across 8s linear forwards;
+  opacity: 0.7;
+}
+
+@keyframes fly-across {
+  0% {
+    left: -60px;
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-5px);
+  }
+  50% {
+    transform: translateY(3px);
+  }
+  75% {
+    transform: translateY(-3px);
+  }
+  100% {
+    left: calc(100% + 60px);
+    transform: translateY(0);
+  }
 }
 
 .rock-display-centered {
@@ -53,6 +114,14 @@
   align-items: center;
   justify-content: center;
   min-height: 450px;
+  z-index: 1;
+  transition: padding-top 0.3s ease;
+}
+
+/* Shift rock down 25% when landscape background is active */
+.bg-landscape .rock-container {
+  padding-top: 25%;
+  align-items: flex-start;
 }
 
 .ships-around-rock {

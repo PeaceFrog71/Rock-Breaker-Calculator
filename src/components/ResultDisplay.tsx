@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import type {
   CalculationResult,
   Rock,
@@ -93,6 +94,8 @@ interface ResultDisplayProps {
   miningGroup?: MiningGroup;
   onToggleShip?: (shipId: string) => void;
   onToggleLaser?: (shipId: string, laserIndex: number) => void;
+  backgroundMode?: 'starfield' | 'landscape';
+  onToggleBackground?: () => void;
 }
 
 interface SingleShipDisplayProps {
@@ -113,7 +116,36 @@ export default function ResultDisplay({
   onToggleShip,
   onToggleLaser,
   onSingleShipToggleLaser,
+  backgroundMode = 'starfield',
+  onToggleBackground,
 }: ResultDisplayProps & SingleShipDisplayProps) {
+  // Flying ship easter egg - appears every 5-10 minutes
+  const [showFlyingShip, setShowFlyingShip] = useState(false);
+  const [flyingShipTop, setFlyingShipTop] = useState(10); // Random position in top third
+  const [flyingShipType, setFlyingShipType] = useState<'prospector' | 'mole' | 'golem'>('prospector');
+
+  useEffect(() => {
+    const scheduleNextFlyby = () => {
+      // Random interval between 5-10 minutes (300000-600000ms)
+      const interval = 300000 + Math.random() * 300000;
+      return setTimeout(() => {
+        // Set random vertical position in top third (5-30%)
+        setFlyingShipTop(5 + Math.random() * 25);
+        // Randomly pick a ship type
+        const shipTypes: ('prospector' | 'mole' | 'golem')[] = ['prospector', 'mole', 'golem'];
+        setFlyingShipType(shipTypes[Math.floor(Math.random() * shipTypes.length)]);
+        setShowFlyingShip(true);
+        // Hide after animation completes (8 seconds)
+        setTimeout(() => setShowFlyingShip(false), 8000);
+        // Schedule next flyby
+        scheduleNextFlyby();
+      }, interval);
+    };
+
+    const timeoutId = scheduleNextFlyby();
+    return () => clearTimeout(timeoutId);
+  }, []);
+
   const getStatusClass = () => {
     if (!result.canBreak) return "cannot-break";
     if (result.powerMarginPercent < 20) return "marginal";
@@ -169,7 +201,28 @@ export default function ResultDisplay({
 
   return (
     <div className="result-display">
-      <div className="rock-display rock-display-centered">
+      <div
+        className={`rock-display rock-display-centered ${backgroundMode === 'landscape' ? 'bg-landscape' : 'bg-starfield'}`}
+        onClick={onToggleBackground}
+        title="Click to change background"
+      >
+        {/* Flying ship easter egg */}
+        {showFlyingShip && (
+          <div
+            className="flying-prospector"
+            style={{ top: `${flyingShipTop}%` }}
+          >
+            <img
+              src={flyingShipType === 'mole' ? moleShipImage : flyingShipType === 'golem' ? golemShipImage : prospectorShipImage}
+              alt={`Flying ${flyingShipType}`}
+              style={{
+                width: flyingShipType === 'mole' ? '68px' : flyingShipType === 'golem' ? '30px' : '45px',
+                height: flyingShipType === 'mole' ? '27px' : flyingShipType === 'golem' ? '12px' : '18px',
+                imageRendering: 'pixelated',
+              }}
+            />
+          </div>
+        )}
         <div className="rock-container">
           {/* Single ship positioned to the left */}
           {!miningGroup &&
@@ -304,6 +357,7 @@ export default function ResultDisplay({
                       left: `calc(50% + ${shipX}px)`,
                       transform: "translate(-50%, -50%)",
                     }}
+                    onClick={(e) => e.stopPropagation()}
                     title={selectedShip.name}>
                     {(() => {
                       // Single ship is always at 180° (left side), so just mirror horizontally
@@ -378,7 +432,8 @@ export default function ResultDisplay({
                           display: "flex",
                           flexDirection: "column",
                           gap: "0.5rem",
-                        }}>
+                        }}
+                        onClick={(e) => e.stopPropagation()}>
                         {[0, 1, 2].map((laserIndex) => {
                           const isLaserManned =
                             config.lasers[laserIndex]?.isManned !== false;
@@ -531,9 +586,10 @@ export default function ResultDisplay({
                         left: `calc(50% + ${x}px)`,
                         transform: "translate(-50%, -50%)",
                       }}
-                      onClick={() =>
-                        onToggleShip && onToggleShip(shipInstance.id)
-                      }
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onToggleShip && onToggleShip(shipInstance.id);
+                      }}
                       title={`${shipInstance.name} (${shipInstance.ship.name
                         .split(" ")
                         .slice(1)
@@ -627,7 +683,8 @@ export default function ResultDisplay({
                           flexDirection: "column",
                           gap: "4px",
                           pointerEvents: "auto",
-                        }}>
+                        }}
+                        onClick={(e) => e.stopPropagation()}>
                         {[0, 1, 2].map((laserIndex) => {
                           const isLaserManned =
                             shipInstance.config.lasers[laserIndex]?.isManned !==
@@ -707,7 +764,10 @@ export default function ResultDisplay({
                           !isEnabled ? "disabled" : ""
                         } ${onToggleGadget ? "clickable" : ""}`}
                         title={tooltipText}
-                        onClick={() => onToggleGadget && onToggleGadget(index)}>
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleGadget && onToggleGadget(index);
+                        }}>
                         {getGadgetSymbol(gadget.id)}
                       </span>
                     );

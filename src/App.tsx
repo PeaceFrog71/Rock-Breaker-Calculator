@@ -52,6 +52,7 @@ function App() {
   }, [gadgetCount]);
   const [useMiningGroup, setUseMiningGroup] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
 
   // Auto-save when config or ship changes
   useEffect(() => {
@@ -196,8 +197,8 @@ function App() {
                     <label>Mass</label>
                     <input
                       type="number"
-                      value={rock.mass}
-                      onChange={(e) => setRock({ ...rock, mass: parseFloat(e.target.value) || 0 })}
+                      value={rock.mass === 0 ? '' : rock.mass}
+                      onChange={(e) => setRock({ ...rock, mass: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                       min="0"
                       step="0.1"
                     />
@@ -206,8 +207,8 @@ function App() {
                     <label>Resistance</label>
                     <input
                       type="number"
-                      value={rock.resistance}
-                      onChange={(e) => setRock({ ...rock, resistance: parseFloat(e.target.value) || 0 })}
+                      value={rock.resistance === 0 ? '' : rock.resistance}
+                      onChange={(e) => setRock({ ...rock, resistance: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                       min="0"
                       step="0.1"
                     />
@@ -216,8 +217,8 @@ function App() {
                     <label>Instability</label>
                     <input
                       type="number"
-                      value={rock.instability || 0}
-                      onChange={(e) => setRock({ ...rock, instability: parseFloat(e.target.value) || 0 })}
+                      value={!rock.instability ? '' : rock.instability}
+                      onChange={(e) => setRock({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                       min="0"
                       step="0.1"
                     />
@@ -239,6 +240,8 @@ function App() {
                   onToggleShip={useMiningGroup ? handleToggleShip : undefined}
                   onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
                   onSingleShipToggleLaser={!useMiningGroup && selectedShip.id === 'mole' ? handleSingleShipToggleLaser : undefined}
+                  backgroundMode={backgroundMode}
+                  onToggleBackground={() => setBackgroundMode(prev => prev === 'starfield' ? 'landscape' : 'starfield')}
                 />
               </div>
 
