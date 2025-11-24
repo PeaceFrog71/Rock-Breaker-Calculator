@@ -64,6 +64,25 @@ function LaserBeam({ startX, startY, endX, endY, svgSize }: LaserBeamProps) {
   );
 }
 
+// Generate a pseudo-random number based on a seed (for consistent laser variation)
+function seededRandom(seed: number): number {
+  const x = Math.sin(seed * 9999) * 10000;
+  return x - Math.floor(x);
+}
+
+// Add random variation to laser endpoint (±2% of asteroid radius)
+function addLaserVariation(
+  endX: number,
+  endY: number,
+  asteroidRadius: number,
+  seed: number
+): { x: number; y: number } {
+  const variation = asteroidRadius * 0.02; // 2% of asteroid radius
+  const randomX = (seededRandom(seed) - 0.5) * 2 * variation;
+  const randomY = (seededRandom(seed + 1) - 0.5) * 2 * variation;
+  return { x: endX + randomX, y: endY + randomY };
+}
+
 interface ResultDisplayProps {
   result: CalculationResult;
   rock: Rock;
@@ -239,13 +258,16 @@ export default function ResultDisplay({
                               dx * Math.sin(angleRad) +
                               dy * Math.cos(angleRad);
 
+                            // Add random variation to endpoint
+                            const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, laserIndex * 100);
+
                             return (
                               <LaserBeam
                                 key={laserIndex}
                                 startX={laserStartX}
                                 startY={laserStartY}
-                                endX={rotatedEndX}
-                                endY={rotatedEndY}
+                                endX={variedEnd.x}
+                                endY={variedEnd.y}
                                 svgSize={svgSize}
                               />
                             );
@@ -259,13 +281,14 @@ export default function ResultDisplay({
                       return null;
                     }
 
-                    // For non-MOLE ships, render single laser
+                    // For non-MOLE ships, render single laser with variation
+                    const variedEnd = addLaserVariation(laserEndX, laserEndY, asteroidRadius, 0);
                     return (
                       <LaserBeam
                         startX={laserStartX}
                         startY={laserStartY}
-                        endX={laserEndX}
-                        endY={laserEndY}
+                        endX={variedEnd.x}
+                        endY={variedEnd.y}
                         svgSize={svgSize}
                       />
                     );
@@ -465,13 +488,16 @@ export default function ResultDisplay({
                                   dx * Math.sin(angleRad) +
                                   dy * Math.cos(angleRad);
 
+                                // Add random variation to endpoint
+                                const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, index * 1000 + laserIndex * 100);
+
                                 return (
                                   <LaserBeam
                                     key={laserIndex}
                                     startX={laserStartX}
                                     startY={laserStartY}
-                                    endX={rotatedEndX}
-                                    endY={rotatedEndY}
+                                    endX={variedEnd.x}
+                                    endY={variedEnd.y}
                                     svgSize={svgSize}
                                   />
                                 );
@@ -480,13 +506,14 @@ export default function ResultDisplay({
                           );
                         }
 
-                        // For non-MOLE ships, render single laser
+                        // For non-MOLE ships, render single laser with variation
+                        const variedEnd = addLaserVariation(laserEndX, laserEndY, asteroidRadius, index * 1000);
                         return (
                           <LaserBeam
                             startX={laserStartX}
                             startY={laserStartY}
-                            endX={laserEndX}
-                            endY={laserEndY}
+                            endX={variedEnd.x}
+                            endY={variedEnd.y}
                             svgSize={svgSize}
                           />
                         );
