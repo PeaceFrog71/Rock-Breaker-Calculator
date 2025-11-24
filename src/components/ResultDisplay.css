@@ -118,10 +118,15 @@
   transition: padding-top 0.3s ease;
 }
 
-/* Shift rock down 25% when landscape background is active */
+/* Shift rock and ships down 25% when landscape background is active */
 .bg-landscape .rock-container {
   padding-top: 25%;
   align-items: flex-start;
+}
+
+/* Shift the ships container down to match the rock position */
+.bg-landscape .ships-around-rock {
+  top: 25%;
 }
 
 .ships-around-rock {
