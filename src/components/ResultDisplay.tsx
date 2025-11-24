@@ -66,7 +66,8 @@ function LaserBeam({ startX, startY, endX, endY, svgSize }: LaserBeamProps) {
 
 // Generate a pseudo-random number based on a seed (for consistent laser variation)
 function seededRandom(seed: number): number {
-  const x = Math.sin(seed * 9999) * 10000;
+  // Add offset to avoid sin(0) = 0 for seed 0
+  const x = Math.sin((seed + 1) * 9999) * 10000;
   return x - Math.floor(x);
 }
 
@@ -258,8 +259,8 @@ export default function ResultDisplay({
                               dx * Math.sin(angleRad) +
                               dy * Math.cos(angleRad);
 
-                            // Add random variation to endpoint
-                            const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, laserIndex * 100);
+                            // Add random variation to endpoint (unique seed per laser)
+                            const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, (laserIndex + 1) * 137);
 
                             return (
                               <LaserBeam
@@ -488,8 +489,8 @@ export default function ResultDisplay({
                                   dx * Math.sin(angleRad) +
                                   dy * Math.cos(angleRad);
 
-                                // Add random variation to endpoint
-                                const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, index * 1000 + laserIndex * 100);
+                                // Add random variation to endpoint (unique seed per ship and laser)
+                                const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, (index + 1) * 1000 + (laserIndex + 1) * 137);
 
                                 return (
                                   <LaserBeam
