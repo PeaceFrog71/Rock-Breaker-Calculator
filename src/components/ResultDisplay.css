@@ -126,7 +126,7 @@
 
 /* Shift the ships container down to match the rock position */
 .bg-landscape .ships-around-rock {
-  top: 25%;
+  top: 15%;
 }
 
 .ships-around-rock {
