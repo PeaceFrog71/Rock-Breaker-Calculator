@@ -43,7 +43,7 @@
 
 /* Landscape background */
 .rock-display.bg-landscape::before {
-  background-image: url('../assets/landscape.jpg');
+  background-image: url('../assets/landscape2.png');
 }
 
 /* Cursor indicator for clickable background */
