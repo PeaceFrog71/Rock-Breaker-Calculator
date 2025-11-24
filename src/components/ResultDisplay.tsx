@@ -162,7 +162,7 @@ export default function ResultDisplay({
               // Get ship image width
               const shipWidth = selectedShip.id === 'mole' ? 135 : selectedShip.id === 'prospector' ? 90 : 60;
 
-              // For tiny and small rocks, increase radius to prevent overlap
+              // Adjust radius multiplier based on rock size
               let radiusMultiplier = 1.1;
               if (rock.mass < 15000) {
                 // Tiny rocks - much larger multiplier
@@ -170,6 +170,9 @@ export default function ResultDisplay({
               } else if (rock.mass < 25000) {
                 // Small rocks - larger multiplier
                 radiusMultiplier = 1.6;
+              } else if (rock.mass >= 50000) {
+                // Large/huge rocks - bring ships closer to keep controls visible
+                radiusMultiplier = 0.9;
               }
 
               const radius = asteroidRadius * radiusMultiplier;
@@ -389,10 +392,11 @@ export default function ResultDisplay({
                 const asteroidSize = getAsteroidSize();
                 // Position ships at radius that scales with rock size
                 const asteroidRadius = asteroidSize.width / 2;
-                // Add extra spacing for tiny and small rocks
+                // Adjust spacing based on rock size
                 let radiusMultiplier = 1.35;
-                if (rock.mass < 15000) radiusMultiplier = 1.85; // Tiny
-                else if (rock.mass < 25000) radiusMultiplier = 1.55; // Small
+                if (rock.mass < 15000) radiusMultiplier = 1.85; // Tiny - more space
+                else if (rock.mass < 25000) radiusMultiplier = 1.55; // Small - more space
+                else if (rock.mass >= 50000) radiusMultiplier = 1.1; // Large/huge - bring closer
                 const radius = asteroidRadius * radiusMultiplier;
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
