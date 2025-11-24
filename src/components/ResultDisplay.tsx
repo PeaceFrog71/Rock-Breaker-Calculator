@@ -170,8 +170,11 @@ export default function ResultDisplay({
               } else if (rock.mass < 25000) {
                 // Small rocks - larger multiplier
                 radiusMultiplier = 1.6;
+              } else if (rock.mass >= 100000) {
+                // Huge rocks - use same positioning as large rocks
+                radiusMultiplier = 0.9 * (325 / 400); // Scale down proportionally
               } else if (rock.mass >= 50000) {
-                // Large/huge rocks - bring ships closer to keep controls visible
+                // Large rocks - bring ships closer to keep controls visible
                 radiusMultiplier = 0.9;
               }
 
@@ -396,7 +399,8 @@ export default function ResultDisplay({
                 let radiusMultiplier = 1.35;
                 if (rock.mass < 15000) radiusMultiplier = 1.85; // Tiny - more space
                 else if (rock.mass < 25000) radiusMultiplier = 1.55; // Small - more space
-                else if (rock.mass >= 50000) radiusMultiplier = 1.1; // Large/huge - bring closer
+                else if (rock.mass >= 100000) radiusMultiplier = 1.1 * (325 / 400); // Huge - same as large
+                else if (rock.mass >= 50000) radiusMultiplier = 1.1; // Large - bring closer
                 const radius = asteroidRadius * radiusMultiplier;
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
