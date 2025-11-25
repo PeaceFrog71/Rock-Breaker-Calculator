@@ -17,6 +17,7 @@ import ResultDisplay from "./components/ResultDisplay";
 import ConfigManager from "./components/ConfigManager";
 import ShipPoolManager from "./components/ShipPoolManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
+import HelpModal from "./components/HelpModal";
 
 function App() {
   // Load saved state or use defaults
@@ -53,6 +54,7 @@ function App() {
   const [useMiningGroup, setUseMiningGroup] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   // Auto-save when config or ship changes
   useEffect(() => {
@@ -171,6 +173,13 @@ function App() {
     <div className="app">
       <header className="app-header">
         <h1>Rock Breaker Calculator</h1>
+        <button
+          className="help-button"
+          onClick={() => setShowHelpModal(true)}
+          title="Help & User Guides"
+        >
+          ?
+        </button>
       </header>
 
       <div className="content-wrapper">
@@ -417,6 +426,8 @@ function App() {
           )}
         </div>
       </div>
+
+      <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
     </div>
   );
 }

@@ -225,6 +225,21 @@ export default function ResultDisplay({
   return (
     <div className="result-display">
       <div
+        className={`status-indicator ${getStatusClass()} ${
+          hasCriticalOvercharge ? "critical-overcharge" : ""
+        }`}>
+        <h2>{getStatusText()}</h2>
+        {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
+          (result.powerMarginPercent > 0 &&
+            result.powerMarginPercent <= 10)) && (
+          <div className="distance-tip">
+            <strong>Tip:</strong> Reducing laser distance may increase chances
+            of a successful break.
+          </div>
+        )}
+      </div>
+
+      <div
         className={`rock-display rock-display-centered ${backgroundMode === 'landscape' ? 'bg-landscape' : 'bg-starfield'}`}
         onClick={onToggleBackground}
         title="Click to change background"
@@ -814,21 +829,6 @@ export default function ResultDisplay({
           </div>
         </div>
 
-      </div>
-
-      <div
-        className={`status-indicator ${getStatusClass()} ${
-          hasCriticalOvercharge ? "critical-overcharge" : ""
-        }`}>
-        <h2>{getStatusText()}</h2>
-        {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
-          (result.powerMarginPercent > 0 &&
-            result.powerMarginPercent <= 10)) && (
-          <div className="distance-tip">
-            <strong>Tip:</strong> Reducing laser distance may increase chances
-            of a successful break.
-          </div>
-        )}
       </div>
 
       <div className="power-bar-container">

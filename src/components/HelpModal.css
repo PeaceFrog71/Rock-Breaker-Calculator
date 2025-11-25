@@ -1,0 +1,324 @@
+/* Help Modal Styles - Star Citizen Theme */
+
+.help-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.help-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 900px;
+  max-height: 85vh;
+  width: 90%;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
+              0 0 80px rgba(0, 217, 255, 0.1);
+}
+
+.help-modal::-webkit-scrollbar {
+  width: 10px;
+}
+
+.help-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+
+.help-modal::-webkit-scrollbar-thumb {
+  background: var(--accent-cyan);
+  border-radius: 5px;
+}
+
+.help-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+.close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-size: 2rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.close-button:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px var(--accent-cyan);
+}
+
+.help-content h2 {
+  color: var(--accent-cyan);
+  font-size: 2rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.help-intro {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+/* User Mode Selection Grid */
+.user-modes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.mode-card {
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.05) 0%, rgba(0, 150, 200, 0.05) 100%);
+  border: 2px solid rgba(0, 217, 255, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.1) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.mode-card:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  transform: translateY(-4px);
+}
+
+.mode-card:hover::before {
+  opacity: 1;
+}
+
+.mode-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: var(--accent-cyan);
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.mode-card h3 {
+  color: var(--text-primary);
+  font-size: 1.3rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.mode-subtitle {
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+  margin: 0 0 1rem 0;
+  font-weight: 600;
+}
+
+.mode-description {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Flow Details View */
+.help-details {
+  position: relative;
+}
+
+.back-button {
+  background: rgba(0, 217, 255, 0.1);
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-button:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+}
+
+.flow-subtitle {
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+  margin: -0.5rem 0 2rem 0;
+  font-style: italic;
+}
+
+/* Flow Steps */
+.flow-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.flow-step {
+  display: flex;
+  gap: 1rem;
+  background: rgba(0, 217, 255, 0.05);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  border-left: 4px solid var(--accent-cyan);
+  border-radius: 6px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.flow-step:hover {
+  background: rgba(0, 217, 255, 0.08);
+  border-left-color: var(--accent-gold);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.1);
+}
+
+.step-number {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, rgba(0, 150, 200, 1) 100%);
+  color: var(--bg-dark);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.step-content {
+  flex: 1;
+}
+
+.step-content h4 {
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.step-content p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Help Tips Section */
+.help-tips {
+  background: rgba(255, 193, 7, 0.05);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-top: 2rem;
+}
+
+.help-tips h3 {
+  color: var(--accent-gold);
+  font-size: 1.3rem;
+  margin: 0 0 1rem 0;
+}
+
+.help-tips ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.help-tips li {
+  color: var(--text-secondary);
+  padding: 0.5rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.help-tips li::before {
+  content: '▸';
+  color: var(--accent-gold);
+  position: absolute;
+  left: 0;
+  font-size: 1.2rem;
+}
+
+.help-tips strong {
+  color: var(--text-primary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .help-modal {
+    padding: 1.5rem;
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .help-content h2 {
+    font-size: 1.5rem;
+  }
+
+  .user-modes-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .mode-card {
+    padding: 1rem;
+  }
+
+  .mode-icon {
+    font-size: 2rem;
+  }
+
+  .flow-step {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .step-number {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
