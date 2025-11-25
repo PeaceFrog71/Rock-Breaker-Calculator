@@ -103,6 +103,8 @@ interface SingleShipDisplayProps {
   selectedShip?: { id: string; name: string };
   config?: MiningConfiguration;
   onSingleShipToggleLaser?: (laserIndex: number) => void;
+  onToggleModule?: (laserIndex: number, moduleIndex: number) => void;
+  onGroupToggleModule?: (shipId: string, laserIndex: number, moduleIndex: number) => void;
 }
 
 export default function ResultDisplay({
@@ -117,6 +119,8 @@ export default function ResultDisplay({
   onToggleShip,
   onToggleLaser,
   onSingleShipToggleLaser,
+  onToggleModule,
+  onGroupToggleModule,
   backgroundMode = 'starfield',
   onToggleBackground,
 }: ResultDisplayProps & SingleShipDisplayProps) {
@@ -233,13 +237,14 @@ export default function ResultDisplay({
   };
 
   // Get all active modules from a configuration
-  const getActiveModules = (config: MiningConfiguration): Module[] => {
-    const activeModules: Module[] = [];
-    config.lasers.forEach((laser) => {
+  const getActiveModules = (config: MiningConfiguration): Array<{ module: Module; laserIndex: number; moduleIndex: number; isActive: boolean }> => {
+    const activeModules: Array<{ module: Module; laserIndex: number; moduleIndex: number; isActive: boolean }> = [];
+    config.lasers.forEach((laser, laserIndex) => {
       if (laser.laserHead && laser.laserHead.id !== 'none') {
-        laser.modules.forEach((module) => {
+        laser.modules.forEach((module, moduleIndex) => {
           if (module && module.category === 'active' && module.id !== 'none') {
-            activeModules.push(module);
+            const isActive = laser.moduleActive ? laser.moduleActive[moduleIndex] !== false : true;
+            activeModules.push({ module, laserIndex, moduleIndex, isActive });
           }
         });
       }
@@ -487,12 +492,19 @@ export default function ResultDisplay({
                       if (activeModules.length > 0) {
                         return (
                           <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
-                            {activeModules.map((module, idx) => (
+                            {activeModules.map((item, idx) => (
                               <span
                                 key={idx}
-                                className="module-icon active"
-                                title={`${module.name} (Active Module)`}>
-                                {getModuleSymbol(module.id)}
+                                className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
+                                title={`${item.module.name} (Active Module) - Click to toggle`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onToggleModule) {
+                                    onToggleModule(item.laserIndex, item.moduleIndex);
+                                  }
+                                }}
+                                style={{ cursor: onToggleModule ? 'pointer' : 'default' }}>
+                                {getModuleSymbol(item.module.id)}
                               </span>
                             ))}
                           </div>
@@ -769,12 +781,19 @@ export default function ResultDisplay({
                         if (activeModules.length > 0) {
                           return (
                             <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
-                              {activeModules.map((module, idx) => (
+                              {activeModules.map((item, idx) => (
                                 <span
                                   key={idx}
-                                  className="module-icon active"
-                                  title={`${module.name} (Active Module)`}>
-                                  {getModuleSymbol(module.id)}
+                                  className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
+                                  title={`${item.module.name} (Active Module) - Click to toggle`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onGroupToggleModule) {
+                                      onGroupToggleModule(shipInstance.id, item.laserIndex, item.moduleIndex);
+                                    }
+                                  }}
+                                  style={{ cursor: onGroupToggleModule ? 'pointer' : 'default' }}>
+                                  {getModuleSymbol(item.module.id)}
                                 </span>
                               ))}
                             </div>

@@ -8,10 +8,13 @@ export function calculateLaserPower(laser: LaserConfiguration): number {
 
   let power = laser.laserHead.maxPower;
 
-  // Apply module power modifiers
-  laser.modules.forEach((module) => {
+  // Apply module power modifiers (only if module is active)
+  laser.modules.forEach((module, index) => {
     if (module) {
-      power *= module.powerModifier;
+      const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
+      if (isActive) {
+        power *= module.powerModifier;
+      }
     }
   });
 
@@ -26,10 +29,13 @@ function calculateLaserResistModifier(laser: LaserConfiguration): number {
 
   let resistMod = laser.laserHead.resistModifier;
 
-  // Apply module resistance modifiers
-  laser.modules.forEach((module) => {
+  // Apply module resistance modifiers (only if module is active)
+  laser.modules.forEach((module, index) => {
     if (module) {
-      resistMod *= module.resistModifier;
+      const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
+      if (isActive) {
+        resistMod *= module.resistModifier;
+      }
     }
   });
 

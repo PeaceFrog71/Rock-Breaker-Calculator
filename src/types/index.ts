@@ -41,6 +41,7 @@ export interface Gadget {
 export interface LaserConfiguration {
   laserHead: LaserHead | null;
   modules: (Module | null)[]; // Up to 3 modules
+  moduleActive?: boolean[]; // Track which modules are activated (for active modules)
   isManned?: boolean; // For MOLE - whether this laser position is manned
 }
 

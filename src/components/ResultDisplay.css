@@ -226,6 +226,21 @@
   animation: module-pulse 2s ease-in-out infinite;
 }
 
+.module-icon.inactive {
+  opacity: 0.4;
+  background: rgba(128, 128, 128, 0.2);
+  border-color: rgba(128, 128, 128, 0.5);
+  color: rgba(128, 128, 128, 0.7);
+  animation: none;
+  text-decoration: line-through;
+}
+
+.module-icon:hover {
+  opacity: 1;
+  transform: scale(1.05);
+  transition: all 0.2s ease;
+}
+
 @keyframes module-pulse {
   0%, 100% {
     box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);

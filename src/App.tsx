@@ -169,6 +169,57 @@ function App() {
     setConfig({ ...config, lasers: updatedLasers });
   };
 
+  const handleToggleModule = (laserIndex: number, moduleIndex: number) => {
+    const updatedLasers = [...config.lasers];
+    const currentLaser = updatedLasers[laserIndex];
+
+    // Initialize moduleActive array if it doesn't exist
+    if (!currentLaser.moduleActive) {
+      currentLaser.moduleActive = currentLaser.modules.map(() => true);
+    }
+
+    // Toggle the module active state
+    const updatedModuleActive = [...currentLaser.moduleActive];
+    updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+
+    updatedLasers[laserIndex] = {
+      ...currentLaser,
+      moduleActive: updatedModuleActive,
+    };
+
+    setConfig({ ...config, lasers: updatedLasers });
+  };
+
+  const handleGroupToggleModule = (shipId: string, laserIndex: number, moduleIndex: number) => {
+    const updatedShips = miningGroup.ships.map((s) => {
+      if (s.id === shipId) {
+        const updatedLasers = [...s.config.lasers];
+        const currentLaser = updatedLasers[laserIndex];
+
+        // Initialize moduleActive array if it doesn't exist
+        if (!currentLaser.moduleActive) {
+          currentLaser.moduleActive = currentLaser.modules.map(() => true);
+        }
+
+        // Toggle the module active state
+        const updatedModuleActive = [...currentLaser.moduleActive];
+        updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+
+        updatedLasers[laserIndex] = {
+          ...currentLaser,
+          moduleActive: updatedModuleActive,
+        };
+
+        return {
+          ...s,
+          config: { ...s.config, lasers: updatedLasers },
+        };
+      }
+      return s;
+    });
+    setMiningGroup({ ...miningGroup, ships: updatedShips });
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -249,6 +300,8 @@ function App() {
                   onToggleShip={useMiningGroup ? handleToggleShip : undefined}
                   onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
                   onSingleShipToggleLaser={!useMiningGroup && selectedShip.id === 'mole' ? handleSingleShipToggleLaser : undefined}
+                  onToggleModule={!useMiningGroup ? handleToggleModule : undefined}
+                  onGroupToggleModule={useMiningGroup ? handleGroupToggleModule : undefined}
                   backgroundMode={backgroundMode}
                   onToggleBackground={() => setBackgroundMode(prev => prev === 'starfield' ? 'landscape' : 'starfield')}
                 />
