@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 1.5rem;
   height: 100%;
+  min-width: 600px;
 }
 
 .rock-display {
@@ -554,6 +555,8 @@
   text-align: center;
   border: 2px solid;
   box-shadow: 0 4px 20px;
+  min-width: fit-content;
+  overflow: visible;
 }
 
 .status-indicator.can-break {
