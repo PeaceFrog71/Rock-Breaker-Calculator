@@ -629,6 +629,7 @@
   font-weight: 400;
   color: var(--text-primary);
   line-height: 1.5;
+  white-space: nowrap;
 }
 
 .distance-tip strong {
