@@ -8,6 +8,7 @@ import type {
 } from "../types";
 import { formatPower, formatPercent } from "../utils/calculator";
 import { getGadgetSymbol } from "../types";
+import type { Module } from "../types";
 import "./ResultDisplay.css";
 import golemShipImage from "../assets/mining_ship_golem_pixel_120x48.png";
 import moleShipImage from "../assets/mining_ship_mole_pixel_120x48_transparent.png";
@@ -223,6 +224,27 @@ export default function ResultDisplay({
       default:
         return "◆";
     }
+  };
+
+  // Get symbol for module type
+  const getModuleSymbol = (moduleId: string) => {
+    const firstLetter = moduleId.charAt(0).toUpperCase();
+    return firstLetter;
+  };
+
+  // Get all active modules from a configuration
+  const getActiveModules = (config: MiningConfiguration): Module[] => {
+    const activeModules: Module[] = [];
+    config.lasers.forEach((laser) => {
+      if (laser.laserHead && laser.laserHead.id !== 'none') {
+        laser.modules.forEach((module) => {
+          if (module && module.category === 'active' && module.id !== 'none') {
+            activeModules.push(module);
+          }
+        });
+      }
+    });
+    return activeModules;
   };
 
   return (
@@ -458,6 +480,26 @@ export default function ResultDisplay({
                     <div className="ship-label">
                       {selectedShip.name.split(" ").slice(1).join(" ")}
                     </div>
+
+                    {/* Active modules display */}
+                    {config && (() => {
+                      const activeModules = getActiveModules(config);
+                      if (activeModules.length > 0) {
+                        return (
+                          <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
+                            {activeModules.map((module, idx) => (
+                              <span
+                                key={idx}
+                                className="module-icon active"
+                                title={`${module.name} (Active Module)`}>
+                                {getModuleSymbol(module.id)}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
 
                   {/* Laser controls for MOLE */}
@@ -720,6 +762,26 @@ export default function ResultDisplay({
                       <div className="ship-label">
                         {shipInstance.ship.name.split(" ").slice(1).join(" ")}
                       </div>
+
+                      {/* Active modules display */}
+                      {(() => {
+                        const activeModules = getActiveModules(shipInstance.config);
+                        if (activeModules.length > 0) {
+                          return (
+                            <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
+                              {activeModules.map((module, idx) => (
+                                <span
+                                  key={idx}
+                                  className="module-icon active"
+                                  title={`${module.name} (Active Module)`}>
+                                  {getModuleSymbol(module.id)}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
 
                     {/* Laser control buttons for MOLE ships */}
@@ -778,7 +840,8 @@ export default function ResultDisplay({
             className={`rock-icon ${getStatusClass()} ${
               hasExcessiveOvercharge ? "overcharge-warning" : ""
             }`}
-            style={{ position: "relative", marginTop: rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined }}>
+            style={{ position: "relative", marginTop: rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined }}
+            onClick={(e) => e.stopPropagation()}>
             <div className="rock-symbol">
               <img
                 src={asteroidImage}

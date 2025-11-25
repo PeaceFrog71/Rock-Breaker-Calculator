@@ -197,6 +197,46 @@
   display: inline-block;
 }
 
+/* Active modules display */
+.active-modules-display {
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.module-icon {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  background: rgba(255, 193, 7, 0.2);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-block;
+  min-width: 1.5rem;
+  text-align: center;
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+
+.module-icon.active {
+  animation: module-pulse 2s ease-in-out infinite;
+}
+
+@keyframes module-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+    border-color: var(--warning);
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(255, 193, 7, 0.6);
+    border-color: rgba(255, 193, 7, 1);
+  }
+}
+
 .laser-controls {
   z-index: 30;
 }
