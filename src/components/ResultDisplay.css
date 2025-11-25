@@ -614,6 +614,16 @@
   overflow: visible;
 }
 
+.status-indicator-bottom {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  max-width: 90%;
+  padding: 1rem 1.5rem;
+}
+
 .status-indicator.can-break {
   background: rgba(0, 255, 136, 0.1);
   border-color: var(--success);
@@ -691,6 +701,17 @@
   color: var(--warning);
   font-weight: 700;
   margin-right: 0.25rem;
+}
+
+.distance-tip-bottom {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  max-width: 90%;
+  margin-top: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .power-bar-container {

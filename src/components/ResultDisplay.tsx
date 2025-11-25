@@ -259,14 +259,6 @@ export default function ResultDisplay({
           hasCriticalOvercharge ? "critical-overcharge" : ""
         }`}>
         <h2>{getStatusText()}</h2>
-        {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
-          (result.powerMarginPercent > 0 &&
-            result.powerMarginPercent <= 10)) && (
-          <div className="distance-tip">
-            <strong>Tip:</strong> Reducing laser distance may increase chances
-            of a successful break.
-          </div>
-        )}
       </div>
 
       <div
@@ -292,7 +284,7 @@ export default function ResultDisplay({
             />
           </div>
         )}
-        <div className="rock-container">
+        <div className="rock-container" onClick={(e) => e.stopPropagation()}>
           {/* Single ship positioned to the left */}
           {!miningGroup &&
             selectedShip &&
@@ -917,7 +909,7 @@ export default function ResultDisplay({
 
       </div>
 
-      <div className="power-bar-container">
+      <div className="power-bar-container" onClick={(e) => e.stopPropagation()}>
         <div className="power-bar">
           <div
             className={`power-fill ${getStatusClass()} ${
@@ -968,6 +960,16 @@ export default function ResultDisplay({
             <strong>WARNING!</strong> Excessive overcharge capability detected.
             Rock overcharge and premature fracture could easily occur. Approach
             with caution or reduce the number of lasers used.
+          </div>
+        )}
+
+        {/* Tip message moved to bottom inside graphic */}
+        {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
+          (result.powerMarginPercent > 0 &&
+            result.powerMarginPercent <= 10)) && (
+          <div className="distance-tip distance-tip-bottom" onClick={(e) => e.stopPropagation()}>
+            <strong>Tip:</strong> Reducing laser distance may increase chances
+            of a successful break.
           </div>
         )}
       </div>
