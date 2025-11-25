@@ -580,6 +580,7 @@
   margin: 0;
   text-transform: uppercase;
   letter-spacing: 2px;
+  white-space: nowrap;
 }
 
 .status-indicator.can-break h2 {
