@@ -123,6 +123,7 @@ export default function ResultDisplay({
   const [showFlyingShip, setShowFlyingShip] = useState(false);
   const [flyingShipTop, setFlyingShipTop] = useState(10); // Random position in top third
   const [flyingShipType, setFlyingShipType] = useState<'prospector' | 'mole' | 'golem'>('prospector');
+  const [flyingShipDirection, setFlyingShipDirection] = useState<'from-left' | 'from-right'>('from-left');
 
   useEffect(() => {
     const scheduleNextFlyby = () => {
@@ -134,6 +135,8 @@ export default function ResultDisplay({
         // Randomly pick a ship type
         const shipTypes: ('prospector' | 'mole' | 'golem')[] = ['prospector', 'mole', 'golem'];
         setFlyingShipType(shipTypes[Math.floor(Math.random() * shipTypes.length)]);
+        // Randomly pick direction
+        setFlyingShipDirection(Math.random() > 0.5 ? 'from-left' : 'from-right');
         setShowFlyingShip(true);
         // Hide after animation completes (8 seconds)
         setTimeout(() => setShowFlyingShip(false), 8000);
@@ -247,7 +250,7 @@ export default function ResultDisplay({
         {/* Flying ship easter egg */}
         {showFlyingShip && (
           <div
-            className="flying-prospector"
+            className={`flying-prospector ${flyingShipDirection}`}
             style={{ top: `${flyingShipTop}%` }}
           >
             <img
@@ -257,6 +260,7 @@ export default function ResultDisplay({
                 width: flyingShipType === 'mole' ? '68px' : flyingShipType === 'golem' ? '30px' : '45px',
                 height: flyingShipType === 'mole' ? '27px' : flyingShipType === 'golem' ? '12px' : '18px',
                 imageRendering: 'pixelated',
+                transform: flyingShipDirection === 'from-right' ? 'scaleX(-1)' : 'none',
               }}
             />
           </div>
