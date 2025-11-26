@@ -31,3 +31,4 @@ release
 .env
 .env.local
 .env.production
+rock-breaker-app/
