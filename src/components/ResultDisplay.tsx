@@ -1073,8 +1073,14 @@ export default function ResultDisplay({
                         } ${onToggleGadget ? "clickable" : ""}`}
                         title={tooltipText}
                         onClick={(e) => {
+                          console.log('Gadget icon clicked:', index, gadget.name);
                           e.stopPropagation();
-                          onToggleGadget && onToggleGadget(index);
+                          if (onToggleGadget) {
+                            console.log('Calling onToggleGadget for index:', index);
+                            onToggleGadget(index);
+                          } else {
+                            console.log('onToggleGadget is not defined');
+                          }
                         }}>
                         {getGadgetSymbol(gadget.id)}
                       </span>
