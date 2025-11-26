@@ -533,7 +533,7 @@ export default function ResultDisplay({
                         style={{
                           position: "absolute",
                           top: `calc(50% + ${shipY}px)`,
-                          left: `calc(50% + ${shipX - 50}px)`,
+                          left: `calc(50% + ${shipX - shipWidth - 20}px)`,
                           transform: "translateY(-50%)",
                           display: "flex",
                           flexDirection: "column",
