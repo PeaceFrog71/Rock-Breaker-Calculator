@@ -59,7 +59,8 @@ function LaserBeam({ startX, startY, endX, endY, svgSize }: LaserBeamProps) {
           backgroundRepeat: "repeat-x",
           backgroundSize: "auto 100%",
           imageRendering: "pixelated",
-          filter: "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+          filter:
+            "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
         }}
       />
     </div>
@@ -95,7 +96,7 @@ interface ResultDisplayProps {
   miningGroup?: MiningGroup;
   onToggleShip?: (shipId: string) => void;
   onToggleLaser?: (shipId: string, laserIndex: number) => void;
-  backgroundMode?: 'starfield' | 'landscape';
+  backgroundMode?: "starfield" | "landscape";
   onToggleBackground?: () => void;
 }
 
@@ -104,7 +105,11 @@ interface SingleShipDisplayProps {
   config?: MiningConfiguration;
   onSingleShipToggleLaser?: (laserIndex: number) => void;
   onToggleModule?: (laserIndex: number, moduleIndex: number) => void;
-  onGroupToggleModule?: (shipId: string, laserIndex: number, moduleIndex: number) => void;
+  onGroupToggleModule?: (
+    shipId: string,
+    laserIndex: number,
+    moduleIndex: number
+  ) => void;
 }
 
 export default function ResultDisplay({
@@ -121,14 +126,18 @@ export default function ResultDisplay({
   onSingleShipToggleLaser,
   onToggleModule,
   onGroupToggleModule,
-  backgroundMode = 'starfield',
+  backgroundMode = "starfield",
   onToggleBackground,
 }: ResultDisplayProps & SingleShipDisplayProps) {
   // Flying ship easter egg - appears every 5-10 minutes
   const [showFlyingShip, setShowFlyingShip] = useState(false);
   const [flyingShipTop, setFlyingShipTop] = useState(10); // Random position in top third
-  const [flyingShipType, setFlyingShipType] = useState<'prospector' | 'mole' | 'golem'>('prospector');
-  const [flyingShipDirection, setFlyingShipDirection] = useState<'from-left' | 'from-right'>('from-left');
+  const [flyingShipType, setFlyingShipType] = useState<
+    "prospector" | "mole" | "golem"
+  >("prospector");
+  const [flyingShipDirection, setFlyingShipDirection] = useState<
+    "from-left" | "from-right"
+  >("from-left");
 
   useEffect(() => {
     const scheduleNextFlyby = () => {
@@ -138,10 +147,18 @@ export default function ResultDisplay({
         // Set random vertical position in top third (5-30%)
         setFlyingShipTop(5 + Math.random() * 25);
         // Randomly pick a ship type
-        const shipTypes: ('prospector' | 'mole' | 'golem')[] = ['prospector', 'mole', 'golem'];
-        setFlyingShipType(shipTypes[Math.floor(Math.random() * shipTypes.length)]);
+        const shipTypes: ("prospector" | "mole" | "golem")[] = [
+          "prospector",
+          "mole",
+          "golem",
+        ];
+        setFlyingShipType(
+          shipTypes[Math.floor(Math.random() * shipTypes.length)]
+        );
         // Randomly pick direction
-        setFlyingShipDirection(Math.random() > 0.5 ? 'from-left' : 'from-right');
+        setFlyingShipDirection(
+          Math.random() > 0.5 ? "from-left" : "from-right"
+        );
         setShowFlyingShip(true);
         // Hide after animation completes (8 seconds)
         setTimeout(() => setShowFlyingShip(false), 8000);
@@ -186,7 +203,7 @@ export default function ResultDisplay({
 
   // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
   const getAsteroidSize = () => {
-    if (rock.mass < 15000) return { width: 100, height: 100 }; // Tiny
+    if (rock.mass < 15000) return { width: 100, height: 100 }; // and
     if (rock.mass < 25000) return { width: 175, height: 175 }; // Small
     if (rock.mass < 50000) return { width: 250, height: 250 }; // Medium
     if (rock.mass < 100000) return { width: 325, height: 325 }; // Large
@@ -210,7 +227,12 @@ export default function ResultDisplay({
       // For small and medium rocks, shift down so center matches tiny rock center
       // Tiny rock center is at: original + (37.5 + 100) = original + 137.5
       // Rock needs to shift down by: 137.5 - (difference in radii)
-      return positioningRadius - asteroidRadius + tinyRockSize - (asteroidRadius - tinyRockSize / 2);
+      return (
+        positioningRadius -
+        asteroidRadius +
+        tinyRockSize -
+        (asteroidRadius - tinyRockSize / 2)
+      );
     }
     return 0;
   };
@@ -236,22 +258,6 @@ export default function ResultDisplay({
     return firstLetter;
   };
 
-  // Get all active modules from a configuration
-  const getActiveModules = (config: MiningConfiguration): Array<{ module: Module; laserIndex: number; moduleIndex: number; isActive: boolean }> => {
-    const activeModules: Array<{ module: Module; laserIndex: number; moduleIndex: number; isActive: boolean }> = [];
-    config.lasers.forEach((laser, laserIndex) => {
-      if (laser.laserHead && laser.laserHead.id !== 'none') {
-        laser.modules.forEach((module, moduleIndex) => {
-          if (module && module.category === 'active' && module.id !== 'none') {
-            const isActive = laser.moduleActive ? laser.moduleActive[moduleIndex] !== false : true;
-            activeModules.push({ module, laserIndex, moduleIndex, isActive });
-          }
-        });
-      }
-    });
-    return activeModules;
-  };
-
   return (
     <div className="result-display">
       <div
@@ -262,24 +268,41 @@ export default function ResultDisplay({
       </div>
 
       <div
-        className={`rock-display rock-display-centered ${backgroundMode === 'landscape' ? 'bg-landscape' : 'bg-starfield'}`}
+        className={`rock-display rock-display-centered ${
+          backgroundMode === "landscape" ? "bg-landscape" : "bg-starfield"
+        }`}
         onClick={onToggleBackground}
-        title="Click to change background"
-      >
+        title="Click to change background">
         {/* Flying ship easter egg */}
         {showFlyingShip && (
           <div
             className={`flying-prospector ${flyingShipDirection}`}
-            style={{ top: `${flyingShipTop}%` }}
-          >
+            style={{ top: `${flyingShipTop}%` }}>
             <img
-              src={flyingShipType === 'mole' ? moleShipImage : flyingShipType === 'golem' ? golemShipImage : prospectorShipImage}
+              src={
+                flyingShipType === "mole"
+                  ? moleShipImage
+                  : flyingShipType === "golem"
+                  ? golemShipImage
+                  : prospectorShipImage
+              }
               alt={`Flying ${flyingShipType}`}
               style={{
-                width: flyingShipType === 'mole' ? '68px' : flyingShipType === 'golem' ? '30px' : '45px',
-                height: flyingShipType === 'mole' ? '27px' : flyingShipType === 'golem' ? '12px' : '18px',
-                imageRendering: 'pixelated',
-                transform: flyingShipDirection === 'from-right' ? 'scaleX(-1)' : 'none',
+                width:
+                  flyingShipType === "mole"
+                    ? "68px"
+                    : flyingShipType === "golem"
+                    ? "30px"
+                    : "45px",
+                height:
+                  flyingShipType === "mole"
+                    ? "27px"
+                    : flyingShipType === "golem"
+                    ? "12px"
+                    : "18px",
+                imageRendering: "pixelated",
+                transform:
+                  flyingShipDirection === "from-right" ? "scaleX(-1)" : "none",
               }}
             />
           </div>
@@ -294,7 +317,12 @@ export default function ResultDisplay({
               const asteroidRadius = asteroidSize.width / 2;
 
               // Get ship image width
-              const shipWidth = selectedShip.id === 'mole' ? 135 : selectedShip.id === 'prospector' ? 90 : 60;
+              const shipWidth =
+                selectedShip.id === "mole"
+                  ? 135
+                  : selectedShip.id === "prospector"
+                  ? 90
+                  : 60;
 
               // Adjust radius multiplier based on rock size
               // For all rocks under 50000 mass, use the same positioning as 25000 mass rock (radius 87.5)
@@ -329,7 +357,7 @@ export default function ResultDisplay({
               const laserStartY = center + shipY - 10;
               // Rock visual center - the rock is shifted down by marginTop in the DOM,
               // Calculate where the laser should hit based on rock size
-              let rockVisualCenterY = center + (rockVerticalOffset / 2);
+              let rockVisualCenterY = center + rockVerticalOffset / 2;
               // For rocks under 50000, adjust to hit the visual center of the shifted rock
               if (rock.mass < 50000) {
                 rockVisualCenterY -= asteroidSize.width / 16; // Move up by sixteenth diameter
@@ -341,7 +369,12 @@ export default function ResultDisplay({
               // Check if this is a MOLE and count manned lasers (with laser heads configured)
               const isMole = selectedShip.id === "mole";
               const mannedLasers = config
-                ? config.lasers.filter((laser) => laser.laserHead && laser.laserHead.id !== 'none' && laser.isManned !== false)
+                ? config.lasers.filter(
+                    (laser) =>
+                      laser.laserHead &&
+                      laser.laserHead.id !== "none" &&
+                      laser.isManned !== false
+                  )
                 : [];
               const numMannedLasers = mannedLasers.length;
 
@@ -366,7 +399,9 @@ export default function ResultDisplay({
                             // For small angles, tan(angle) ≈ angle in radians
                             const angleRad = (angleOffset * Math.PI) / 180;
                             // Distance from ship to rock center
-                            const laserLength = Math.abs(laserEndX - laserStartX);
+                            const laserLength = Math.abs(
+                              laserEndX - laserStartX
+                            );
                             // Y offset based on angle
                             const yOffset = Math.tan(angleRad) * laserLength;
 
@@ -374,7 +409,12 @@ export default function ResultDisplay({
                             const offsetEndY = laserEndY + yOffset;
 
                             // Add random variation to endpoint (unique seed per laser)
-                            const variedEnd = addLaserVariation(offsetEndX, offsetEndY, asteroidRadius, (laserIndex + 1) * 137);
+                            const variedEnd = addLaserVariation(
+                              offsetEndX,
+                              offsetEndY,
+                              asteroidRadius,
+                              (laserIndex + 1) * 137
+                            );
 
                             return (
                               <LaserBeam
@@ -397,7 +437,12 @@ export default function ResultDisplay({
                     }
 
                     // For non-MOLE ships, render single laser with variation
-                    const variedEnd = addLaserVariation(laserEndX, laserEndY, asteroidRadius, 0);
+                    const variedEnd = addLaserVariation(
+                      laserEndX,
+                      laserEndY,
+                      asteroidRadius,
+                      0
+                    );
                     return (
                       <LaserBeam
                         startX={laserStartX}
@@ -477,33 +522,6 @@ export default function ResultDisplay({
                     <div className="ship-label">
                       {selectedShip.name.split(" ").slice(1).join(" ")}
                     </div>
-
-                    {/* Active modules display */}
-                    {config && (() => {
-                      const activeModules = getActiveModules(config);
-                      if (activeModules.length > 0) {
-                        return (
-                          <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
-                            {activeModules.map((item, idx) => (
-                              <span
-                                key={idx}
-                                className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
-                                title={`${item.module.name} (Active Module) - Click to toggle`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (onToggleModule) {
-                                    onToggleModule(item.laserIndex, item.moduleIndex);
-                                  }
-                                }}
-                                style={{ cursor: onToggleModule ? 'pointer' : 'default' }}>
-                                {getModuleSymbol(item.module.id)}
-                              </span>
-                            ))}
-                          </div>
-                        );
-                      }
-                      return null;
-                    })()}
                   </div>
 
                   {/* Laser controls for MOLE */}
@@ -536,16 +554,62 @@ export default function ResultDisplay({
                           const laser = config.lasers[laserIndex];
                           const activeModules = laser?.modules
                             ?.map((module, moduleIndex) => {
-                              if (module && module.category === 'active' && module.id !== 'none') {
-                                const isActive = laser.moduleActive ? laser.moduleActive[moduleIndex] !== false : true;
+                              if (
+                                module &&
+                                module.category === "active" &&
+                                module.id !== "none"
+                              ) {
+                                const isActive = laser.moduleActive
+                                  ? laser.moduleActive[moduleIndex] !== false
+                                  : true;
                                 return { module, moduleIndex, isActive };
                               }
                               return null;
                             })
-                            .filter(Boolean) as Array<{ module: Module; moduleIndex: number; isActive: boolean }>;
+                            .filter(Boolean) as Array<{
+                            module: Module;
+                            moduleIndex: number;
+                            isActive: boolean;
+                          }>;
 
                           return (
-                            <div key={laserIndex} style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                            <div
+                              key={laserIndex}
+                              style={{
+                                display: "flex",
+                                gap: "0.25rem",
+                                alignItems: "center",
+                              }}>
+                              {/* Module buttons to the left for left-side ship */}
+                              {activeModules && activeModules.length > 0 && (
+                                <div
+                                  style={{ display: "flex", gap: "0.25rem" }}>
+                                  {activeModules.map((item) => (
+                                    <span
+                                      key={item.moduleIndex}
+                                      className={`module-icon ${
+                                        item.isActive ? "active" : "inactive"
+                                      }`}
+                                      title={`${item.module.name} (Active Module) - Click to toggle`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onToggleModule) {
+                                          onToggleModule(
+                                            laserIndex,
+                                            item.moduleIndex
+                                          );
+                                        }
+                                      }}
+                                      style={{
+                                        cursor: onToggleModule
+                                          ? "pointer"
+                                          : "default",
+                                      }}>
+                                      {getModuleSymbol(item.module.id)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                               <button
                                 className={`laser-button ${
                                   isLaserManned ? "manned" : "unmanned"
@@ -557,26 +621,6 @@ export default function ResultDisplay({
                                 title={tooltipText}>
                                 L{laserIndex + 1}
                               </button>
-                              {/* Module buttons next to laser button */}
-                              {activeModules && activeModules.length > 0 && (
-                                <div style={{ display: 'flex', gap: '0.25rem' }}>
-                                  {activeModules.map((item) => (
-                                    <span
-                                      key={item.moduleIndex}
-                                      className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
-                                      title={`${item.module.name} (Active Module) - Click to toggle`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (onToggleModule) {
-                                          onToggleModule(laserIndex, item.moduleIndex);
-                                        }
-                                      }}
-                                      style={{ cursor: onToggleModule ? 'pointer' : 'default' }}>
-                                      {getModuleSymbol(item.module.id)}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
                             </div>
                           );
                         })}
@@ -617,17 +661,21 @@ export default function ResultDisplay({
                 let yOffset;
                 if (rock.mass < 50000) {
                   // Use small rock height for base offset, plus 50px for positioning
-                  yOffset = (175 * 0.125) + 50; // 21.875 + 50 = 71.875px
+                  yOffset = 175 * 0.125 + 50; // 21.875 + 50 = 71.875px
                 } else {
                   yOffset = asteroidSize.height * 0.125;
                 }
-                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
+                const y =
+                  Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
                 const isActive = shipInstance.isActive !== false;
 
                 // Check if this ship has any manned lasers (with laser heads configured)
                 const isMole = shipInstance.ship.id === "mole";
                 const mannedLasers = shipInstance.config.lasers.filter(
-                  (laser) => laser.laserHead && laser.laserHead.id !== 'none' && laser.isManned !== false
+                  (laser) =>
+                    laser.laserHead &&
+                    laser.laserHead.id !== "none" &&
+                    laser.isManned !== false
                 );
                 const numMannedLasers = mannedLasers.length;
                 const hasLasers = numMannedLasers > 0;
@@ -635,7 +683,8 @@ export default function ResultDisplay({
                 return (
                   <div key={shipInstance.id}>
                     {/* Laser beam from ship to rock - only show if active AND has manned lasers */}
-                    {isActive && hasLasers &&
+                    {isActive &&
+                      hasLasers &&
                       (() => {
                         const svgSize = 800;
                         const center = svgSize / 2;
@@ -643,7 +692,7 @@ export default function ResultDisplay({
                         const laserStartX = center + x;
                         const laserStartY = center + y - 10;
                         // Calculate rock visual center (accounting for rock offset)
-                        let rockVisualCenterY = center + (rockVerticalOffset / 2);
+                        let rockVisualCenterY = center + rockVerticalOffset / 2;
                         if (rock.mass < 50000) {
                           rockVisualCenterY -= asteroidSize.width / 16; // Move up by sixteenth diameter for rocks under 50000
                         }
@@ -680,7 +729,12 @@ export default function ResultDisplay({
                                   dy * Math.cos(angleRad);
 
                                 // Add random variation to endpoint (unique seed per ship and laser)
-                                const variedEnd = addLaserVariation(rotatedEndX, rotatedEndY, asteroidRadius, (index + 1) * 1000 + (laserIndex + 1) * 137);
+                                const variedEnd = addLaserVariation(
+                                  rotatedEndX,
+                                  rotatedEndY,
+                                  asteroidRadius,
+                                  (index + 1) * 1000 + (laserIndex + 1) * 137
+                                );
 
                                 return (
                                   <LaserBeam
@@ -698,7 +752,12 @@ export default function ResultDisplay({
                         }
 
                         // For non-MOLE ships, render single laser with variation
-                        const variedEnd = addLaserVariation(laserEndX, laserEndY, asteroidRadius, index * 1000);
+                        const variedEnd = addLaserVariation(
+                          laserEndX,
+                          laserEndY,
+                          asteroidRadius,
+                          index * 1000
+                        );
                         return (
                           <LaserBeam
                             startX={laserStartX}
@@ -800,33 +859,6 @@ export default function ResultDisplay({
                       <div className="ship-label">
                         {shipInstance.ship.name.split(" ").slice(1).join(" ")}
                       </div>
-
-                      {/* Active modules display */}
-                      {(() => {
-                        const activeModules = getActiveModules(shipInstance.config);
-                        if (activeModules.length > 0) {
-                          return (
-                            <div className="active-modules-display" onClick={(e) => e.stopPropagation()}>
-                              {activeModules.map((item, idx) => (
-                                <span
-                                  key={idx}
-                                  className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
-                                  title={`${item.module.name} (Active Module) - Click to toggle`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (onGroupToggleModule) {
-                                      onGroupToggleModule(shipInstance.id, item.laserIndex, item.moduleIndex);
-                                    }
-                                  }}
-                                  style={{ cursor: onGroupToggleModule ? 'pointer' : 'default' }}>
-                                  {getModuleSymbol(item.module.id)}
-                                </span>
-                              ))}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })()}
                     </div>
 
                     {/* Laser control buttons for MOLE ships */}
@@ -862,16 +894,66 @@ export default function ResultDisplay({
                           const laser = shipInstance.config.lasers[laserIndex];
                           const activeModules = laser?.modules
                             ?.map((module, moduleIndex) => {
-                              if (module && module.category === 'active' && module.id !== 'none') {
-                                const isActive = laser.moduleActive ? laser.moduleActive[moduleIndex] !== false : true;
+                              if (
+                                module &&
+                                module.category === "active" &&
+                                module.id !== "none"
+                              ) {
+                                const isActive = laser.moduleActive
+                                  ? laser.moduleActive[moduleIndex] !== false
+                                  : true;
                                 return { module, moduleIndex, isActive };
                               }
                               return null;
                             })
-                            .filter(Boolean) as Array<{ module: Module; moduleIndex: number; isActive: boolean }>;
+                            .filter(Boolean) as Array<{
+                            module: Module;
+                            moduleIndex: number;
+                            isActive: boolean;
+                          }>;
+
+                          // Determine if ship is on left or right side
+                          const isLeftSide = x < 0;
 
                           return (
-                            <div key={laserIndex} style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                            <div
+                              key={laserIndex}
+                              style={{
+                                display: "flex",
+                                gap: "0.25rem",
+                                alignItems: "center",
+                              }}>
+                              {/* Module buttons - on left for left-side ships */}
+                              {isLeftSide && activeModules && activeModules.length > 0 && (
+                                <div
+                                  style={{ display: "flex", gap: "0.25rem" }}>
+                                  {activeModules.map((item) => (
+                                    <span
+                                      key={item.moduleIndex}
+                                      className={`module-icon ${
+                                        item.isActive ? "active" : "inactive"
+                                      }`}
+                                      title={`${item.module.name} (Active Module) - Click to toggle`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (onGroupToggleModule) {
+                                          onGroupToggleModule(
+                                            shipInstance.id,
+                                            laserIndex,
+                                            item.moduleIndex
+                                          );
+                                        }
+                                      }}
+                                      style={{
+                                        cursor: onGroupToggleModule
+                                          ? "pointer"
+                                          : "default",
+                                      }}>
+                                      {getModuleSymbol(item.module.id)}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                               <button
                                 className={`laser-button ${
                                   isLaserManned ? "manned" : "unmanned"
@@ -883,21 +965,32 @@ export default function ResultDisplay({
                                 title={tooltipText}>
                                 L{laserIndex + 1}
                               </button>
-                              {/* Module buttons next to laser button */}
-                              {activeModules && activeModules.length > 0 && (
-                                <div style={{ display: 'flex', gap: '0.25rem' }}>
+                              {/* Module buttons - on right for right-side ships */}
+                              {!isLeftSide && activeModules && activeModules.length > 0 && (
+                                <div
+                                  style={{ display: "flex", gap: "0.25rem" }}>
                                   {activeModules.map((item) => (
                                     <span
                                       key={item.moduleIndex}
-                                      className={`module-icon ${item.isActive ? 'active' : 'inactive'}`}
+                                      className={`module-icon ${
+                                        item.isActive ? "active" : "inactive"
+                                      }`}
                                       title={`${item.module.name} (Active Module) - Click to toggle`}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         if (onGroupToggleModule) {
-                                          onGroupToggleModule(shipInstance.id, laserIndex, item.moduleIndex);
+                                          onGroupToggleModule(
+                                            shipInstance.id,
+                                            laserIndex,
+                                            item.moduleIndex
+                                          );
                                         }
                                       }}
-                                      style={{ cursor: onGroupToggleModule ? 'pointer' : 'default' }}>
+                                      style={{
+                                        cursor: onGroupToggleModule
+                                          ? "pointer"
+                                          : "default",
+                                      }}>
                                       {getModuleSymbol(item.module.id)}
                                     </span>
                                   ))}
@@ -919,7 +1012,11 @@ export default function ResultDisplay({
             className={`rock-icon ${getStatusClass()} ${
               hasExcessiveOvercharge ? "overcharge-warning" : ""
             }`}
-            style={{ position: "relative", marginTop: rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined }}
+            style={{
+              position: "relative",
+              marginTop:
+                rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined,
+            }}
             onClick={(e) => e.stopPropagation()}>
             <div className="rock-symbol">
               <img
@@ -941,19 +1038,28 @@ export default function ResultDisplay({
                       ? gadgetEnabled[index] !== false
                       : true;
                     // Build tooltip with all effects
-                    const formatEffect = (value: number | undefined, label: string) => {
+                    const formatEffect = (
+                      value: number | undefined,
+                      label: string
+                    ) => {
                       if (value === undefined || value === 1) return null;
-                      const pct = value > 1 ? `+${Math.round((value - 1) * 100)}%` : `-${Math.round((1 - value) * 100)}%`;
+                      const pct =
+                        value > 1
+                          ? `+${Math.round((value - 1) * 100)}%`
+                          : `-${Math.round((1 - value) * 100)}%`;
                       return `${label}: ${pct}`;
                     };
                     const effects = [
-                      formatEffect(gadget.resistModifier, 'Resist'),
-                      formatEffect(gadget.instabilityModifier, 'Instability'),
-                      formatEffect(gadget.chargeWindowModifier, 'Charge Window'),
-                      formatEffect(gadget.chargeRateModifier, 'Charge Rate'),
-                      formatEffect(gadget.clusterModifier, 'Clustering'),
+                      formatEffect(gadget.resistModifier, "Resist"),
+                      formatEffect(gadget.instabilityModifier, "Instability"),
+                      formatEffect(
+                        gadget.chargeWindowModifier,
+                        "Charge Window"
+                      ),
+                      formatEffect(gadget.chargeRateModifier, "Charge Rate"),
+                      formatEffect(gadget.clusterModifier, "Clustering"),
                     ].filter(Boolean);
-                    const tooltipText = `${gadget.name}\n${effects.join('\n')}`;
+                    const tooltipText = `${gadget.name}\n${effects.join("\n")}`;
                     return (
                       <span
                         key={index}
@@ -974,7 +1080,6 @@ export default function ResultDisplay({
             </div>
           </div>
         </div>
-
       </div>
 
       <div className="power-bar-container" onClick={(e) => e.stopPropagation()}>
@@ -1035,7 +1140,9 @@ export default function ResultDisplay({
         {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
           (result.powerMarginPercent > 0 &&
             result.powerMarginPercent <= 10)) && (
-          <div className="distance-tip distance-tip-bottom" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="distance-tip distance-tip-bottom"
+            onClick={(e) => e.stopPropagation()}>
             <strong>Tip:</strong> Reducing laser distance may increase chances
             of a successful break.
           </div>
