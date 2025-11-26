@@ -373,6 +373,7 @@
   position: relative;
   display: inline-block;
   isolation: isolate;
+  pointer-events: none;
 }
 
 .asteroid-image {
@@ -393,6 +394,7 @@
   grid-template-columns: repeat(3, auto);
   gap: 0.3rem;
   z-index: 10;
+  pointer-events: auto;
 }
 
 .gadget-symbol-small {
@@ -407,6 +409,7 @@
   text-shadow: 0 0 4px rgba(0, 255, 204, 0.6);
   backdrop-filter: blur(2px);
   transition: all 0.2s ease;
+  pointer-events: auto;
 }
 
 .gadget-symbol-small.clickable {
