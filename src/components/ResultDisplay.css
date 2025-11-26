@@ -376,17 +376,13 @@
   pointer-events: none;
 }
 
-.rock-symbol > * {
-  pointer-events: auto;
-}
-
 .rock-symbol > .asteroid-image {
   display: block;
   margin: 0 auto;
   filter: drop-shadow(0 0 20px currentColor);
   background: transparent;
   mix-blend-mode: normal;
-  pointer-events: none !important;
+  pointer-events: none;
 }
 
 .gadget-symbols-on-rock {
