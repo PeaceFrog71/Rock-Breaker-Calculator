@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import "./App.css";
 import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
-import { SHIPS, LASER_HEADS, GADGETS, getGadgetSymbol } from "./types";
+import { SHIPS, LASER_HEADS, GADGETS } from "./types";
 import {
   createEmptyConfig,
   calculateBreakability,
@@ -400,10 +400,6 @@ function App() {
                             className={`gadget-info-item ${!isEnabled ? 'disabled' : ''}`}
                             onClick={() => handleToggleGadget(index)}
                           >
-                            <div className="gadget-info-header">
-                              <span className="gadget-info-symbol">{getGadgetSymbol(gadget.id)}</span>
-                              <span className="gadget-info-name">{gadget.name}</span>
-                            </div>
                             <div className="gadget-info-effects">
                               {effects.map((effect, i) => (
                                 <span key={i} className={`gadget-effect ${effect.isPositive ? 'positive' : 'negative'}`}>
