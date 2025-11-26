@@ -579,6 +579,7 @@ export default function ResultDisplay({
                                 display: "flex",
                                 gap: "0.25rem",
                                 alignItems: "center",
+                                justifyContent: "flex-end", // Right-align for left-side ship
                               }}>
                               {/* Module buttons to the left for left-side ship */}
                               {activeModules && activeModules.length > 0 && (
@@ -922,6 +923,7 @@ export default function ResultDisplay({
                                 display: "flex",
                                 gap: "0.25rem",
                                 alignItems: "center",
+                                justifyContent: isLeftSide ? "flex-end" : "flex-start", // Right-align for left-side ships
                               }}>
                               {/* Module buttons - on left for left-side ships */}
                               {isLeftSide && activeModules && activeModules.length > 0 && (
