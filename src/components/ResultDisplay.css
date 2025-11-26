@@ -419,11 +419,11 @@
 
 .gadget-symbol-small.disabled {
   opacity: 0.6;
-  color: var(--text-secondary);
-  background: rgba(168, 181, 199, 0.2);
-  border: 2px solid var(--text-secondary);
-  box-shadow: 0 0 4px rgba(168, 181, 199, 0.3);
-  text-shadow: none;
+  color: var(--text-secondary) !important;
+  background: rgba(168, 181, 199, 0.2) !important;
+  border: 2px solid var(--text-secondary) !important;
+  box-shadow: 0 0 4px rgba(168, 181, 199, 0.3) !important;
+  text-shadow: none !important;
   text-decoration: line-through;
 }
 
