@@ -54,7 +54,7 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
         {savedShips.length === 0 ? (
           <p className="empty-message">No saved ships. Save ships from Single Ship mode or click "Save to Library" in a ship card.</p>
         ) : (
-          savedShips.map((ship) => (
+          savedShips.sort((a, b) => a.name.localeCompare(b.name)).map((ship) => (
             <div key={ship.id} className="config-item">
               <div className="config-info">
                 <div className="config-name">{ship.name}</div>
