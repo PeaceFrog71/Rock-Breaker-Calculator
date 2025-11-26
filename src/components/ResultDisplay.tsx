@@ -307,7 +307,10 @@ export default function ResultDisplay({
             />
           </div>
         )}
-        <div className="rock-container" onClick={(e) => e.stopPropagation()}>
+        <div
+          className="rock-container"
+          onClick={(e) => e.stopPropagation()}
+          style={!miningGroup ? { transform: 'translateX(100px)' } : undefined}>
           {/* Single ship positioned to the left */}
           {!miningGroup &&
             selectedShip &&
