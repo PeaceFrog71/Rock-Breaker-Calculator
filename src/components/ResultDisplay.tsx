@@ -1137,7 +1137,7 @@ export default function ResultDisplay({
         {/* Tip messages at bottom of power bar frame */}
         {hasExcessiveOvercharge && (
           <div className="overcharge-warning">
-            <strong>Tip:</strong> Excessive overcharge capability detected.
+            <strong>WARNING!</strong> Excessive overcharge capability detected.
             Rock overcharge and premature fracture could easily occur. Approach
             with caution or reduce the number of lasers used.
           </div>
