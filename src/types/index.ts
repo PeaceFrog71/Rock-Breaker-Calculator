@@ -63,6 +63,11 @@ export interface Rock {
   resistance: number;
   instability?: number; // For future use
   name?: string;
+  resistanceMode?: 'base' | 'modified'; // Whether resistance is base (cockpit scan) or modified (laser scan)
+  originalScannedValue?: number; // Store the original scanned value for reference
+  includeGadgetsInScan?: boolean; // Whether gadgets were active during the scan
+  scannedByShipId?: string; // For multi-ship: which ship scanned the rock
+  scannedByLaserIndex?: number; // For multi-ship: which laser on that ship
 }
 
 export interface CalculationResult {
@@ -74,6 +79,10 @@ export interface CalculationResult {
   canBreak: boolean;
   powerMargin: number; // How much power over/under required
   powerMarginPercent: number;
+  resistanceContext?: {
+    derivedBaseValue: number; // The derived base resistance (for modified mode)
+    appliedModifier: number; // The total modifier applied
+  };
 }
 
 // Mining Group types for multi-ship operations

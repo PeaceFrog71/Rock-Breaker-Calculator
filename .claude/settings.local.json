@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(nslookup:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

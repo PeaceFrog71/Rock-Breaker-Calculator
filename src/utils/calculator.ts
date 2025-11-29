@@ -1,6 +1,40 @@
 import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration, MiningGroup, Gadget } from '../types';
 
 /**
+ * Derive base resistance from a modified (scanned-with-laser) value
+ * Formula: baseResistance = modifiedResistance / totalModifier
+ */
+export function deriveBaseResistance(modifiedValue: number, totalModifier: number): number {
+  if (totalModifier === 0) return modifiedValue;
+  return modifiedValue / totalModifier;
+}
+
+/**
+ * Calculate effective resistance based on mode
+ * - Base mode: Apply modifiers to the base resistance
+ * - Modified mode: Reverse-calculate base, then apply modifiers
+ */
+export function calculateEffectiveResistance(
+  rock: Rock,
+  equipmentModifier: number,
+  gadgetModifier: number
+): { effectiveResistance: number; derivedBase?: number } {
+  const totalModifier = equipmentModifier * gadgetModifier;
+
+  if (rock.resistanceMode === 'modified') {
+    // User scanned with laser - need to reverse-calculate base resistance
+    const scanModifier = rock.includeGadgetsInScan ? totalModifier : equipmentModifier;
+    const derivedBase = deriveBaseResistance(rock.resistance, scanModifier);
+    const effectiveResistance = derivedBase * totalModifier;
+    return { effectiveResistance, derivedBase };
+  } else {
+    // Base mode (default) - user scanned from cockpit without laser
+    const effectiveResistance = rock.resistance * totalModifier;
+    return { effectiveResistance };
+  }
+}
+
+/**
  * Calculate power for a single laser with its modules
  */
 export function calculateLaserPower(laser: LaserConfiguration): number {
@@ -82,14 +116,22 @@ export function calculateBreakability(
   });
 
   // Apply gadget resist modifiers
+  let gadgetModifier = 1;
   gadgets.forEach((gadget) => {
     if (gadget && gadget.id !== 'none') {
-      totalResistModifier *= gadget.resistModifier;
+      gadgetModifier *= gadget.resistModifier;
     }
   });
 
-  // Calculate adjusted resistance
-  const adjustedResistance = rock.resistance * totalResistModifier;
+  // Calculate effective resistance based on resistance mode
+  const { effectiveResistance, derivedBase } = calculateEffectiveResistance(
+    rock,
+    totalResistModifier,
+    gadgetModifier
+  );
+
+  const adjustedResistance = effectiveResistance;
+  const totalCombinedModifier = totalResistModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
   const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
@@ -106,9 +148,9 @@ export function calculateBreakability(
     ? (powerMargin / adjustedLPNeeded) * 100
     : 0;
 
-  return {
+  const result: CalculationResult = {
     totalLaserPower,
-    totalResistModifier,
+    totalResistModifier: totalCombinedModifier,
     adjustedResistance,
     baseLPNeeded,
     adjustedLPNeeded,
@@ -116,6 +158,16 @@ export function calculateBreakability(
     powerMargin,
     powerMarginPercent,
   };
+
+  // Add resistance context if in modified mode
+  if (derivedBase !== undefined) {
+    result.resistanceContext = {
+      derivedBaseValue: derivedBase,
+      appliedModifier: totalCombinedModifier,
+    };
+  }
+
+  return result;
 }
 
 /**
@@ -220,17 +272,25 @@ export function calculateGroupBreakability(
   });
 
   // Average the resistance modifiers from all active ships
-  let totalResistModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+  let equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
 
-  // Apply gadget resist modifiers
+  // Apply gadget resist modifiers separately
+  let gadgetModifier = 1;
   gadgets.forEach((gadget) => {
     if (gadget && gadget.id !== 'none') {
-      totalResistModifier *= gadget.resistModifier;
+      gadgetModifier *= gadget.resistModifier;
     }
   });
 
-  // Calculate adjusted resistance
-  const adjustedResistance = rock.resistance * totalResistModifier;
+  // Calculate effective resistance based on resistance mode
+  const { effectiveResistance, derivedBase } = calculateEffectiveResistance(
+    rock,
+    equipmentModifier,
+    gadgetModifier
+  );
+
+  const adjustedResistance = effectiveResistance;
+  const totalCombinedModifier = equipmentModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
   const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
@@ -247,9 +307,9 @@ export function calculateGroupBreakability(
     ? (powerMargin / adjustedLPNeeded) * 100
     : 0;
 
-  return {
+  const result: CalculationResult = {
     totalLaserPower,
-    totalResistModifier,
+    totalResistModifier: totalCombinedModifier,
     adjustedResistance,
     baseLPNeeded,
     adjustedLPNeeded,
@@ -257,4 +317,14 @@ export function calculateGroupBreakability(
     powerMargin,
     powerMarginPercent,
   };
+
+  // Add resistance context if in modified mode
+  if (derivedBase !== undefined) {
+    result.resistanceContext = {
+      derivedBaseValue: derivedBase,
+      appliedModifier: totalCombinedModifier,
+    };
+  }
+
+  return result;
 }

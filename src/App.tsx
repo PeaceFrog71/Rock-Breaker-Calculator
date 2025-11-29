@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
 import { SHIPS, LASER_HEADS, GADGETS } from "./types";
@@ -18,6 +18,7 @@ import ConfigManager from "./components/ConfigManager";
 import ShipPoolManager from "./components/ShipPoolManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import ResistanceModeSelector from "./components/ResistanceModeSelector";
 
 function App() {
   // Load saved state or use defaults
@@ -32,6 +33,8 @@ function App() {
     mass: 25000,
     resistance: 30,
     name: "The Rock",
+    resistanceMode: 'base',
+    includeGadgetsInScan: false,
   });
   const [miningGroup, setMiningGroup] = useState<MiningGroup>({
     ships: [],
@@ -60,6 +63,37 @@ function App() {
   useEffect(() => {
     saveCurrentConfiguration(selectedShip, config);
   }, [selectedShip, config]);
+
+  // Smart hint detection: Show hint if resistance is low and equipment modifiers exist
+  const showResistanceHint = useMemo(() => {
+    if (rock.resistance === 0 || rock.resistance >= 20) return false;
+
+    // Check if any equipment has resistance modifiers
+    const hasEquipmentModifiers = config.lasers.some(laser =>
+      laser.laserHead && laser.laserHead.resistModifier !== 1
+    );
+
+    return hasEquipmentModifiers;
+  }, [rock.resistance, config.lasers]);
+
+  // Resistance mode handlers
+  const handleResistanceModeToggle = () => {
+    setRock({
+      ...rock,
+      resistanceMode: rock.resistanceMode === 'base' ? 'modified' : 'base',
+    });
+  };
+
+  const handleResistanceChange = (value: number) => {
+    setRock({ ...rock, resistance: value });
+  };
+
+  const handleGadgetInclusionToggle = () => {
+    setRock({
+      ...rock,
+      includeGadgetsInScan: !rock.includeGadgetsInScan,
+    });
+  };
 
   // Filter gadgets to only include enabled ones
   const enabledGadgets = gadgets.map((gadget, index) =>
@@ -263,16 +297,15 @@ function App() {
                       step="0.1"
                     />
                   </div>
-                  <div className="compact-form-group">
-                    <label>Resistance</label>
-                    <input
-                      type="number"
-                      value={rock.resistance === 0 ? '' : rock.resistance}
-                      onChange={(e) => setRock({ ...rock, resistance: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-                      min="0"
-                      step="0.1"
-                    />
-                  </div>
+                  <ResistanceModeSelector
+                    value={rock.resistance}
+                    mode={rock.resistanceMode || 'base'}
+                    includeGadgets={rock.includeGadgetsInScan || false}
+                    showHint={showResistanceHint}
+                    onChange={handleResistanceChange}
+                    onModeToggle={handleResistanceModeToggle}
+                    onGadgetToggle={handleGadgetInclusionToggle}
+                  />
                   <div className="compact-form-group">
                     <label>Instability</label>
                     <input
