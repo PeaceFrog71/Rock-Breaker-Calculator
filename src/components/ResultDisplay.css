@@ -45,6 +45,7 @@
 /* Landscape background */
 .rock-display.bg-landscape::before {
   background-image: url('../assets/landscape2.png');
+  background-position: center bottom;
 }
 
 /* Cursor indicator for clickable background */
@@ -57,34 +58,34 @@
   position: absolute;
   z-index: 2;
   pointer-events: none;
-  opacity: 0.7;
+  filter: brightness(0.5);
 }
 
 .flying-prospector.from-left {
-  left: -60px;
-  animation: fly-left-to-right 8s linear forwards;
+  left: -135px;
+  animation: fly-left-to-right 12s linear forwards;
 }
 
 .flying-prospector.from-right {
-  right: -60px;
-  animation: fly-right-to-left 8s linear forwards;
+  right: -135px;
+  animation: fly-right-to-left 12s linear forwards;
 }
 
 @keyframes fly-left-to-right {
   0% {
-    left: -60px;
+    left: -135px;
   }
   100% {
-    left: calc(100% + 60px);
+    left: calc(100% + 135px);
   }
 }
 
 @keyframes fly-right-to-left {
   0% {
-    right: -60px;
+    right: -135px;
   }
   100% {
-    right: calc(100% + 60px);
+    right: calc(100% + 135px);
   }
 }
 
@@ -125,16 +126,7 @@
   transition: padding-top 0.3s ease;
 }
 
-/* Shift rock and ships down 25% when landscape background is active */
-.bg-landscape .rock-container {
-  padding-top: 25%;
-  align-items: flex-start;
-}
-
-/* Shift the ships container down to match the rock position */
-.bg-landscape .ships-around-rock {
-  top: 15%;
-}
+/* Landscape mode - keep same frame size, no shifting needed */
 
 .ships-around-rock {
   position: absolute;
@@ -186,6 +178,10 @@
 .ship-image {
   display: block;
   margin: 0 auto;
+}
+
+.ship-image.has-active-lasers {
+  filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.8)) drop-shadow(0 0 25px rgba(255, 170, 0, 0.5));
 }
 
 .ship-label {
@@ -385,6 +381,43 @@
   background: transparent;
   mix-blend-mode: normal;
   pointer-events: none;
+}
+
+.rock-symbol.trembling {
+  animation: tremble 1s infinite, overcharge-pulse-color 1s ease-in-out infinite !important;
+}
+
+@keyframes tremble {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  10% {
+    transform: translate(-1px, 1px);
+  }
+  20% {
+    transform: translate(1px, -1px);
+  }
+  30% {
+    transform: translate(-1px, -1px);
+  }
+  40% {
+    transform: translate(1px, 1px);
+  }
+  50% {
+    transform: translate(-1px, 0);
+  }
+  60% {
+    transform: translate(1px, 0);
+  }
+  70% {
+    transform: translate(0, -1px);
+  }
+  80% {
+    transform: translate(0, 1px);
+  }
+  90% {
+    transform: translate(-1px, 1px);
+  }
 }
 
 .gadget-symbols-on-rock {

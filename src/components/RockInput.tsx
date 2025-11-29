@@ -1,5 +1,5 @@
-import type { Rock } from '../types';
-import './RockInput.css';
+import type { Rock } from "../types";
+import "./RockInput.css";
 
 interface RockInputProps {
   rock: Rock;
@@ -15,7 +15,7 @@ export default function RockInput({ rock, onChange }: RockInputProps) {
         <label>Rock Name (optional):</label>
         <input
           type="text"
-          value={rock.name || ''}
+          value={rock.name || ""}
           onChange={(e) => onChange({ ...rock, name: e.target.value })}
           placeholder="e.g., Quantainium Rock"
         />
@@ -26,7 +26,9 @@ export default function RockInput({ rock, onChange }: RockInputProps) {
         <input
           type="number"
           value={rock.mass}
-          onChange={(e) => onChange({ ...rock, mass: parseFloat(e.target.value) || 0 })}
+          onChange={(e) =>
+            onChange({ ...rock, mass: parseFloat(e.target.value) || 0 })
+          }
           min="0"
           step="0.1"
         />
@@ -36,10 +38,17 @@ export default function RockInput({ rock, onChange }: RockInputProps) {
         <label>Base Resistance:</label>
         <input
           type="number"
-          value={rock.resistance}
-          onChange={(e) => onChange({ ...rock, resistance: parseFloat(e.target.value) || 0 })}
+          value={rock.resistance === 0 ? "" : rock.resistance}
+          onChange={(e) =>
+            onChange({
+              ...rock,
+              resistance:
+                e.target.value === "" ? 0 : parseFloat(e.target.value) || 0,
+            })
+          }
           min="0"
           step="0.1"
+          placeholder="0"
         />
       </div>
 
