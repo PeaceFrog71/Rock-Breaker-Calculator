@@ -19,6 +19,7 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
 import ResistanceModeSelector from "./components/ResistanceModeSelector";
+import pfLogo from "./assets/PFlogo.png";
 
 function App() {
   // Load saved state or use defaults
@@ -257,7 +258,10 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Rock Breaker Calculator</h1>
+        <a href="https://peacefroggaming.com" target="_blank" rel="noopener noreferrer" title="Peacefrog Gaming">
+          <img src={pfLogo} alt="Peacefrog Gaming" className="header-logo" />
+        </a>
+        <h1>PeaceFrog's Rock Breaker</h1>
         <button
           className="help-button"
           onClick={() => setShowHelpModal(true)}
