@@ -940,3 +940,80 @@
   color: var(--text-primary);
   font-weight: 600;
 }
+
+/* Scanning Ship Selector */
+.scanning-ship-selector {
+  background: var(--bg-medium);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.scanning-ship-selector h3 {
+  color: var(--accent-cyan);
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.selector-hint {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.scanning-ship-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.scanning-ship-option {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.ship-info {
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.ship-info strong {
+  color: var(--accent-blue);
+}
+
+.laser-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.laser-select-btn {
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.laser-select-btn:hover {
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+  background: rgba(0, 255, 204, 0.1);
+}
+
+.laser-select-btn.selected {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  border-color: var(--accent-cyan);
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+}

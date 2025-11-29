@@ -111,6 +111,7 @@ interface ResultDisplayProps {
   miningGroup?: MiningGroup;
   onToggleShip?: (shipId: string) => void;
   onToggleLaser?: (shipId: string, laserIndex: number) => void;
+  onSetScanningShip?: (shipId: string, laserIndex: number) => void;
   backgroundMode?: "starfield" | "landscape";
   onToggleBackground?: () => void;
 }
@@ -138,6 +139,7 @@ export default function ResultDisplay({
   config,
   onToggleShip,
   onToggleLaser,
+  onSetScanningShip,
   onSingleShipToggleLaser,
   onToggleModule,
   onGroupToggleModule,
@@ -1261,7 +1263,15 @@ export default function ResultDisplay({
             {result.adjustedResistance.toFixed(2)}
           </div>
           <div className="stat-subtitle">
-            Base: {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+            {result.resistanceContext ? (
+              <>
+                Derived Base: {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+              </>
+            ) : (
+              <>
+                Base: {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+              </>
+            )}
           </div>
         </div>
 
@@ -1289,6 +1299,39 @@ export default function ResultDisplay({
           </div>
         </div>
       </div>
+
+      {/* Scanning Ship Selector - only show in multi-ship mode with modified resistance */}
+      {miningGroup && onSetScanningShip && rock.resistanceMode === 'modified' && (
+        <div className="scanning-ship-selector">
+          <h3>Which ship scanned this rock?</h3>
+          <p className="selector-hint">Select the ship and laser used to scan the resistance value</p>
+          <div className="scanning-ship-options">
+            {miningGroup.ships.map((shipInstance) => (
+              <div key={shipInstance.id} className="scanning-ship-option">
+                <div className="ship-info">
+                  <strong>{shipInstance.name}</strong> ({shipInstance.ship.name})
+                </div>
+                <div className="laser-buttons">
+                  {shipInstance.config.lasers.map((laser, laserIndex) => {
+                    if (!laser.laserHead || laser.laserHead.id === 'none') return null;
+                    const isSelected = rock.scannedByShipId === shipInstance.id && rock.scannedByLaserIndex === laserIndex;
+                    return (
+                      <button
+                        key={laserIndex}
+                        className={`laser-select-btn ${isSelected ? 'selected' : ''}`}
+                        onClick={() => onSetScanningShip(shipInstance.id, laserIndex)}
+                        title={`${laser.laserHead.name} - ${laser.laserHead.resistModifier}x modifier`}
+                      >
+                        L{laserIndex + 1}: {laser.laserHead.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="calculation-details">
         <h3>Calculation Details</h3>

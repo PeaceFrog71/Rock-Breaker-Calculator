@@ -96,6 +96,25 @@ function App() {
     });
   };
 
+  const handleSetScanningShip = (shipId: string, laserIndex: number) => {
+    setRock({
+      ...rock,
+      scannedByShipId: shipId,
+      scannedByLaserIndex: laserIndex,
+    });
+  };
+
+  // Auto-clear scanning ship when switching to base mode
+  useEffect(() => {
+    if (rock.resistanceMode === 'base') {
+      setRock(prev => ({
+        ...prev,
+        scannedByShipId: undefined,
+        scannedByLaserIndex: undefined,
+      }));
+    }
+  }, [rock.resistanceMode]);
+
   // Filter gadgets to only include enabled ones
   const enabledGadgets = gadgets.map((gadget, index) =>
     gadgetEnabled[index] ? gadget : null
@@ -336,6 +355,7 @@ function App() {
                   config={!useMiningGroup ? config : undefined}
                   onToggleShip={useMiningGroup ? handleToggleShip : undefined}
                   onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
+                  onSetScanningShip={useMiningGroup && rock.resistanceMode === 'modified' ? handleSetScanningShip : undefined}
                   onSingleShipToggleLaser={!useMiningGroup && selectedShip.id === 'mole' ? handleSingleShipToggleLaser : undefined}
                   onToggleModule={!useMiningGroup ? handleToggleModule : undefined}
                   onGroupToggleModule={useMiningGroup ? handleGroupToggleModule : undefined}

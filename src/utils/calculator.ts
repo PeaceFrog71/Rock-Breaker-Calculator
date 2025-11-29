@@ -271,8 +271,29 @@ export function calculateGroupBreakability(
     allResistModifiers.push(shipResistMod);
   });
 
-  // Average the resistance modifiers from all active ships
-  let equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+  // For modified resistance mode, use the scanning ship's equipment modifier
+  // For base mode, average the resistance modifiers from all active ships
+  let equipmentModifier: number;
+
+  if (rock.resistanceMode === 'modified' && rock.scannedByShipId && rock.scannedByLaserIndex !== undefined) {
+    // Find the scanning ship and calculate its specific equipment modifier
+    const scanningShip = activeShips.find(s => s.id === rock.scannedByShipId);
+    if (scanningShip) {
+      const scanningLaser = scanningShip.config.lasers[rock.scannedByLaserIndex];
+      if (scanningLaser?.laserHead) {
+        equipmentModifier = calculateLaserResistModifier(scanningLaser);
+      } else {
+        // Fallback to averaging if scanning laser not found
+        equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+      }
+    } else {
+      // Fallback to averaging if scanning ship not found
+      equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+    }
+  } else {
+    // Base mode or no scanning ship selected - average all equipment modifiers
+    equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+  }
 
   // Apply gadget resist modifiers separately
   let gadgetModifier = 1;
