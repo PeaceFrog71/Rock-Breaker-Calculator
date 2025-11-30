@@ -64,8 +64,11 @@ git checkout main
 # Merge dev into main
 git merge dev
 
-# Push to main
-git push origin main
+# Bump version (see Versioning section below)
+npm version patch  # or minor/major depending on changes
+
+# Push to main with tags
+git push origin main --tags
 
 # Build and deploy to GitHub Pages
 npm run deploy
@@ -108,6 +111,109 @@ git status
 git log --oneline -10
 ```
 
+## Versioning
+
+This project uses **Semantic Versioning (SemVer)**: `MAJOR.MINOR.PATCH`
+
+### Version Number Guidelines
+
+- **PATCH** (x.x.1) - Bug fixes, small tweaks, typo corrections
+  - Example: Fixing a calculation error, fixing display issues
+  - Command: `npm version patch`
+
+- **MINOR** (x.1.x) - New features (backwards compatible)
+  - Example: Adding resistance mode, new ship support, new UI features
+  - Command: `npm version minor`
+
+- **MAJOR** (1.x.x) - Breaking changes, major rewrites
+  - Example: Complete UI redesign, changing how data is stored
+  - Command: `npm version major`
+
+### When to Version
+
+**Always bump the version when merging to main** (Step 4 above). The `npm version` command:
+1. Updates the version in `package.json`
+2. Creates a git commit with the version change
+3. Creates a git tag (e.g., `v1.1.0`)
+
+### Version Examples
+
+```bash
+# Bug fix: 1.0.0 → 1.0.1
+npm version patch
+
+# New feature: 1.0.1 → 1.1.0
+npm version minor
+
+# Breaking change: 1.1.0 → 2.0.0
+npm version major
+```
+
+### Viewing Version History
+
+```bash
+# See all version tags
+git tag
+
+# See latest tag
+git describe --tags
+
+# See tags with dates
+git log --tags --simplify-by-decoration --pretty="format:%ai %d"
+```
+
+### Release Notes
+
+Keep track of changes for each version in a simple format. After bumping version and before deploying:
+
+1. **Create or update CHANGELOG.md** in the project root
+2. **Add an entry** with the version number and date
+3. **List changes** in simple categories
+
+**CHANGELOG.md Format:**
+
+```markdown
+# Changelog
+
+## [1.1.0] - 2024-11-30
+
+### Added
+- Resistance mode selector (base vs modified resistance)
+- Auto-detection for single-laser ships in modified mode
+- Smart hints when low resistance detected
+
+### Fixed
+- Ship label truncation on long names
+- Sensor icon glow rendering
+
+### Changed
+- Reduced header height by 15%
+- Reformatted resistance controls for better sidebar layout
+
+## [1.0.1] - 2024-11-20
+
+### Fixed
+- Calculation error in multi-ship mode
+- Display bug with GOLEM laser configuration
+```
+
+**Simple Categories:**
+- **Added** - New features
+- **Fixed** - Bug fixes
+- **Changed** - Changes to existing features
+- **Removed** - Removed features
+
+**Optional: GitHub Releases**
+
+After pushing tags, you can create a release on GitHub:
+1. Go to your repository on GitHub
+2. Click "Releases" → "Draft a new release"
+3. Select your version tag (e.g., `v1.1.0`)
+4. Copy the relevant section from CHANGELOG.md
+5. Publish release
+
+This gives users a nice web page to see what's new and download specific versions.
+
 ## Best Practices
 
 1. **Never commit directly to `main`** - Always work in `dev` or feature branches
@@ -116,6 +222,7 @@ git log --oneline -10
 4. **Test before merging** - Always test in dev mode before merging
 5. **Pull before pushing** - Always `git pull` before `git push` to avoid conflicts
 6. **Deploy only from main** - Only run `npm run deploy` when on the `main` branch
+7. **Version every release** - Bump version when merging to main (use `npm version`)
 
 ## Current Branch
 
