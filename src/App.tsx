@@ -98,11 +98,20 @@ function App() {
   };
 
   const handleSetScanningShip = (shipId: string, laserIndex: number) => {
-    setRock({
-      ...rock,
-      scannedByShipId: shipId,
-      scannedByLaserIndex: laserIndex,
-    });
+    // If clicking the already-selected sensor, deselect it
+    if (rock.scannedByShipId === shipId && rock.scannedByLaserIndex === laserIndex) {
+      setRock({
+        ...rock,
+        scannedByShipId: undefined,
+        scannedByLaserIndex: undefined,
+      });
+    } else {
+      setRock({
+        ...rock,
+        scannedByShipId: shipId,
+        scannedByLaserIndex: laserIndex,
+      });
+    }
   };
 
   // Auto-clear scanning ship when switching to base mode
@@ -261,9 +270,9 @@ function App() {
     const updatedLasers = [...config.lasers];
     const currentLaser = updatedLasers[laserIndex];
 
-    // Initialize moduleActive array if it doesn't exist
+    // Initialize moduleActive array if it doesn't exist (default to OFF)
     if (!currentLaser.moduleActive) {
-      currentLaser.moduleActive = currentLaser.modules.map(() => true);
+      currentLaser.moduleActive = currentLaser.modules.map(() => false);
     }
 
     // Toggle the module active state
@@ -284,9 +293,9 @@ function App() {
         const updatedLasers = [...s.config.lasers];
         const currentLaser = updatedLasers[laserIndex];
 
-        // Initialize moduleActive array if it doesn't exist
+        // Initialize moduleActive array if it doesn't exist (default to OFF)
         if (!currentLaser.moduleActive) {
-          currentLaser.moduleActive = currentLaser.modules.map(() => true);
+          currentLaser.moduleActive = currentLaser.modules.map(() => false);
         }
 
         // Toggle the module active state

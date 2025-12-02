@@ -62,7 +62,7 @@ export function calculateLaserPower(laser: LaserConfiguration): number {
   let modulePercentageSum = 0;
   laser.modules.forEach((module, index) => {
     if (module) {
-      const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
+      const isActive = laser.moduleActive ? laser.moduleActive[index] === true : false;
       if (isActive) {
         // Convert multiplier to percentage and add
         modulePercentageSum += (module.powerModifier - 1);
@@ -105,7 +105,7 @@ export function calculateLaserResistModifier(laser: LaserConfiguration, passiveO
       if (passiveOnly && module.category === 'active') {
         return;
       }
-      const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
+      const isActive = laser.moduleActive ? laser.moduleActive[index] === true : false;
       if (isActive) {
         // Convert multiplier to percentage and add
         modulePercentageSum += (module.resistModifier - 1);

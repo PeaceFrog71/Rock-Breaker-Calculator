@@ -16,6 +16,26 @@ import prospectorShipImage from "../assets/mining_ship_prospector_pixel_120x48.p
 import asteroidImage from "../assets/asteroid_pixel_1024x1024_true_transparent.png";
 import laserGif from "../assets/mining_laser_wave_tileable.gif";
 
+// Helper to format module effects for tooltip
+function formatModuleTooltip(module: Module): string {
+  const formatVal = (val: number | undefined, abbr: string) => {
+    if (val === undefined || val === 1) return null;
+    const pct = val > 1 ? `+${Math.round((val - 1) * 100)}%` : `${Math.round((val - 1) * 100)}%`;
+    return `${abbr}:${pct}`;
+  };
+  const effects = [
+    formatVal(module.powerModifier, 'Pwr'),
+    formatVal(module.resistModifier, 'Res'),
+    formatVal(module.instabilityModifier, 'Inst'),
+    formatVal(module.chargeWindowModifier, 'Win'),
+    formatVal(module.chargeRateModifier, 'Rate'),
+    formatVal(module.overchargeRateModifier, 'OC'),
+    formatVal(module.shatterDamageModifier, 'Shat'),
+    formatVal(module.extractionPowerModifier, 'Ext'),
+  ].filter(Boolean);
+  return `${module.name}: ${effects.join(' ')}`;
+}
+
 // Laser beam component using tileable GIF
 interface LaserBeamProps {
   startX: number;
@@ -316,14 +336,14 @@ export default function ResultDisplay({
                   flyingShipType === "mole"
                     ? "135px"
                     : flyingShipType === "golem"
-                    ? "60px"
-                    : "90px",
+                    ? "75px"
+                    : "100px",
                 height:
                   flyingShipType === "mole"
                     ? "54px"
                     : flyingShipType === "golem"
-                    ? "24px"
-                    : "36px",
+                    ? "30px"
+                    : "40px",
                 imageRendering: "pixelated",
                 transform:
                   flyingShipDirection === "from-left" ? "scaleX(-1)" : "none",
@@ -348,7 +368,7 @@ export default function ResultDisplay({
                 selectedShip.id === "mole"
                   ? 148.5
                   : selectedShip.id === "prospector"
-                  ? 99
+                  ? 110
                   : 66;
 
               // Adjust radius multiplier based on rock size
@@ -380,8 +400,10 @@ export default function ResultDisplay({
               const svgSize = 800;
               const center = svgSize / 2;
               // Laser starts at ship position (center of ship image)
+              // GOLEM needs a higher laser start point to match the ship design
+              const laserYOffset = selectedShip.id === "golem" ? -18 : -10;
               const laserStartX = center + shipX;
-              const laserStartY = center + shipY - 10;
+              const laserStartY = center + shipY + laserYOffset;
               // Rock visual center - the rock is shifted down by marginTop in the DOM,
               // Calculate where the laser should hit based on rock size
               let rockVisualCenterY = center + rockVerticalOffset / 2;
@@ -518,8 +540,8 @@ export default function ResultDisplay({
                               hasActiveLasers ? "has-active-lasers" : ""
                             }`}
                             style={{
-                              width: "66px",
-                              height: "26.4px",
+                              width: "84px",
+                              height: "33.6px",
                               imageRendering: "pixelated",
                               transform: shipTransform,
                             }}
@@ -550,8 +572,8 @@ export default function ResultDisplay({
                               hasActiveLasers ? "has-active-lasers" : ""
                             }`}
                             style={{
-                              width: "99px",
-                              height: "39.6px",
+                              width: "110px",
+                              height: "44px",
                               imageRendering: "pixelated",
                               transform: shipTransform,
                             }}
@@ -601,6 +623,68 @@ export default function ResultDisplay({
                       📡
                     </span>
                   )}
+
+                  {/* Active module controls for Prospector/GOLEM (single-laser ships) */}
+                  {(selectedShip.id === 'prospector' || selectedShip.id === 'golem') &&
+                    config &&
+                    onToggleModule &&
+                    (() => {
+                      const laser = config.lasers[0];
+                      const activeModules = laser?.modules
+                        ?.map((module, moduleIndex) => {
+                          if (
+                            module &&
+                            module.category === "active" &&
+                            module.id !== "none"
+                          ) {
+                            const isActive = laser.moduleActive
+                              ? laser.moduleActive[moduleIndex] === true
+                              : false;
+                            return { module, moduleIndex, isActive };
+                          }
+                          return null;
+                        })
+                        .filter(Boolean) as Array<{
+                        module: Module;
+                        moduleIndex: number;
+                        isActive: boolean;
+                      }>;
+
+                      if (!activeModules || activeModules.length === 0) return null;
+
+                      return (
+                        <div
+                          className="laser-controls"
+                          style={{
+                            position: "absolute",
+                            top: `calc(50% + ${shipY - 15}px)`,
+                            left: `calc(50% + ${shipX - shipWidth / 2 - 10}px)`,
+                            transform: "translateY(-50%)",
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: "0.25rem",
+                            pointerEvents: "auto",
+                            alignItems: "center",
+                          }}
+                          onClick={(e) => e.stopPropagation()}>
+                          {activeModules.map((item) => (
+                            <span
+                              key={item.moduleIndex}
+                              className={`module-icon ${
+                                item.isActive ? "active" : "inactive"
+                              }`}
+                              title={formatModuleTooltip(item.module)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleModule(0, item.moduleIndex);
+                              }}
+                              style={{ cursor: "pointer" }}>
+                              {getModuleSymbol(item.module.id)}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    })()}
 
                   {/* Laser controls for MOLE */}
                   {selectedShip.id === "mole" &&
@@ -664,8 +748,8 @@ export default function ResultDisplay({
                                   module.id !== "none"
                                 ) {
                                   const isActive = laser.moduleActive
-                                    ? laser.moduleActive[moduleIndex] !== false
-                                    : true;
+                                    ? laser.moduleActive[moduleIndex] === true
+                                    : false;
                                   return { module, moduleIndex, isActive };
                                 }
                                 return null;
@@ -734,7 +818,7 @@ export default function ResultDisplay({
                                         className={`module-icon ${
                                           item.isActive ? "active" : "inactive"
                                         }`}
-                                        title={`${item.module.name} (Active Module)`}
+                                        title={formatModuleTooltip(item.module)}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (onToggleModule) {
@@ -823,8 +907,10 @@ export default function ResultDisplay({
                         const svgSize = 800;
                         const center = svgSize / 2;
                         // Laser starts at ship position (center of ship image)
+                        // GOLEM needs a higher laser start point to match the ship design
+                        const laserYOffset = shipInstance.ship.id === "golem" ? -18 : -10;
                         const laserStartX = center + x;
-                        const laserStartY = center + y - 10;
+                        const laserStartY = center + y + laserYOffset;
                         // Calculate rock visual center (accounting for rock offset)
                         let rockVisualCenterY = center + rockVerticalOffset / 2;
                         if (rock.mass < 50000) {
@@ -953,14 +1039,32 @@ export default function ResultDisplay({
                         const isLeftSide = x < 0;
                         let shipTransform = isLeftSide ? "scaleX(-1)" : "none";
 
-                        // Lower left position (index 2): mirrored + counter-clockwise 30°
-                        if (index === 2) {
-                          shipTransform = "scaleX(-1) rotate(30deg)";
-                        }
+                        // GOLEM rotation - positions point toward rock
+                        if (shipInstance.ship.id === "golem") {
+                          if (index === 0) {
+                            // Top right (60°): rotate 30° clockwise
+                            shipTransform = "rotate(30deg)";
+                          } else if (index === 1) {
+                            // Bottom right (120°): rotate 60° clockwise
+                            shipTransform = "rotate(60deg)";
+                          } else if (index === 2) {
+                            // Bottom left (240°): mirror + 60° rotation
+                            shipTransform = "scaleX(-1) rotate(60deg)";
+                          } else if (index === 3) {
+                            // Top left (300°): mirror + 30° rotation
+                            shipTransform = "scaleX(-1) rotate(30deg)";
+                          }
+                        } else {
+                          // Non-GOLEM ships (MOLE, Prospector) use original logic
+                          // Lower left position (index 2): mirrored + counter-clockwise 30°
+                          if (index === 2) {
+                            shipTransform = "scaleX(-1) rotate(30deg)";
+                          }
 
-                        // Lower right position (index 1): clockwise 30°
-                        if (index === 1) {
-                          shipTransform = "rotate(30deg)";
+                          // Lower right position (index 1): clockwise 30°
+                          if (index === 1) {
+                            shipTransform = "rotate(30deg)";
+                          }
                         }
 
                         // Ship should glow if active AND has manned lasers
@@ -975,8 +1079,8 @@ export default function ResultDisplay({
                                 shouldGlow ? "has-active-lasers" : ""
                               }`}
                               style={{
-                                width: "60px",
-                                height: "24px",
+                                width: "75px",
+                                height: "30px",
                                 imageRendering: "pixelated",
                                 transform: shipTransform,
                               }}
@@ -1007,8 +1111,8 @@ export default function ResultDisplay({
                                 shouldGlow ? "has-active-lasers" : ""
                               }`}
                               style={{
-                                width: "90px",
-                                height: "36px",
+                                width: "100px",
+                                height: "40px",
                                 imageRendering: "pixelated",
                                 transform: shipTransform,
                               }}
@@ -1045,10 +1149,10 @@ export default function ResultDisplay({
                         title="Click to mark as scanning ship"
                         style={{
                           position: "absolute",
-                          top: `calc(50% + ${y - 10}px)`,
+                          top: `calc(50% + ${y - 45}px)`,
                           left: x < 0
-                            ? `calc(50% + ${x - 50}px)`
-                            : `calc(50% + ${x + 50}px)`,
+                            ? `calc(50% + ${x - 40}px)`
+                            : `calc(50% + ${x + 60}px)`,
                           transform: "translate(-50%, -50%)",
                           cursor: "pointer",
                           pointerEvents: "auto",
@@ -1057,6 +1161,72 @@ export default function ResultDisplay({
                         📡
                       </span>
                     )}
+
+                    {/* Active module controls for Prospector/GOLEM in multi-ship mode */}
+                    {(shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&
+                      onGroupToggleModule &&
+                      (() => {
+                        const laser = shipInstance.config.lasers[0];
+                        const activeModules = laser?.modules
+                          ?.map((module, moduleIndex) => {
+                            if (
+                              module &&
+                              module.category === "active" &&
+                              module.id !== "none"
+                            ) {
+                              const isActive = laser.moduleActive
+                                ? laser.moduleActive[moduleIndex] === true
+                                : false;
+                              return { module, moduleIndex, isActive };
+                            }
+                            return null;
+                          })
+                          .filter(Boolean) as Array<{
+                          module: Module;
+                          moduleIndex: number;
+                          isActive: boolean;
+                        }>;
+
+                        if (!activeModules || activeModules.length === 0) return null;
+
+                        // Position to the outside of the ship (left side ships: buttons on left, right side: buttons on right)
+                        const isLeftSide = x < 0;
+
+                        return (
+                          <div
+                            className="laser-controls"
+                            style={{
+                              position: "absolute",
+                              top: `calc(50% + ${y - 15}px)`,
+                              left: isLeftSide
+                                ? `calc(50% + ${x - 60}px)`
+                                : `calc(50% + ${x + 60}px)`,
+                              transform: "translate(-50%, -50%)",
+                              display: "flex",
+                              flexDirection: "row",
+                              gap: "0.25rem",
+                              pointerEvents: "auto",
+                              alignItems: "center",
+                            }}
+                            onClick={(e) => e.stopPropagation()}>
+                            {activeModules.map((item) => (
+                              <span
+                                key={item.moduleIndex}
+                                className={`module-icon ${
+                                  item.isActive ? "active" : "inactive"
+                                }`}
+                                title={formatModuleTooltip(item.module)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onGroupToggleModule(shipInstance.id, 0, item.moduleIndex);
+                                }}
+                                style={{ cursor: "pointer" }}>
+                                {getModuleSymbol(item.module.id)}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
 
                     {/* Laser control buttons for MOLE ships */}
                     {shipInstance.ship.id === "mole" && onToggleLaser && (
@@ -1123,8 +1293,8 @@ export default function ResultDisplay({
                                   module.id !== "none"
                                 ) {
                                   const isActive = laser.moduleActive
-                                    ? laser.moduleActive[moduleIndex] !== false
-                                    : true;
+                                    ? laser.moduleActive[moduleIndex] === true
+                                    : false;
                                   return { module, moduleIndex, isActive };
                                 }
                                 return null;
@@ -1198,7 +1368,7 @@ export default function ResultDisplay({
                                         className={`module-icon ${
                                           item.isActive ? "active" : "inactive"
                                         }`}
-                                        title={`${item.module.name} (Active Module)`}
+                                        title={formatModuleTooltip(item.module)}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           if (onGroupToggleModule) {

@@ -228,10 +228,10 @@
 }
 
 .module-icon.inactive {
-  opacity: 0.4;
-  background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.5);
-  color: rgba(128, 128, 128, 0.7);
+  opacity: 0.7;
+  background: rgba(128, 128, 128, 0.3);
+  border-color: rgba(128, 128, 128, 0.6);
+  color: rgba(180, 180, 180, 0.9);
   animation: none;
   text-decoration: line-through;
 }
@@ -963,7 +963,6 @@
 .scanning-sensor.selected {
   opacity: 1;
   filter: brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9));
-  animation: scanningPulse 2s ease-in-out infinite;
 }
 
 @keyframes scanningPulse {
