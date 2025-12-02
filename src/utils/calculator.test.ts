@@ -371,6 +371,101 @@ describe('Mining Calculator - Core Formulas', () => {
     });
   });
 
+  describe('Modified Resistance Mode - Scanning Laser (Issue #13)', () => {
+    it('should use only scanning laser modifier to reverse modified resistance in single-ship MOLE mode', () => {
+      // Issue #13: When user scans with one laser but adds other lasers to help mine,
+      // the calculator should use only the scanning laser's modifier to reverse the
+      // modified resistance value, then apply ALL lasers' modifiers to get final result.
+
+      const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;   // 0.7x resist
+      const impactII = LASER_HEADS.find(l => l.id === 'impact-2')!; // 1.1x resist
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: helixII, modules: [null, null, null] },   // Laser 0 - scanning laser
+          { laserHead: impactII, modules: [null, null, null] },  // Laser 1 - helper laser
+        ],
+      };
+
+      // User scanned rock with laser 0 (Helix II, 0.7x)
+      // True base resistance = 20, displayed as 14 (20 × 0.7)
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 14,  // Modified value user sees when scanning with Helix II
+        resistanceMode: 'modified',
+        scannedByLaserIndex: 0,  // Scanned with laser 0
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null], 'mole');
+
+      // Should reverse using only laser 0's modifier (0.7)
+      // Derived base = 14 / 0.7 = 20
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+
+      // Then apply ALL lasers' combined modifier: 0.7 × 1.1 = 0.77
+      // Adjusted resistance = 20 × 0.77 = 15.4
+      expect(result.totalResistModifier).toBeCloseTo(0.77, 2);
+      expect(result.adjustedResistance).toBeCloseTo(15.4, 1);
+    });
+
+    it('should handle modified resistance when scanning laser has modules', () => {
+      const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;   // 0.7x resist
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!; // 1.0x resist
+      const surge = MODULES.find(m => m.id === 'surge')!;  // 0.85 resist → -15%
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: helixII, modules: [surge, null, null] },   // Laser 0 - scanning laser with module
+          { laserHead: lancetMH2, modules: [null, null] },        // Laser 1 - helper laser
+        ],
+      };
+
+      // Laser 0 with Surge: 0.7 × (1 + (-0.15)) = 0.7 × 0.85 = 0.595
+      // User scanned with this laser, true base = 20, displayed as 11.9 (20 × 0.595)
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 11.9,
+        resistanceMode: 'modified',
+        scannedByLaserIndex: 0,
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null], 'mole');
+
+      // Derived base = 11.9 / 0.595 = 20
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+
+      // Total modifier = 0.595 (laser 0) × 1.0 (laser 1) = 0.595
+      // Adjusted resistance = 20 × 0.595 = 11.9
+      expect(result.adjustedResistance).toBeCloseTo(11.9, 1);
+    });
+
+    it('should fall back to total modifier when scannedByLaserIndex is not set', () => {
+      const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: helixII, modules: [null, null, null] },
+        ],
+      };
+
+      // Modified mode but no scanning laser index specified
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 14,
+        resistanceMode: 'modified',
+        // scannedByLaserIndex not set
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null]);
+
+      // Should fall back to using total equipment modifier (0.7) for reverse
+      // Derived base = 14 / 0.7 = 20
+      // Adjusted = 20 × 0.7 = 14
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+      expect(result.adjustedResistance).toBeCloseTo(14, 1);
+    });
+  });
+
   describe('Gadget Effects', () => {
     it('should apply OptiMax gadget (0.7 resist modifier)', () => {
       const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;

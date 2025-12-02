@@ -13,17 +13,24 @@ export function deriveBaseResistance(modifiedValue: number, totalModifier: numbe
  * Calculate effective resistance based on mode
  * - Base mode: Apply modifiers to the base resistance
  * - Modified mode: Reverse-calculate base, then apply modifiers
+ *
+ * @param scanningLaserModifier - Optional modifier of ONLY the scanning laser (for single-ship MOLE mode).
+ *   When provided, this is used to reverse the modified resistance value instead of equipmentModifier.
+ *   This fixes the bug where adding helper lasers would incorrectly affect the derived base resistance.
  */
 export function calculateEffectiveResistance(
   rock: Rock,
   equipmentModifier: number,
-  gadgetModifier: number
+  gadgetModifier: number,
+  scanningLaserModifier?: number
 ): { effectiveResistance: number; derivedBase?: number } {
   const totalModifier = equipmentModifier * gadgetModifier;
 
   if (rock.resistanceMode === 'modified') {
     // User scanned with laser - need to reverse-calculate base resistance
-    const scanModifier = rock.includeGadgetsInScan ? totalModifier : equipmentModifier;
+    // Use scanning laser's modifier if provided, otherwise fall back to equipment modifier
+    const reverseModifier = scanningLaserModifier ?? equipmentModifier;
+    const scanModifier = rock.includeGadgetsInScan ? reverseModifier * gadgetModifier : reverseModifier;
     const derivedBase = deriveBaseResistance(rock.resistance, scanModifier);
     const effectiveResistance = derivedBase * totalModifier;
     return { effectiveResistance, derivedBase };
@@ -154,11 +161,23 @@ export function calculateBreakability(
     }
   });
 
+  // Calculate scanning laser modifier for modified resistance mode (single-ship MOLE)
+  // This allows us to reverse the modified resistance using only the scanning laser's modifier,
+  // not all lasers combined, which fixes issue #13
+  let scanningLaserModifier: number | undefined;
+  if (rock.resistanceMode === 'modified' && rock.scannedByLaserIndex !== undefined) {
+    const scanningLaser = config.lasers[rock.scannedByLaserIndex];
+    if (scanningLaser?.laserHead) {
+      scanningLaserModifier = calculateLaserResistModifier(scanningLaser);
+    }
+  }
+
   // Calculate effective resistance based on resistance mode
   const { effectiveResistance, derivedBase } = calculateEffectiveResistance(
     rock,
     totalResistModifier,
-    gadgetModifier
+    gadgetModifier,
+    scanningLaserModifier
   );
 
   const adjustedResistance = effectiveResistance;
