@@ -870,6 +870,116 @@ describe('Mining Calculator - Group Operations', () => {
       expect(result.totalLaserPower).toBe(3150);
     });
 
+    it('should only apply resistance modifiers from active ships', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!; // 0.7 resist modifier
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!; // 1.25 resist modifier
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: helixI, modules: [null, null] }],
+        },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: {
+          lasers: [{ laserHead: pitman, modules: [null, null] }],
+        },
+        isActive: false, // Inactive - should NOT contribute resistance modifier
+      };
+
+      const group: MiningGroup = {
+        ships: [ship1, ship2],
+      };
+      const gadgets = [null, null, null];
+
+      const rock: Rock = { mass: 20000, resistance: 30 };
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Only ship1's resistance modifier should count (0.7)
+      // If both ships were counted, it would average to (0.7 + 1.25) / 2 = 0.975
+      expect(result.totalResistModifier).toBeCloseTo(0.7, 3);
+    });
+
+    it('should update resistance when toggling non-first ships (issue #22)', () => {
+      const golem = SHIPS.find(s => s.id === 'golem')!;
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!; // 1.25 resist modifier
+
+      // Create 4 GOLEMs, all active
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: golem,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: pitman, modules: [null, null] }],
+        },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: golem,
+        name: 'Ship 2',
+        config: {
+          lasers: [{ laserHead: pitman, modules: [null, null] }],
+        },
+        isActive: true,
+      };
+
+      const ship3: ShipInstance = {
+        id: '3',
+        ship: golem,
+        name: 'Ship 3',
+        config: {
+          lasers: [{ laserHead: pitman, modules: [null, null] }],
+        },
+        isActive: true,
+      };
+
+      const ship4: ShipInstance = {
+        id: '4',
+        ship: golem,
+        name: 'Ship 4',
+        config: {
+          lasers: [{ laserHead: pitman, modules: [null, null] }],
+        },
+        isActive: true,
+      };
+
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 20000, resistance: 30 };
+
+      // All 4 active: average of 4 × 1.25 = 1.25
+      const group4Active: MiningGroup = {
+        ships: [ship1, ship2, ship3, ship4],
+      };
+      const result4 = calculateGroupBreakability(group4Active, rock, gadgets);
+      expect(result4.totalResistModifier).toBeCloseTo(1.25, 3);
+
+      // Deactivate ship 4: average of 3 × 1.25 = 1.25 (same, but power should change)
+      const group3Active: MiningGroup = {
+        ships: [ship1, ship2, ship3, { ...ship4, isActive: false }],
+      };
+      const result3 = calculateGroupBreakability(group3Active, rock, gadgets);
+      expect(result3.totalResistModifier).toBeCloseTo(1.25, 3);
+      expect(result3.totalLaserPower).toBeLessThan(result4.totalLaserPower);
+
+      // Deactivate ship 2: average of 2 × 1.25 = 1.25
+      const group2Active: MiningGroup = {
+        ships: [ship1, { ...ship2, isActive: false }, ship3, { ...ship4, isActive: false }],
+      };
+      const result2 = calculateGroupBreakability(group2Active, rock, gadgets);
+      expect(result2.totalResistModifier).toBeCloseTo(1.25, 3);
+      expect(result2.totalLaserPower).toBeLessThan(result3.totalLaserPower);
+    });
+
     it('should handle MOLE with manned/unmanned lasers', () => {
       const mole = SHIPS.find(s => s.id === 'mole')!;
       const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;
