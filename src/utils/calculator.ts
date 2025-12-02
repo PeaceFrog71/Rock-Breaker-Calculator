@@ -36,44 +36,75 @@ export function calculateEffectiveResistance(
 
 /**
  * Calculate power for a single laser with its modules
+ *
+ * Stacking logic:
+ * - Module power percentages ADD together (e.g., two +35% = +70%)
+ * - The combined module modifier is then MULTIPLIED by the laser base power
+ *
+ * Example: Laser (3600 power) + Module (+35%) + Module (+35%)
+ *   Module sum: 0.35 + 0.35 = 0.70 → 1.70 multiplier
+ *   Combined: 3600 × 1.70 = 6120 power
  */
 export function calculateLaserPower(laser: LaserConfiguration): number {
   if (!laser.laserHead) return 0;
 
-  let power = laser.laserHead.maxPower;
+  const basePower = laser.laserHead.maxPower;
 
-  // Apply module power modifiers (only if module is active)
+  // Sum module power percentages (convert from multiplier to percentage first)
+  // powerModifier of 1.35 = +35% = 0.35, powerModifier of 0.85 = -15% = -0.15
+  let modulePercentageSum = 0;
   laser.modules.forEach((module, index) => {
     if (module) {
       const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
       if (isActive) {
-        power *= module.powerModifier;
+        // Convert multiplier to percentage and add
+        modulePercentageSum += (module.powerModifier - 1);
       }
     }
   });
 
-  return power;
+  // Convert summed percentages back to multiplier
+  const combinedModuleModifier = 1 + modulePercentageSum;
+
+  // Multiply base power by combined module modifier
+  return basePower * combinedModuleModifier;
 }
 
 /**
  * Calculate resistance modifier for a single laser with its modules
+ *
+ * Stacking logic:
+ * - Module resistance percentages ADD together (e.g., two +15% = +30%)
+ * - The combined module modifier is then MULTIPLIED by the laser head modifier
+ *
+ * Example: Laser (0.7x) + Module (+15%) + Module (+15%)
+ *   Module sum: 0.15 + 0.15 = 0.30 → 1.30 multiplier
+ *   Combined: 0.7 × 1.30 = 0.91x total modifier
  */
-function calculateLaserResistModifier(laser: LaserConfiguration): number {
+export function calculateLaserResistModifier(laser: LaserConfiguration): number {
   if (!laser.laserHead) return 1;
 
-  let resistMod = laser.laserHead.resistModifier;
+  // Start with the laser head's resistance modifier
+  const laserResistMod = laser.laserHead.resistModifier;
 
-  // Apply module resistance modifiers (only if module is active)
+  // Sum module resistance percentages (convert from multiplier to percentage first)
+  // resistModifier of 1.15 = +15% = 0.15, resistModifier of 0.85 = -15% = -0.15
+  let modulePercentageSum = 0;
   laser.modules.forEach((module, index) => {
     if (module) {
       const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
       if (isActive) {
-        resistMod *= module.resistModifier;
+        // Convert multiplier to percentage and add
+        modulePercentageSum += (module.resistModifier - 1);
       }
     }
   });
 
-  return resistMod;
+  // Convert summed percentages back to multiplier
+  const combinedModuleModifier = 1 + modulePercentageSum;
+
+  // Multiply laser modifier by combined module modifier
+  return laserResistMod * combinedModuleModifier;
 }
 
 /**
