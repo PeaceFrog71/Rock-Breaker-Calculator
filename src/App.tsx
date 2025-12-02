@@ -125,7 +125,18 @@ function App() {
     }
   }, [rock.resistanceMode, useMiningGroup, selectedShip.id, rock.scannedByShipId]);
 
-  // Clear scanning ship when config changes in modified mode (except for initial auto-selection)
+  // Create a stable reference for equipment config (only laser heads and modules, not manned state)
+  // This is used to detect when the sensor selection should be cleared
+  const equipmentConfigKey = useMemo(() => {
+    return JSON.stringify(config.lasers.map(laser => ({
+      laserHeadId: laser.laserHead?.id,
+      moduleIds: laser.modules.map(m => m?.id),
+      moduleActive: laser.moduleActive,
+    })));
+  }, [config.lasers]);
+
+  // Clear scanning ship when equipment config changes in modified mode
+  // This should NOT trigger when just toggling laser manned state (isManned)
   useEffect(() => {
     if (rock.resistanceMode === 'modified' && rock.scannedByShipId) {
       setRock(prev => ({
@@ -134,7 +145,8 @@ function App() {
         scannedByLaserIndex: undefined,
       }));
     }
-  }, [config]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [equipmentConfigKey]);
 
   // Filter gadgets to only include enabled ones
   const enabledGadgets = gadgets.map((gadget, index) =>
