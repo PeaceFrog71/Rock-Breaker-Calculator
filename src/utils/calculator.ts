@@ -87,8 +87,10 @@ export function calculateLaserPower(laser: LaserConfiguration): number {
  * Example: Laser (0.7x) + Module (+15%) + Module (+15%)
  *   Module sum: 0.15 + 0.15 = 0.30 → 1.30 multiplier
  *   Combined: 0.7 × 1.30 = 0.91x total modifier
+ *
+ * @param passiveOnly - If true, only include passive modules (for back-calculating base values from scans)
  */
-export function calculateLaserResistModifier(laser: LaserConfiguration): number {
+export function calculateLaserResistModifier(laser: LaserConfiguration, passiveOnly: boolean = false): number {
   if (!laser.laserHead) return 1;
 
   // Start with the laser head's resistance modifier
@@ -99,6 +101,10 @@ export function calculateLaserResistModifier(laser: LaserConfiguration): number 
   let modulePercentageSum = 0;
   laser.modules.forEach((module, index) => {
     if (module) {
+      // Skip active modules if passiveOnly is true
+      if (passiveOnly && module.category === 'active') {
+        return;
+      }
       const isActive = laser.moduleActive ? laser.moduleActive[index] !== false : true;
       if (isActive) {
         // Convert multiplier to percentage and add
@@ -164,11 +170,12 @@ export function calculateBreakability(
   // Calculate scanning laser modifier for modified resistance mode (single-ship MOLE)
   // This allows us to reverse the modified resistance using only the scanning laser's modifier,
   // not all lasers combined, which fixes issue #13
+  // Use passiveOnly=true because active modules are temporary and wouldn't affect the base scan
   let scanningLaserModifier: number | undefined;
   if (rock.resistanceMode === 'modified' && rock.scannedByLaserIndex !== undefined) {
     const scanningLaser = config.lasers[rock.scannedByLaserIndex];
     if (scanningLaser?.laserHead) {
-      scanningLaserModifier = calculateLaserResistModifier(scanningLaser);
+      scanningLaserModifier = calculateLaserResistModifier(scanningLaser, true);
     }
   }
 
@@ -321,28 +328,22 @@ export function calculateGroupBreakability(
     allResistModifiers.push(shipResistMod);
   });
 
-  // For modified resistance mode, use the scanning ship's equipment modifier
-  // For base mode, average the resistance modifiers from all active ships
-  let equipmentModifier: number;
+  // Multi-ship mining uses multiplicative stacking: all ship resistance modifiers multiply together
+  // Verified in-game: resistance modifiers from multiple ships are multiplied
+  const equipmentModifier = allResistModifiers.reduce((acc, mod) => acc * mod, 1);
 
+  // For modified resistance mode, calculate the scanning laser's modifier separately
+  // This is used to reverse the modified resistance to derive the base value
+  // Use passiveOnly=true because active modules are temporary and wouldn't affect the base scan
+  let scanningLaserModifier: number | undefined;
   if (rock.resistanceMode === 'modified' && rock.scannedByShipId && rock.scannedByLaserIndex !== undefined) {
-    // Find the scanning ship and calculate its specific equipment modifier
     const scanningShip = activeShips.find(s => s.id === rock.scannedByShipId);
     if (scanningShip) {
       const scanningLaser = scanningShip.config.lasers[rock.scannedByLaserIndex];
       if (scanningLaser?.laserHead) {
-        equipmentModifier = calculateLaserResistModifier(scanningLaser);
-      } else {
-        // Fallback to averaging if scanning laser not found
-        equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
+        scanningLaserModifier = calculateLaserResistModifier(scanningLaser, true);
       }
-    } else {
-      // Fallback to averaging if scanning ship not found
-      equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
     }
-  } else {
-    // Base mode or no scanning ship selected - average all equipment modifiers
-    equipmentModifier = allResistModifiers.reduce((sum, mod) => sum + mod, 0) / allResistModifiers.length;
   }
 
   // Apply gadget resist modifiers separately
@@ -357,7 +358,8 @@ export function calculateGroupBreakability(
   const { effectiveResistance, derivedBase } = calculateEffectiveResistance(
     rock,
     equipmentModifier,
-    gadgetModifier
+    gadgetModifier,
+    scanningLaserModifier
   );
 
   const adjustedResistance = effectiveResistance;
