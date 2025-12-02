@@ -20,6 +20,7 @@ import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
 import ResistanceModeSelector from "./components/ResistanceModeSelector";
 import pfLogo from "./assets/PFlogo.png";
+import { version } from "../package.json";
 
 function App() {
   // Load saved state or use defaults
@@ -301,7 +302,10 @@ function App() {
         <a href="https://peacefroggaming.com" target="_blank" rel="noopener noreferrer" title="Peacefrog Gaming">
           <img src={pfLogo} alt="Peacefrog Gaming" className="header-logo" />
         </a>
-        <h1>PeaceFrog's Rock Breaker</h1>
+        <div className="header-title">
+          <h1>PeaceFrog's Rock Breaker</h1>
+          <span className="version-tag">v{version}</span>
+        </div>
         <button
           className="help-button"
           onClick={() => setShowHelpModal(true)}
