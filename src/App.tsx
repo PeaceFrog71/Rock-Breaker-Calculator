@@ -45,7 +45,7 @@ function App() {
   const [gadgetCount, setGadgetCount] = useState(3);
   const [gadgetEnabled, setGadgetEnabled] = useState<boolean[]>([true, true, true]);
 
-  // Update gadgetEnabled array when gadgetCount changes
+  // Update gadgetEnabled array and trim gadgets array when gadgetCount changes
   useEffect(() => {
     setGadgetEnabled(prev => {
       const newEnabled = Array(gadgetCount).fill(true);
@@ -54,6 +54,17 @@ function App() {
         newEnabled[i] = prev[i];
       }
       return newEnabled;
+    });
+    // Trim gadgets array to match the new count (fix for issue #34)
+    setGadgets(prev => {
+      if (prev.length > gadgetCount) {
+        return prev.slice(0, gadgetCount);
+      }
+      // Expand with nulls if count increased
+      if (prev.length < gadgetCount) {
+        return [...prev, ...Array(gadgetCount - prev.length).fill(null)];
+      }
+      return prev;
     });
   }, [gadgetCount]);
   const [useMiningGroup, setUseMiningGroup] = useState(false);
