@@ -168,7 +168,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
           <div className="component-info-box laser-box">
             <div className="component-header">
               <span className="component-name">{laser.laserHead.name}</span>
-              <span className="component-power">{laser.laserHead.maxPower} → {calculateLaserPower(laser).toFixed(0)}</span>
+              <span className="component-power">{laser.laserHead.maxPower} → {calculateLaserPower(laser, true).toFixed(0)}</span>
             </div>
             <div className="component-effects-inline">
               <span className="effect-badge neutral">Size: {laser.laserHead.size}</span>

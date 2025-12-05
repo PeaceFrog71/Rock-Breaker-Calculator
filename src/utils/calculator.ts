@@ -52,7 +52,7 @@ export function calculateEffectiveResistance(
  *   Module sum: 0.35 + 0.35 = 0.70 → 1.70 multiplier
  *   Combined: 3600 × 1.70 = 6120 power
  */
-export function calculateLaserPower(laser: LaserConfiguration): number {
+export function calculateLaserPower(laser: LaserConfiguration, ignoreActiveState: boolean = false): number {
   if (!laser.laserHead) return 0;
 
   const basePower = laser.laserHead.maxPower;
@@ -62,7 +62,10 @@ export function calculateLaserPower(laser: LaserConfiguration): number {
   let modulePercentageSum = 0;
   laser.modules.forEach((module, index) => {
     if (module) {
-      const isActive = laser.moduleActive ? laser.moduleActive[index] === true : false;
+      // If ignoreActiveState is true, treat all modules as active (for config display)
+      // Otherwise: passive modules are always active; active modules need explicit activation
+      const isActive = ignoreActiveState || module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
       if (isActive) {
         // Convert multiplier to percentage and add
         modulePercentageSum += (module.powerModifier - 1);
@@ -105,7 +108,9 @@ export function calculateLaserResistModifier(laser: LaserConfiguration, passiveO
       if (passiveOnly && module.category === 'active') {
         return;
       }
-      const isActive = laser.moduleActive ? laser.moduleActive[index] === true : false;
+      // Passive modules are always active; active modules need explicit activation
+      const isActive = module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
       if (isActive) {
         // Convert multiplier to percentage and add
         modulePercentageSum += (module.resistModifier - 1);

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBreakability, calculateGroupBreakability } from './calculator';
+import { calculateBreakability, calculateGroupBreakability, calculateLaserPower } from './calculator';
 import { LASER_HEADS, MODULES, GADGETS, SHIPS } from '../types';
-import type { MiningConfiguration, Rock, MiningGroup, ShipInstance } from '../types';
+import type { MiningConfiguration, Rock, MiningGroup, ShipInstance, LaserConfiguration } from '../types';
 
 /**
  * Test suite for Star Citizen Mining Calculator
@@ -98,6 +98,97 @@ describe('Mining Calculator - Core Formulas', () => {
     });
   });
 
+  describe('Regression: Issue #33 - Passive modules should always contribute', () => {
+    it('should apply passive module power bonus without moduleActive array (issue #33)', () => {
+      // Rieger-C3: powerModifier = 1.25 (passive), Hofstede-S2: maxPower = 3360
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;
+
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [riegerC3, null],
+        // NO moduleActive array - passive module should still apply
+      };
+
+      const power = calculateLaserPower(laser);
+      // 3360 * (1 + 0.25) = 3360 * 1.25 = 4200
+      expect(power).toBe(4200);
+    });
+
+    it('should NOT apply active module power bonus without moduleActive true (issue #33)', () => {
+      // Surge: powerModifier = 1.5 (active), Helix II: maxPower = 4080
+      const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;
+      const surge = MODULES.find(m => m.id === 'surge')!;
+
+      const laser: LaserConfiguration = {
+        laserHead: helixII,
+        modules: [surge, null, null],
+        // NO moduleActive - active module should NOT apply
+      };
+
+      const power = calculateLaserPower(laser);
+      // Should be base power only: 4080
+      expect(power).toBe(4080);
+    });
+
+    it('should only apply passive module when active module is not toggled (issue #33)', () => {
+      // Rieger-C3: 1.25 power (passive), Surge: 1.5 power (active)
+      // Hofstede-S2: maxPower = 3360
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;
+      const surge = MODULES.find(m => m.id === 'surge')!;
+
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [riegerC3, surge],
+        moduleActive: [false, false], // Both "off" - but passive ignores this
+      };
+
+      const power = calculateLaserPower(laser);
+      // Only Rieger-C3 applies: 3360 * (1 + 0.25) = 4200
+      expect(power).toBe(4200);
+    });
+
+    it('should apply both passive and active modules when active is toggled on (issue #33)', () => {
+      // Rieger-C3: 1.25 power (passive), Surge: 1.5 power (active)
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;
+      const surge = MODULES.find(m => m.id === 'surge')!;
+
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [riegerC3, surge],
+        moduleActive: [false, true], // Passive ignores toggle, Active is ON
+      };
+
+      const power = calculateLaserPower(laser);
+      // Both apply: 3360 * (1 + 0.25 + 0.50) = 3360 * 1.75 = 5880
+      expect(power).toBe(5880);
+    });
+
+    it('should apply ALL modules when ignoreActiveState is true (for config display)', () => {
+      // This is used by LaserPanel to show "full potential" power
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;
+      const surge = MODULES.find(m => m.id === 'surge')!;
+
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [riegerC3, surge],
+        moduleActive: [false, false], // Both "off"
+      };
+
+      // With ignoreActiveState=true, ALL modules apply regardless of toggle
+      const power = calculateLaserPower(laser, true);
+      // Both apply: 3360 * (1 + 0.25 + 0.50) = 3360 * 1.75 = 5880
+      expect(power).toBe(5880);
+
+      // Without ignoreActiveState, only passive applies
+      const powerNormal = calculateLaserPower(laser);
+      expect(powerNormal).toBe(4200);
+    });
+  });
+
   describe('Laser Head Power Calculations', () => {
     it('should calculate Pitman base power correctly', () => {
       const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
@@ -157,6 +248,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: pitman,
           modules: [brandt, null],
+          moduleActive: [true, false], // Brandt is active module, must be activated
         }],
       };
       const gadgets = [null, null, null];
@@ -175,6 +267,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: pitman,
           modules: [surge, null],
+          moduleActive: [true, false], // Surge is active module, must be activated
         }],
       };
       const gadgets = [null, null, null];
@@ -194,6 +287,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: pitman,
           modules: [stampede, riegerC3],
+          moduleActive: [true, true], // Stampede is active (needs activation), Rieger-C3 is passive (always active)
         }],
       };
       const gadgets = [null, null, null];
@@ -241,6 +335,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: pitman, // resist = 1.25
           modules: [brandt, null], // resist = 1.15
+          moduleActive: [true, false], // Brandt is active module, must be activated
         }],
       };
       const gadgets = [null, null, null];
@@ -261,6 +356,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: pitman, // resist = 1.25
           modules: [rime, null], // resist = 0.75
+          moduleActive: [true, false], // Rime is active module, must be activated
         }],
       };
       const gadgets = [null, null, null];
@@ -282,6 +378,7 @@ describe('Mining Calculator - Core Formulas', () => {
         lasers: [{
           laserHead: helixI,
           modules: [lifeline, rime],
+          moduleActive: [true, true], // Both are active modules, must be activated
         }],
       };
       const gadgets = [null, null, null];
@@ -308,8 +405,8 @@ describe('Mining Calculator - Core Formulas', () => {
       // MOLE with 2 lasers, each with 2 modules
       const config: MiningConfiguration = {
         lasers: [
-          { laserHead: helixII, modules: [brandt, forel, null] }, // Laser 1
-          { laserHead: helixII, modules: [brandt, null, null] },  // Laser 2
+          { laserHead: helixII, modules: [brandt, forel, null], moduleActive: [true, true, false] }, // Laser 1
+          { laserHead: helixII, modules: [brandt, null, null], moduleActive: [true, false, false] },  // Laser 2
         ],
       };
       const gadgets = [null, null, null];
@@ -341,9 +438,9 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [
-          { laserHead: arborMH2, modules: [rime, surge] },      // Laser 1
-          { laserHead: lancetMH2, modules: [brandt, brandt] },  // Laser 2
-          { laserHead: impactII, modules: [surge, surge, null] }, // Laser 3
+          { laserHead: arborMH2, modules: [rime, surge], moduleActive: [true, true] },      // Laser 1
+          { laserHead: lancetMH2, modules: [brandt, brandt], moduleActive: [true, true] },  // Laser 2
+          { laserHead: impactII, modules: [surge, surge, null], moduleActive: [true, true, false] }, // Laser 3
         ],
       };
       const gadgets = [null, null, null];
@@ -408,35 +505,38 @@ describe('Mining Calculator - Core Formulas', () => {
       expect(result.adjustedResistance).toBeCloseTo(15.4, 1);
     });
 
-    it('should handle modified resistance when scanning laser has modules', () => {
+    it('should correctly derive base resistance when passive modules affect power but not resistance', () => {
+      // Passive modules in Star Citizen don't affect resistance - only active modules do.
+      // This test verifies that passive modules (like Rieger-C3 for power boost) don't
+      // incorrectly influence resistance calculations during scan reversal.
       const helixII = LASER_HEADS.find(l => l.id === 'helix-2')!;   // 0.7x resist
       const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!; // 1.0x resist
-      const surge = MODULES.find(m => m.id === 'surge')!;  // 0.85 resist → -15%
+      const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;  // passive module with power boost, but 1.0 resist
 
       const config: MiningConfiguration = {
         lasers: [
-          { laserHead: helixII, modules: [surge, null, null] },   // Laser 0 - scanning laser with module
-          { laserHead: lancetMH2, modules: [null, null] },        // Laser 1 - helper laser
+          { laserHead: helixII, modules: [riegerC3, null, null] },   // Laser 0 - scanning laser with passive module
+          { laserHead: lancetMH2, modules: [null, null] },           // Laser 1 - helper laser
         ],
       };
 
-      // Laser 0 with Surge: 0.7 × (1 + (-0.15)) = 0.7 × 0.85 = 0.595
-      // User scanned with this laser, true base = 20, displayed as 11.9 (20 × 0.595)
+      // Laser 0 with Rieger-C3 (passive, 1.0 resist): 0.7 × 1.0 = 0.7
+      // User scanned with this laser, true base = 20, displayed as 14 (20 × 0.7)
       const rock: Rock = {
         mass: 1000,
-        resistance: 11.9,
+        resistance: 14,
         resistanceMode: 'modified',
         scannedByLaserIndex: 0,
       };
 
       const result = calculateBreakability(config, rock, [null, null, null], 'mole');
 
-      // Derived base = 11.9 / 0.595 = 20
+      // Derived base = 14 / 0.7 = 20
       expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
 
-      // Total modifier = 0.595 (laser 0) × 1.0 (laser 1) = 0.595
-      // Adjusted resistance = 20 × 0.595 = 11.9
-      expect(result.adjustedResistance).toBeCloseTo(11.9, 1);
+      // Total modifier = 0.7 (laser 0) × 1.0 (laser 1) = 0.7
+      // Adjusted resistance = 20 × 0.7 = 14
+      expect(result.adjustedResistance).toBeCloseTo(14, 1);
     });
 
     it('should fall back to total modifier when scannedByLaserIndex is not set', () => {
@@ -580,9 +680,9 @@ describe('Mining Calculator - Core Formulas', () => {
 
       const config: MiningConfiguration = {
         lasers: [
-          { laserHead: helixII, modules: [surge, null, null] },
-          { laserHead: helixII, modules: [surge, null, null] },
-          { laserHead: helixII, modules: [surge, null, null] },
+          { laserHead: helixII, modules: [surge, null, null], moduleActive: [true, false, false] },
+          { laserHead: helixII, modules: [surge, null, null], moduleActive: [true, false, false] },
+          { laserHead: helixII, modules: [surge, null, null], moduleActive: [true, false, false] },
         ],
       };
       const gadgets = [null, null, null];
@@ -830,8 +930,8 @@ describe('Mining Calculator - Group Operations', () => {
       const rock: Rock = { mass: 20000, resistance: 30 };
       const result = calculateGroupBreakability(group, rock, gadgets);
 
-      // Multi-ship uses "best of" logic: min(0.7, 1.25) = 0.7
-      expect(result.totalResistModifier).toBeCloseTo(0.7, 3);
+      // Multi-ship uses multiplicative stacking: 0.7 * 1.25 = 0.875
+      expect(result.totalResistModifier).toBeCloseTo(0.875, 3);
     });
 
     it('should only count active ships', () => {
@@ -956,27 +1056,27 @@ describe('Mining Calculator - Group Operations', () => {
       const gadgets = [null, null, null];
       const rock: Rock = { mass: 20000, resistance: 30 };
 
-      // All 4 active: best of (1.25, 1.25, 1.25, 1.25) = 1.25
+      // All 4 active: multiplicative stacking 1.25^4 = 2.44140625
       const group4Active: MiningGroup = {
         ships: [ship1, ship2, ship3, ship4],
       };
       const result4 = calculateGroupBreakability(group4Active, rock, gadgets);
-      expect(result4.totalResistModifier).toBeCloseTo(1.25, 3);
+      expect(result4.totalResistModifier).toBeCloseTo(2.44140625, 3);
 
-      // Deactivate ship 4: best of (1.25, 1.25, 1.25) = 1.25 (same, but power should change)
+      // Deactivate ship 4: 1.25^3 = 1.953125 (power should also change)
       const group3Active: MiningGroup = {
         ships: [ship1, ship2, ship3, { ...ship4, isActive: false }],
       };
       const result3 = calculateGroupBreakability(group3Active, rock, gadgets);
-      expect(result3.totalResistModifier).toBeCloseTo(1.25, 3);
+      expect(result3.totalResistModifier).toBeCloseTo(1.953125, 3);
       expect(result3.totalLaserPower).toBeLessThan(result4.totalLaserPower);
 
-      // Deactivate ship 2: best of (1.25, 1.25) = 1.25
+      // Deactivate ship 2: 1.25^2 = 1.5625
       const group2Active: MiningGroup = {
         ships: [ship1, { ...ship2, isActive: false }, ship3, { ...ship4, isActive: false }],
       };
       const result2 = calculateGroupBreakability(group2Active, rock, gadgets);
-      expect(result2.totalResistModifier).toBeCloseTo(1.25, 3);
+      expect(result2.totalResistModifier).toBeCloseTo(1.5625, 3);
       expect(result2.totalLaserPower).toBeLessThan(result3.totalLaserPower);
     });
 

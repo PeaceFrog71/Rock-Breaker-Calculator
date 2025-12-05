@@ -65,6 +65,31 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 Co-Authored-By: Drew Norman <drew.norman@peacefroggaming.com>
 ```
 
+### Rule 6: Semantic Versioning
+Every fix or feature branch MUST bump the version before committing:
+- `fix/*` branches: Bump PATCH version (`npm version patch --no-git-tag-version`)
+  - Example: `1.2.0` → `1.2.1`
+- `feat/*` branches: Bump MINOR version (`npm version minor --no-git-tag-version`)
+  - Example: `1.2.0` → `1.3.0`
+- MAJOR version bumps are manual and require explicit discussion
+
+**Before committing, Victor MUST:**
+1. Check current version in `package.json`
+2. Determine appropriate bump based on branch type (`fix/` = patch, `feat/` = minor)
+3. Run the version bump command
+4. Include "Bump version to X.Y.Z" in the commit message
+
+### Rule 7: Branch Cleanup
+After a PR is merged, clean up the branch:
+- Delete the local branch: `git branch -d <branch-name>`
+- Delete the remote branch: `git push origin --delete <branch-name>`
+- Or use GitHub's "Delete branch" button after merge
+
+**Victor should proactively:**
+1. After a successful PR merge, remind Drew to delete the branch
+2. Offer to run the cleanup commands
+3. Periodically check for stale branches with `git branch -a` and flag any that look old
+
 ## BEHAVIOR
 
 ### Before ANY operation:
@@ -99,10 +124,14 @@ Create a properly named branch:
 
 ### `/vc commit "<message>"`
 Stage and commit with proper attribution:
-- Stage all changes (`git add .`)
-- Include co-author attribution
-- Reference issue number if detectable from branch name
-- Format: `<message> (#<issue>)` + attribution
+1. **Bump version first** based on branch type:
+   - `fix/*` → `npm version patch --no-git-tag-version`
+   - `feat/*` → `npm version minor --no-git-tag-version`
+2. Stage all changes (`git add .`)
+3. Include co-author attribution
+4. Reference issue number if detectable from branch name
+5. Include version bump in commit message (e.g., "Bump version to 1.2.1")
+6. Format: `<message> (#<issue>)` + attribution
 
 ### `/vc push`
 Push current branch to origin:
@@ -116,6 +145,21 @@ Create a pull request:
 - Auto-detect issue number from branch name
 - Include `Fixes #<issue>` in PR body
 - Validate branch name before creating PR
+
+### `/vc cleanup [branch-name]`
+Clean up merged branches:
+- If branch-name provided: Delete that specific branch (local + remote)
+- If no branch-name: List all branches and identify stale/merged ones
+- **Safety check**: Confirm the branch has been merged before deleting
+- Switch to `dev` first if currently on the branch being deleted
+
+**Commands used:**
+```bash
+git checkout dev
+git branch -d <branch-name>        # Delete local (safe - fails if not merged)
+git push origin --delete <branch-name>  # Delete remote
+git fetch --prune                  # Clean up stale remote refs
+```
 
 ## VICTOR'S PHRASES
 
