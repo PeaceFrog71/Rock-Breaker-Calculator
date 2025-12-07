@@ -233,25 +233,6 @@ export function calculateBreakability(
 }
 
 /**
- * Helper function to create empty laser configuration
- */
-export function createEmptyLaser(): LaserConfiguration {
-  return {
-    laserHead: null,
-    modules: [null, null, null],
-  };
-}
-
-/**
- * Helper function to create empty mining configuration
- */
-export function createEmptyConfig(numLasers: number): MiningConfiguration {
-  return {
-    lasers: Array(numLasers).fill(null).map(() => createEmptyLaser()),
-  };
-}
-
-/**
  * Format power number for display
  */
 export function formatPower(power: number): string {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Ship, ShipInstance, MiningConfiguration, LaserConfiguration } from '../types';
-import { SHIPS, LASER_HEADS } from '../types';
-import { createEmptyConfig } from '../utils/calculator';
+import { SHIPS } from '../types';
+import { initializeDefaultLasersForShip } from '../utils/shipDefaults';
 import LaserPanel from './LaserPanel';
 import './ShipConfigModal.css';
 
@@ -15,7 +15,7 @@ interface ShipConfigModalProps {
 export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }: ShipConfigModalProps) {
   const [selectedShip, setSelectedShip] = useState<Ship>(SHIPS[0]);
   const [shipName, setShipName] = useState<string>(SHIPS[0].name);
-  const [config, setConfig] = useState<MiningConfiguration>(createEmptyConfig(SHIPS[0].laserSlots));
+  const [config, setConfig] = useState<MiningConfiguration>(initializeDefaultLasersForShip(SHIPS[0]));
   const [isNameCustomized, setIsNameCustomized] = useState<boolean>(false);
 
   // Update state when editingShip or isOpen changes
@@ -30,35 +30,7 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
         const defaultShip = SHIPS[0];
         setSelectedShip(defaultShip);
         setShipName(defaultShip.name);
-
-        const newConfig = createEmptyConfig(defaultShip.laserSlots);
-
-        // Set default laser heads based on ship type
-        if (defaultShip.id === 'prospector') {
-          const arborMH1 = LASER_HEADS.find((h) => h.id === 'arbor-mh1');
-          if (arborMH1) {
-            newConfig.lasers[0].laserHead = arborMH1;
-            newConfig.lasers[0].modules = Array(arborMH1.moduleSlots).fill(null);
-          }
-        } else if (defaultShip.id === 'golem') {
-          const pitmanLaser = LASER_HEADS.find((h) => h.id === 'pitman');
-          if (pitmanLaser) {
-            newConfig.lasers[0].laserHead = pitmanLaser;
-            newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
-          }
-        } else if (defaultShip.id === 'mole') {
-          // MOLE: Default all 3 lasers to Arbor MH2
-          const arborMH2 = LASER_HEADS.find((h) => h.id === 'arbor-mh2');
-          if (arborMH2) {
-            newConfig.lasers.forEach((laser) => {
-              laser.laserHead = arborMH2;
-              laser.modules = Array(arborMH2.moduleSlots).fill(null);
-              laser.isManned = true; // Explicitly set as manned by default
-            });
-          }
-        }
-
-        setConfig(newConfig);
+        setConfig(initializeDefaultLasersForShip(defaultShip));
         setIsNameCustomized(false);
       }
     }
@@ -77,34 +49,7 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
       setShipName(ship.name);
     }
 
-    const newConfig = createEmptyConfig(ship.laserSlots);
-
-    // Set default laser heads based on ship type
-    if (ship.id === 'prospector') {
-      const arborMH1 = LASER_HEADS.find((h) => h.id === 'arbor-mh1');
-      if (arborMH1) {
-        newConfig.lasers[0].laserHead = arborMH1;
-        newConfig.lasers[0].modules = Array(arborMH1.moduleSlots).fill(null);
-      }
-    } else if (ship.id === 'golem') {
-      const pitmanLaser = LASER_HEADS.find((h) => h.id === 'pitman');
-      if (pitmanLaser) {
-        newConfig.lasers[0].laserHead = pitmanLaser;
-        newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
-      }
-    } else if (ship.id === 'mole') {
-      // MOLE: Default all 3 lasers to Arbor MH2
-      const arborMH2 = LASER_HEADS.find((h) => h.id === 'arbor-mh2');
-      if (arborMH2) {
-        newConfig.lasers.forEach((laser) => {
-          laser.laserHead = arborMH2;
-          laser.modules = Array(arborMH2.moduleSlots).fill(null);
-          laser.isManned = true; // Explicitly set as manned by default
-        });
-      }
-    }
-
-    setConfig(newConfig);
+    setConfig(initializeDefaultLasersForShip(ship));
   };
 
   const handleNameChange = (newName: string) => {

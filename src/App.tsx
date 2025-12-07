@@ -1,12 +1,14 @@
 import { useState, useEffect, useMemo } from "react";
 import "./App.css";
 import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
-import { SHIPS, LASER_HEADS, GADGETS } from "./types";
+import { SHIPS, GADGETS } from "./types";
 import {
-  createEmptyConfig,
   calculateBreakability,
   calculateGroupBreakability,
 } from "./utils/calculator";
+import {
+  initializeDefaultLasersForShip,
+} from "./utils/shipDefaults";
 import {
   saveCurrentConfiguration,
   loadCurrentConfiguration,
@@ -29,7 +31,7 @@ function App() {
     loadedState?.ship || SHIPS[0]
   );
   const [config, setConfig] = useState<MiningConfiguration>(
-    loadedState?.config || createEmptyConfig(SHIPS[0].laserSlots)
+    loadedState?.config || initializeDefaultLasersForShip(SHIPS[0])
   );
   const [rock, setRock] = useState<Rock>({
     mass: 25000,
@@ -188,35 +190,7 @@ function App() {
 
   const handleShipChange = (ship: Ship) => {
     setSelectedShip(ship);
-    const newConfig = createEmptyConfig(ship.laserSlots);
-
-    // Set default laser heads based on ship type
-    if (ship.id === "golem") {
-      // GOLEM: Fixed Pitman laser
-      const pitmanLaser = LASER_HEADS.find((h) => h.id === "pitman");
-      if (pitmanLaser) {
-        newConfig.lasers[0].laserHead = pitmanLaser;
-        newConfig.lasers[0].modules = Array(pitmanLaser.moduleSlots).fill(null);
-      }
-    } else if (ship.id === "prospector") {
-      // Prospector: Default to first S1 laser (Arbor MH1)
-      const defaultS1Laser = LASER_HEADS.find((h) => h.size === 1 && h.id !== 'none' && h.id !== 'pitman');
-      if (defaultS1Laser) {
-        newConfig.lasers[0].laserHead = defaultS1Laser;
-        newConfig.lasers[0].modules = Array(defaultS1Laser.moduleSlots).fill(null);
-      }
-    } else if (ship.id === "mole") {
-      // MOLE: Default all 3 lasers to first S2 laser (Arbor MH2)
-      const defaultS2Laser = LASER_HEADS.find((h) => h.size === 2 && h.id !== 'none');
-      if (defaultS2Laser) {
-        newConfig.lasers.forEach((laser) => {
-          laser.laserHead = defaultS2Laser;
-          laser.modules = Array(defaultS2Laser.moduleSlots).fill(null);
-          laser.isManned = true; // Initialize as manned by default
-        });
-      }
-    }
-
+    const newConfig = initializeDefaultLasersForShip(ship);
     setConfig(newConfig);
   };
 
