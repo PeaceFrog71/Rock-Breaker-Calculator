@@ -15,6 +15,7 @@ import {
   calculateMoleLaserAngleOffsets,
   calculateLaserYOffset,
 } from "../utils/laserHelpers";
+import { getShipImageConfig } from "../utils/shipImageMap";
 import { getGadgetSymbol } from "../types";
 import "./ResultDisplay.css";
 import golemShipImage from "../assets/mining_ship_golem_pixel_120x48.png";
@@ -22,6 +23,13 @@ import moleShipImage from "../assets/mining_ship_mole_pixel_120x48_transparent.p
 import prospectorShipImage from "../assets/mining_ship_prospector_pixel_120x48.png";
 import asteroidImage from "../assets/asteroid_pixel_1024x1024_true_transparent.png";
 import laserGif from "../assets/mining_laser_wave_tileable.gif";
+
+// Map ship IDs to their imported image assets
+const SHIP_IMAGES: Record<string, string> = {
+  golem: golemShipImage,
+  mole: moleShipImage,
+  prospector: prospectorShipImage,
+};
 
 // Laser beam component using tileable GIF
 interface LaserBeamProps {
@@ -493,50 +501,20 @@ export default function ResultDisplay({
                       const shipTransform = "scaleX(-1)";
                       // Ship should glow if it has manned lasers (or if it's not a MOLE)
                       const hasActiveLasers = !isMole || numMannedLasers > 0;
+                      const shipImageConfig = getShipImageConfig(selectedShip.id);
+                      const shipImage = SHIP_IMAGES[selectedShip.id];
 
-                      if (selectedShip.id === "golem") {
+                      if (shipImageConfig && shipImage) {
                         return (
                           <img
-                            src={golemShipImage}
-                            alt="GOLEM"
+                            src={shipImage}
+                            alt={shipImageConfig.alt}
                             className={`ship-image ${
                               hasActiveLasers ? "has-active-lasers" : ""
                             }`}
                             style={{
-                              width: "84px",
-                              height: "33.6px",
-                              imageRendering: "pixelated",
-                              transform: shipTransform,
-                            }}
-                          />
-                        );
-                      } else if (selectedShip.id === "mole") {
-                        return (
-                          <img
-                            src={moleShipImage}
-                            alt="MOLE"
-                            className={`ship-image ${
-                              hasActiveLasers ? "has-active-lasers" : ""
-                            }`}
-                            style={{
-                              width: "148.5px",
-                              height: "59.4px",
-                              imageRendering: "pixelated",
-                              transform: shipTransform,
-                            }}
-                          />
-                        );
-                      } else if (selectedShip.id === "prospector") {
-                        return (
-                          <img
-                            src={prospectorShipImage}
-                            alt="Prospector"
-                            className={`ship-image ${
-                              hasActiveLasers ? "has-active-lasers" : ""
-                            }`}
-                            style={{
-                              width: "110px",
-                              height: "44px",
+                              width: shipImageConfig.width,
+                              height: shipImageConfig.height,
                               imageRendering: "pixelated",
                               transform: shipTransform,
                             }}
@@ -1008,50 +986,20 @@ export default function ResultDisplay({
 
                         // Ship should glow if active AND has manned lasers
                         const shouldGlow = isActive && hasLasers;
+                        const shipImageConfig = getShipImageConfig(shipInstance.ship.id, true); // small = true for mining group
+                        const shipImage = SHIP_IMAGES[shipInstance.ship.id];
 
-                        if (shipInstance.ship.id === "golem") {
+                        if (shipImageConfig && shipImage) {
                           return (
                             <img
-                              src={golemShipImage}
-                              alt="GOLEM"
+                              src={shipImage}
+                              alt={shipImageConfig.alt}
                               className={`ship-image ${
                                 shouldGlow ? "has-active-lasers" : ""
                               }`}
                               style={{
-                                width: "75px",
-                                height: "30px",
-                                imageRendering: "pixelated",
-                                transform: shipTransform,
-                              }}
-                            />
-                          );
-                        } else if (shipInstance.ship.id === "mole") {
-                          return (
-                            <img
-                              src={moleShipImage}
-                              alt="MOLE"
-                              className={`ship-image ${
-                                shouldGlow ? "has-active-lasers" : ""
-                              }`}
-                              style={{
-                                width: "135px",
-                                height: "54px",
-                                imageRendering: "pixelated",
-                                transform: shipTransform,
-                              }}
-                            />
-                          );
-                        } else if (shipInstance.ship.id === "prospector") {
-                          return (
-                            <img
-                              src={prospectorShipImage}
-                              alt="Prospector"
-                              className={`ship-image ${
-                                shouldGlow ? "has-active-lasers" : ""
-                              }`}
-                              style={{
-                                width: "100px",
-                                height: "40px",
+                                width: shipImageConfig.width,
+                                height: shipImageConfig.height,
                                 imageRendering: "pixelated",
                                 transform: shipTransform,
                               }}
