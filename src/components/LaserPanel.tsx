@@ -1,52 +1,18 @@
-import type { LaserConfiguration, Ship, LaserHead, Module } from '../types';
+import type { LaserConfiguration, Ship, LaserHead } from '../types';
 import { LASER_HEADS, MODULES } from '../types';
 import { calculateLaserPower } from '../utils/calculator';
+import { formatModuleTooltip, formatPct } from '../utils/formatters';
 import './LaserPanel.css';
 
-// Helper to format laser head effects for tooltips
+// Helper to format laser head effects for tooltips (only used in this component)
 const formatLaserHeadTooltip = (head: LaserHead) => {
   if (!head || head.id === 'none') return '';
   const effects: string[] = [];
   effects.push(`Power: ${head.maxPower}`);
-  if (head.resistModifier !== 1) {
-    const pct = head.resistModifier > 1
-      ? `+${Math.round((head.resistModifier - 1) * 100)}%`
-      : `-${Math.round((1 - head.resistModifier) * 100)}%`;
-    effects.push(`Resist: ${pct}`);
-  }
+  const resistPct = formatPct(head.resistModifier);
+  if (resistPct) effects.push(`Resist: ${resistPct}`);
   effects.push(`Slots: ${head.moduleSlots}`);
   return `${head.name}: ${effects.join(', ')}`;
-};
-
-// Helper to format effect value as percentage
-const formatPct = (value: number | undefined) => {
-  if (value === undefined || value === 1) return null;
-  return value > 1 ? `+${Math.round((value - 1) * 100)}%` : `-${Math.round((1 - value) * 100)}%`;
-};
-
-// Helper to format module effects for tooltips
-const formatModuleTooltip = (module: Module) => {
-  if (!module || module.id === 'none') return '';
-  const effects: string[] = [];
-  const addEffect = (value: number | undefined, label: string) => {
-    const pct = formatPct(value);
-    if (pct) effects.push(`${label}: ${pct}`);
-  };
-  addEffect(module.powerModifier, 'Power');
-  addEffect(module.resistModifier, 'Resist');
-  addEffect(module.instabilityModifier, 'Instability');
-  addEffect(module.chargeWindowModifier, 'Window');
-  addEffect(module.chargeRateModifier, 'Rate');
-  addEffect(module.overchargeRateModifier, 'Overcharge');
-  addEffect(module.shatterDamageModifier, 'Shatter');
-  addEffect(module.extractionPowerModifier, 'Extraction');
-  addEffect(module.inertMaterialsModifier, 'Inert');
-  addEffect(module.clusterModifier, 'Cluster');
-  if (module.category === 'active' && module.duration) {
-    effects.push(`${module.duration}/${module.uses} uses`);
-  }
-  if (effects.length === 0) return `${module.name}: No stat effects`;
-  return `${module.name}: ${effects.join(', ')}`;
 };
 
 interface LaserPanelProps {

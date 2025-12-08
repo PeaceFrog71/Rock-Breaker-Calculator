@@ -5,36 +5,17 @@ import type {
   MiningGroup,
   Gadget,
   MiningConfiguration,
+  Module,
 } from "../types";
 import { formatPower, formatPercent } from "../utils/calculator";
+import { formatModuleTooltip } from "../utils/formatters";
 import { getGadgetSymbol } from "../types";
-import type { Module } from "../types";
 import "./ResultDisplay.css";
 import golemShipImage from "../assets/mining_ship_golem_pixel_120x48.png";
 import moleShipImage from "../assets/mining_ship_mole_pixel_120x48_transparent.png";
 import prospectorShipImage from "../assets/mining_ship_prospector_pixel_120x48.png";
 import asteroidImage from "../assets/asteroid_pixel_1024x1024_true_transparent.png";
 import laserGif from "../assets/mining_laser_wave_tileable.gif";
-
-// Helper to format module effects for tooltip
-function formatModuleTooltip(module: Module): string {
-  const formatVal = (val: number | undefined, abbr: string) => {
-    if (val === undefined || val === 1) return null;
-    const pct = val > 1 ? `+${Math.round((val - 1) * 100)}%` : `${Math.round((val - 1) * 100)}%`;
-    return `${abbr}:${pct}`;
-  };
-  const effects = [
-    formatVal(module.powerModifier, 'Pwr'),
-    formatVal(module.resistModifier, 'Res'),
-    formatVal(module.instabilityModifier, 'Inst'),
-    formatVal(module.chargeWindowModifier, 'Win'),
-    formatVal(module.chargeRateModifier, 'Rate'),
-    formatVal(module.overchargeRateModifier, 'OC'),
-    formatVal(module.shatterDamageModifier, 'Shat'),
-    formatVal(module.extractionPowerModifier, 'Ext'),
-  ].filter(Boolean);
-  return `${module.name}: ${effects.join(' ')}`;
-}
 
 // Laser beam component using tileable GIF
 interface LaserBeamProps {
