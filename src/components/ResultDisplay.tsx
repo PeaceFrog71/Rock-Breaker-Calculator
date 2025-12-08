@@ -9,6 +9,12 @@ import type {
 } from "../types";
 import { formatPower, formatPercent } from "../utils/calculator";
 import { formatModuleTooltip } from "../utils/formatters";
+import {
+  getMannedLasers,
+  getLaserLengthScale,
+  calculateMoleLaserAngleOffsets,
+  calculateLaserYOffset,
+} from "../utils/laserHelpers";
 import { getGadgetSymbol } from "../types";
 import "./ResultDisplay.css";
 import golemShipImage from "../assets/mining_ship_golem_pixel_120x48.png";
@@ -393,24 +399,15 @@ export default function ResultDisplay({
                 rockVisualCenterY -= asteroidSize.width / 16; // Move up by sixteenth diameter
               }
               // Laser ends at rock visual center, but shortened by 20% (or lengthened by 2% for tiny rocks)
-              // Calculate direction from ship to rock
               const fullDX = center - laserStartX;
               const fullDY = rockVisualCenterY - laserStartY;
-              // Scale by 80% to shorten by 20%, or 102% for tiny rocks to lengthen by 2%
-              const laserLengthScale = rock.mass < 50000 ? 1.02 : 0.8;
+              const laserLengthScale = getLaserLengthScale(rock.mass);
               const laserEndX = laserStartX + fullDX * laserLengthScale;
               const laserEndY = laserStartY + fullDY * laserLengthScale;
 
-              // Check if this is a MOLE and count manned lasers (with laser heads configured)
+              // Check if this is a MOLE and count manned lasers
               const isMole = selectedShip.id === "mole";
-              const mannedLasers = config
-                ? config.lasers.filter(
-                    (laser) =>
-                      laser.laserHead &&
-                      laser.laserHead.id !== "none" &&
-                      laser.isManned !== false
-                  )
-                : [];
+              const mannedLasers = getMannedLasers(config);
               const numMannedLasers = mannedLasers.length;
 
               return (
@@ -419,28 +416,13 @@ export default function ResultDisplay({
                   {(() => {
                     // For MOLE, only render lasers if there are manned lasers
                     if (isMole && numMannedLasers > 0) {
-                      // Calculate angle spread: ±8° for normal rocks, ±4° for tiny rocks
-                      // L1 = middle (0°), L2 = upper (negative), L3 = lower (positive)
-                      const angleSpread = rock.mass < 50000 ? 4 : 8;
-                      const angleOffsets =
-                        numMannedLasers === 1
-                          ? [0]
-                          : numMannedLasers === 2
-                          ? [0, -angleSpread]
-                          : [0, -angleSpread, angleSpread];
+                      const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
 
                       return (
                         <>
                           {angleOffsets.map((angleOffset, laserIndex) => {
-                            // Convert angle to Y offset at the rock center
-                            // For small angles, tan(angle) ≈ angle in radians
-                            const angleRad = (angleOffset * Math.PI) / 180;
-                            // Distance from ship to rock center
-                            const laserLength = Math.abs(
-                              laserEndX - laserStartX
-                            );
-                            // Y offset based on angle
-                            const yOffset = Math.tan(angleRad) * laserLength;
+                            const laserLength = Math.abs(laserEndX - laserStartX);
+                            const yOffset = calculateLaserYOffset(angleOffset, laserLength);
 
                             const offsetEndX = laserEndX;
                             const offsetEndY = laserEndY + yOffset;
@@ -870,12 +852,7 @@ export default function ResultDisplay({
 
                 // Check if this ship has any manned lasers (with laser heads configured)
                 const isMole = shipInstance.ship.id === "mole";
-                const mannedLasers = shipInstance.config.lasers.filter(
-                  (laser) =>
-                    laser.laserHead &&
-                    laser.laserHead.id !== "none" &&
-                    laser.isManned !== false
-                );
+                const mannedLasers = getMannedLasers(shipInstance.config);
                 const numMannedLasers = mannedLasers.length;
                 const hasLasers = numMannedLasers > 0;
 
@@ -903,15 +880,7 @@ export default function ResultDisplay({
 
                         // For MOLE, render multiple lasers with slight angle variations
                         if (isMole) {
-                          // Calculate angle spread: ±8° for normal rocks, ±4° for tiny rocks
-                          // L1 = middle (0°), L2 = upper (negative), L3 = lower (positive)
-                          const angleSpread = rock.mass < 50000 ? 4 : 8;
-                          const angleOffsets =
-                            numMannedLasers === 1
-                              ? [0]
-                              : numMannedLasers === 2
-                              ? [0, -angleSpread]
-                              : [0, -angleSpread, angleSpread];
+                          const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
 
                           return (
                             <>
@@ -919,24 +888,16 @@ export default function ResultDisplay({
                                 // First shorten/lengthen the laser from ship to rock center
                                 const fullDX = rockCenterEndX - laserStartX;
                                 const fullDY = rockCenterEndY - laserStartY;
-                                const laserLengthScale =
-                                  rock.mass < 50000 ? 1.02 : 0.8;
-                                const laserEndX =
-                                  laserStartX + fullDX * laserLengthScale;
-                                const laserEndY =
-                                  laserStartY + fullDY * laserLengthScale;
+                                const laserLengthScale = getLaserLengthScale(rock.mass);
+                                const laserEndX = laserStartX + fullDX * laserLengthScale;
+                                const laserEndY = laserStartY + fullDY * laserLengthScale;
 
-                                // Convert angle to Y offset at the endpoint
-                                // For small angles, tan(angle) ≈ angle in radians
-                                const angleRad = (angleOffset * Math.PI) / 180;
-                                // Distance from ship to endpoint
+                                // Calculate Y offset for angled laser
                                 const laserLength = Math.sqrt(
                                   (laserEndX - laserStartX) ** 2 +
                                     (laserEndY - laserStartY) ** 2
                                 );
-                                // Y offset based on angle
-                                const yOffset =
-                                  Math.tan(angleRad) * laserLength;
+                                const yOffset = calculateLaserYOffset(angleOffset, laserLength);
 
                                 const rotatedEndX = laserEndX;
                                 const rotatedEndY = laserEndY + yOffset;
@@ -967,14 +928,11 @@ export default function ResultDisplay({
                         }
 
                         // For non-MOLE ships, render single laser with variation
-                        // Shorten/lengthen the laser from ship to rock center
                         const fullDX = rockCenterEndX - laserStartX;
                         const fullDY = rockCenterEndY - laserStartY;
-                        const laserLengthScale = rock.mass < 50000 ? 1.02 : 0.8;
-                        const laserEndX =
-                          laserStartX + fullDX * laserLengthScale;
-                        const laserEndY =
-                          laserStartY + fullDY * laserLengthScale;
+                        const laserLengthScale = getLaserLengthScale(rock.mass);
+                        const laserEndX = laserStartX + fullDX * laserLengthScale;
+                        const laserEndY = laserStartY + fullDY * laserLengthScale;
 
                         const variedEnd = addLaserVariation(
                           laserEndX,
