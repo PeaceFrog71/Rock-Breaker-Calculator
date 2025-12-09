@@ -1,8 +1,92 @@
-import type { LaserConfiguration, Ship, LaserHead } from '../types';
+import type { LaserConfiguration, Ship, LaserHead, Module } from '../types';
 import { LASER_HEADS, MODULES } from '../types';
 import { calculateLaserPower } from '../utils/calculator';
 import { formatModuleTooltip, formatPct } from '../utils/formatters';
 import './LaserPanel.css';
+
+// Helper to get the best modifier display for modules without power modifier
+const getBestModifierDisplay = (module: Module): string => {
+  if (module.powerModifier !== 1) {
+    return ` (${formatPct(module.powerModifier)} power)`;
+  }
+
+  // Find the most beneficial modifier to display
+  // Each entry: [value, label, lowerIsBetter]
+  const modifiers: [number | undefined, string, boolean][] = [
+    [module.resistModifier !== 1 ? module.resistModifier : undefined, 'Res', true],
+    [module.instabilityModifier, 'Inst', true],
+    [module.chargeWindowModifier, 'Win', false],
+    [module.chargeRateModifier, 'Rate', false],
+    [module.overchargeRateModifier, 'OC', true],
+    [module.shatterDamageModifier, 'Shtr', true],
+    [module.extractionPowerModifier, 'Ext', false],
+    [module.inertMaterialsModifier, 'Inrt', true],
+    [module.clusterModifier, 'Clst', false],
+  ];
+
+  // Find the best (most beneficial) modifier
+  let bestModifier: { value: number; label: string; benefit: number } | null = null;
+
+  for (const [value, label, lowerIsBetter] of modifiers) {
+    if (value === undefined || value === 1) continue;
+
+    // Calculate benefit magnitude (how far from 1, in the good direction)
+    const benefit = lowerIsBetter ? (1 - value) : (value - 1);
+
+    if (benefit > 0 && (!bestModifier || benefit > bestModifier.benefit)) {
+      bestModifier = { value, label, benefit };
+    }
+  }
+
+  if (bestModifier) {
+    return ` (${formatPct(bestModifier.value)} ${bestModifier.label})`;
+  }
+
+  return '';
+};
+
+// Helper to format laser head stats for dropdown options
+// Groups: Name, Power, Slots, then good modifiers, then bad modifiers
+const formatLaserHeadOption = (head: LaserHead) => {
+  if (!head || head.id === 'none') return '---';
+
+  const good: string[] = [];
+  const bad: string[] = [];
+
+  // Resistance: lower is better
+  if (head.resistModifier < 1) good.push(`Resist: ${formatPct(head.resistModifier)}`);
+  else if (head.resistModifier > 1) bad.push(`Resist: ${formatPct(head.resistModifier)}`);
+
+  // Instability: lower is better
+  if (head.instabilityModifier !== undefined && head.instabilityModifier !== 1) {
+    if (head.instabilityModifier < 1) good.push(`Inst: ${formatPct(head.instabilityModifier)}`);
+    else bad.push(`Inst: ${formatPct(head.instabilityModifier)}`);
+  }
+
+  // Charge Rate: higher is better
+  if (head.chargeRateModifier !== undefined && head.chargeRateModifier !== 1) {
+    if (head.chargeRateModifier > 1) good.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
+    else bad.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
+  }
+
+  // Charge Window: higher is better
+  if (head.chargeWindowModifier !== undefined && head.chargeWindowModifier !== 1) {
+    if (head.chargeWindowModifier > 1) good.push(`Win: ${formatPct(head.chargeWindowModifier)}`);
+    else bad.push(`Win: ${formatPct(head.chargeWindowModifier)}`);
+  }
+
+  // Inert Materials: lower is better
+  if (head.inertMaterialsModifier !== undefined && head.inertMaterialsModifier !== 1) {
+    if (head.inertMaterialsModifier < 1) good.push(`Inert: ${formatPct(head.inertMaterialsModifier)}`);
+    else bad.push(`Inert: ${formatPct(head.inertMaterialsModifier)}`);
+  }
+
+  // Build: Name:  Power  Slots    [good]  [bad]
+  let result = `${head.name}:  Power: ${head.maxPower}  Slots: ${head.moduleSlots}`;
+  if (good.length > 0) result += `    ${good.join(', ')}`;
+  if (bad.length > 0) result += `  ${bad.join(', ')}`;
+  return result;
+};
 
 // Helper to format laser head effects for tooltips (only used in this component)
 const formatLaserHeadTooltip = (head: LaserHead) => {
@@ -11,6 +95,18 @@ const formatLaserHeadTooltip = (head: LaserHead) => {
   effects.push(`Power: ${head.maxPower}`);
   const resistPct = formatPct(head.resistModifier);
   if (resistPct) effects.push(`Resist: ${resistPct}`);
+  if (head.instabilityModifier !== undefined && head.instabilityModifier !== 1) {
+    effects.push(`Inst: ${formatPct(head.instabilityModifier)}`);
+  }
+  if (head.chargeRateModifier !== undefined && head.chargeRateModifier !== 1) {
+    effects.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
+  }
+  if (head.chargeWindowModifier !== undefined && head.chargeWindowModifier !== 1) {
+    effects.push(`Win: ${formatPct(head.chargeWindowModifier)}`);
+  }
+  if (head.inertMaterialsModifier !== undefined && head.inertMaterialsModifier !== 1) {
+    effects.push(`Inert: ${formatPct(head.inertMaterialsModifier)}`);
+  }
   effects.push(`Slots: ${head.moduleSlots}`);
   return `${head.name}: ${effects.join(', ')}`;
 };
@@ -83,12 +179,13 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
           <div className="locked-laser">
             <input
               type="text"
-              value={`${pitmanLaser?.name} (Fixed - ${pitmanLaser?.maxPower} power)`}
+              value={pitmanLaser ? formatLaserHeadOption(pitmanLaser) : 'Pitman'}
               disabled
               style={{ width: '100%', opacity: 0.7, cursor: 'not-allowed' }}
+              title={pitmanLaser ? formatLaserHeadTooltip(pitmanLaser) : ''}
             />
             <small style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-              GOLEM has a fixed Pitman laser
+              GOLEM has a fixed bespoke Pitman laser.
             </small>
           </div>
         ) : (
@@ -99,7 +196,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
           >
             {availableLaserHeads.map((head) => (
               <option key={head.id} value={head.id} title={formatLaserHeadTooltip(head)}>
-                {head.name} {head.maxPower > 0 ? `(${head.maxPower} power)` : ''}
+                {formatLaserHeadOption(head)}
               </option>
             ))}
           </select>
@@ -119,7 +216,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
               {MODULES.map((module) => (
                 <option key={module.id} value={module.id} title={formatModuleTooltip(module)}>
                   {module.name}
-                  {module.powerModifier !== 1 ? ` (${module.powerModifier}x power)` : ''}
+                  {getBestModifierDisplay(module)}
                 </option>
               ))}
             </select>
@@ -141,6 +238,26 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
               {laser.laserHead.resistModifier !== 1 && (
                 <span className={`effect-badge ${laser.laserHead.resistModifier < 1 ? 'positive' : 'negative'}`}>
                   Res {formatPct(laser.laserHead.resistModifier)}
+                </span>
+              )}
+              {laser.laserHead.instabilityModifier !== undefined && laser.laserHead.instabilityModifier !== 1 && (
+                <span className={`effect-badge ${laser.laserHead.instabilityModifier < 1 ? 'positive' : 'negative'}`}>
+                  Inst {formatPct(laser.laserHead.instabilityModifier)}
+                </span>
+              )}
+              {laser.laserHead.chargeRateModifier !== undefined && laser.laserHead.chargeRateModifier !== 1 && (
+                <span className={`effect-badge ${laser.laserHead.chargeRateModifier > 1 ? 'positive' : 'negative'}`}>
+                  Rate {formatPct(laser.laserHead.chargeRateModifier)}
+                </span>
+              )}
+              {laser.laserHead.chargeWindowModifier !== undefined && laser.laserHead.chargeWindowModifier !== 1 && (
+                <span className={`effect-badge ${laser.laserHead.chargeWindowModifier > 1 ? 'positive' : 'negative'}`}>
+                  Win {formatPct(laser.laserHead.chargeWindowModifier)}
+                </span>
+              )}
+              {laser.laserHead.inertMaterialsModifier !== undefined && laser.laserHead.inertMaterialsModifier !== 1 && (
+                <span className={`effect-badge ${laser.laserHead.inertMaterialsModifier < 1 ? 'positive' : 'negative'}`}>
+                  Inrt {formatPct(laser.laserHead.inertMaterialsModifier)}
                 </span>
               )}
               <span className="effect-badge neutral">Slots: {laser.laserHead.moduleSlots}</span>
