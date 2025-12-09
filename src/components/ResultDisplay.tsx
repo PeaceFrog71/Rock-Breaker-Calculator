@@ -1471,11 +1471,11 @@ export default function ResultDisplay({
           <div className="stat-subtitle">
             {result.resistanceContext ? (
               <>
-                Derived Base: {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+                Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
               </>
             ) : (
               <>
-                Base: {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+                Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
               </>
             )}
           </div>
