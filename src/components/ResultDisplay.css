@@ -53,12 +53,12 @@
   cursor: pointer;
 }
 
-/* Flying prospector easter egg */
+/* Flying prospector easter egg - z-index 0 keeps it behind UI (z-index 1+) but visible above background */
 .flying-prospector {
   position: absolute;
-  z-index: 2;
+  z-index: 0;
   pointer-events: none;
-  filter: brightness(0.5);
+  filter: brightness(0.7);
 }
 
 .flying-prospector.from-left {

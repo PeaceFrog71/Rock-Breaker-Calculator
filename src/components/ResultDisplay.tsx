@@ -173,8 +173,8 @@ export default function ResultDisplay({
 
   useEffect(() => {
     const scheduleNextFlyby = () => {
-      // Random interval between 5-10 minutes (300000-600000ms)
-      const interval = 300000 + Math.random() * 300000;
+      // Random interval between 3-5 minutes
+      const interval = 180000 + Math.random() * 120000;
       return setTimeout(() => {
         // Set random vertical position in top third (5-30%)
         setFlyingShipTop(5 + Math.random() * 25);
@@ -327,21 +327,37 @@ export default function ResultDisplay({
               }
               alt={`Flying ${flyingShipType}`}
               style={{
+                // Smaller sizes for background/distant effect
                 width:
                   flyingShipType === "mole"
-                    ? "135px"
+                    ? "68px"
                     : flyingShipType === "golem"
-                    ? "75px"
-                    : "100px",
+                    ? "50px"
+                    : "65px",
                 height:
                   flyingShipType === "mole"
-                    ? "54px"
+                    ? "27px"
                     : flyingShipType === "golem"
-                    ? "30px"
-                    : "40px",
+                    ? "20px"
+                    : "26px",
                 imageRendering: "pixelated",
-                transform:
-                  flyingShipDirection === "from-left" ? "scaleX(-1)" : "none",
+                // GOLEM needs extra brightness
+                filter: flyingShipType === "golem" ? "brightness(1.3)" : undefined,
+                transform: (() => {
+                  const parts: string[] = [];
+                  if (flyingShipDirection === "from-left") {
+                    parts.push("scaleX(-1)");
+                  }
+                  // GOLEM always needs rotation to level it
+                  if (flyingShipType === "golem") {
+                    parts.push("rotate(20deg)");
+                  }
+                  // Prospector needs rotation on both backgrounds
+                  if (flyingShipType === "prospector") {
+                    parts.push("rotate(10deg)");
+                  }
+                  return parts.length > 0 ? parts.join(" ") : "none";
+                })(),
               }}
             />
           </div>
