@@ -11,31 +11,46 @@ export function deriveBaseResistance(modifiedValue: number, totalModifier: numbe
 
 /**
  * Calculate effective resistance based on mode
- * - Base mode: Apply modifiers to the base resistance
+ * - Base mode: Apply modifiers to the base resistance (may need to reverse gadgets if they were on rock)
  * - Modified mode: Reverse-calculate base, then apply modifiers
  *
  * @param scanningLaserModifier - Optional modifier of ONLY the scanning laser (for single-ship MOLE mode).
  *   When provided, this is used to reverse the modified resistance value instead of equipmentModifier.
  *   This fixes the bug where adding helper lasers would incorrectly affect the derived base resistance.
+ * @param scanGadgetModifier - Optional modifier from gadgets marked "In Scan" (for reverse calculation).
+ *   When provided, this is used to reverse the resistance value regardless of which gadgets are enabled.
+ *   Gadgets attach to the rock directly and affect both Base and Modified readings.
  */
 export function calculateEffectiveResistance(
   rock: Rock,
   equipmentModifier: number,
   gadgetModifier: number,
-  scanningLaserModifier?: number
+  scanningLaserModifier?: number,
+  scanGadgetModifier?: number
 ): { effectiveResistance: number; derivedBase?: number } {
   const totalModifier = equipmentModifier * gadgetModifier;
+  const gadgetModForScan = scanGadgetModifier ?? 1;
 
   if (rock.resistanceMode === 'modified') {
     // User scanned with laser - need to reverse-calculate base resistance
     // Use scanning laser's modifier if provided, otherwise fall back to equipment modifier
     const reverseModifier = scanningLaserModifier ?? equipmentModifier;
-    const scanModifier = rock.includeGadgetsInScan ? reverseModifier * gadgetModifier : reverseModifier;
+    // Include gadgets in reversal if they were marked "In Scan"
+    const scanModifier = rock.includeGadgetsInScan
+      ? reverseModifier * gadgetModForScan
+      : reverseModifier;
     const derivedBase = deriveBaseResistance(rock.resistance, scanModifier);
     const effectiveResistance = derivedBase * totalModifier;
     return { effectiveResistance, derivedBase };
   } else {
-    // Base mode (default) - user scanned from cockpit without laser
+    // Base mode - user scanned from cockpit or out-of-range laser
+    // But gadgets may still have been on rock during scan (they attach to rock, not scanner)
+    if (rock.includeGadgetsInScan && gadgetModForScan !== 1) {
+      const derivedBase = deriveBaseResistance(rock.resistance, gadgetModForScan);
+      const effectiveResistance = derivedBase * totalModifier;
+      return { effectiveResistance, derivedBase };
+    }
+    // Normal base mode - no reversal needed
     const effectiveResistance = rock.resistance * totalModifier;
     return { effectiveResistance };
   }
@@ -127,12 +142,16 @@ export function calculateLaserResistModifier(laser: LaserConfiguration, passiveO
 
 /**
  * Main calculation function based on Excel formulas
+ *
+ * @param scanGadgets - Optional array of gadgets marked "In Scan" for reverse calculation.
+ *   These gadgets are used to derive the base resistance value, regardless of enabled state.
  */
 export function calculateBreakability(
   config: MiningConfiguration,
   rock: Rock,
   gadgets: (Gadget | null)[] = [],
-  shipId?: string
+  shipId?: string,
+  scanGadgets?: (Gadget | null)[]
 ): CalculationResult {
   // Calculate total laser power (sum of all lasers)
   let totalLaserPower = 0;
@@ -164,13 +183,23 @@ export function calculateBreakability(
     }
   });
 
-  // Apply gadget resist modifiers
+  // Apply gadget resist modifiers (for forward calculation - only enabled gadgets)
   let gadgetModifier = 1;
   gadgets.forEach((gadget) => {
     if (gadget && gadget.id !== 'none') {
       gadgetModifier *= gadget.resistModifier;
     }
   });
+
+  // Calculate scan gadget modifier (for reverse calculation - gadgets marked "In Scan")
+  let scanGadgetModifier = 1;
+  if (scanGadgets) {
+    scanGadgets.forEach((gadget) => {
+      if (gadget && gadget.id !== 'none') {
+        scanGadgetModifier *= gadget.resistModifier;
+      }
+    });
+  }
 
   // Calculate scanning laser modifier for modified resistance mode (single-ship MOLE)
   // This allows us to reverse the modified resistance using only the scanning laser's modifier,
@@ -189,7 +218,8 @@ export function calculateBreakability(
     rock,
     totalResistModifier,
     gadgetModifier,
-    scanningLaserModifier
+    scanningLaserModifier,
+    scanGadgetModifier
   );
 
   const adjustedResistance = effectiveResistance;
@@ -249,11 +279,15 @@ export function formatPercent(percent: number): string {
 /**
  * Calculate breakability for a mining group (multiple ships)
  * Combines power from all active ships and applies gadgets
+ *
+ * @param scanGadgets - Optional array of gadgets marked "In Scan" for reverse calculation.
+ *   These gadgets are used to derive the base resistance value, regardless of enabled state.
  */
 export function calculateGroupBreakability(
   miningGroup: MiningGroup,
   rock: Rock,
-  gadgets: (Gadget | null)[] = []
+  gadgets: (Gadget | null)[] = [],
+  scanGadgets?: (Gadget | null)[]
 ): CalculationResult {
   // Filter only active ships
   const activeShips = miningGroup.ships.filter(ship => ship.isActive !== false);
@@ -332,7 +366,7 @@ export function calculateGroupBreakability(
     }
   }
 
-  // Apply gadget resist modifiers separately
+  // Apply gadget resist modifiers separately (for forward calculation - only enabled gadgets)
   let gadgetModifier = 1;
   gadgets.forEach((gadget) => {
     if (gadget && gadget.id !== 'none') {
@@ -340,12 +374,23 @@ export function calculateGroupBreakability(
     }
   });
 
+  // Calculate scan gadget modifier (for reverse calculation - gadgets marked "In Scan")
+  let scanGadgetModifier = 1;
+  if (scanGadgets) {
+    scanGadgets.forEach((gadget) => {
+      if (gadget && gadget.id !== 'none') {
+        scanGadgetModifier *= gadget.resistModifier;
+      }
+    });
+  }
+
   // Calculate effective resistance based on resistance mode
   const { effectiveResistance, derivedBase } = calculateEffectiveResistance(
     rock,
     equipmentModifier,
     gadgetModifier,
-    scanningLaserModifier
+    scanningLaserModifier,
+    scanGadgetModifier
   );
 
   const adjustedResistance = effectiveResistance;

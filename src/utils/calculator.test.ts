@@ -1212,3 +1212,165 @@ describe('Data Validation', () => {
     });
   });
 });
+
+describe('Gadgets in Scan - Issue #40', () => {
+  describe('Base Mode with Gadgets in Scan', () => {
+    it('should reverse gadgets from base reading when marked "In Scan"', () => {
+      // Scenario: User scanned from cockpit (Base mode) but gadgets were on the rock
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
+      const sabir = GADGETS.find(g => g.id === 'sabir')!; // 0.5x resist modifier
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: pitman, modules: [null, null] }],
+      };
+
+      // Base reading of 10 was taken with Sabir on rock
+      // True base = 10 / 0.5 = 20
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 10,
+        resistanceMode: 'base',
+        includeGadgetsInScan: true,
+      };
+
+      // enabledGadgets = same as scanGadgets in this case
+      const enabledGadgets = [sabir, null, null];
+      const scanGadgets = [sabir, null, null];
+
+      const result = calculateBreakability(config, rock, enabledGadgets, undefined, scanGadgets);
+
+      // Should derive base = 10 / 0.5 = 20
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+
+      // Then apply all modifiers: Pitman (1.25) * Sabir (0.5) = 0.625
+      // Adjusted = 20 * 0.625 = 12.5
+      expect(result.adjustedResistance).toBeCloseTo(12.5, 1);
+    });
+
+    it('should NOT reverse gadgets from base reading when "Gadgets in Scan" is unchecked', () => {
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
+      const sabir = GADGETS.find(g => g.id === 'sabir')!;
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: pitman, modules: [null, null] }],
+      };
+
+      // User says this is a base reading without gadgets affecting it
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 20,
+        resistanceMode: 'base',
+        includeGadgetsInScan: false, // Not checked
+      };
+
+      const enabledGadgets = [sabir, null, null];
+      const scanGadgets = [sabir, null, null];
+
+      const result = calculateBreakability(config, rock, enabledGadgets, undefined, scanGadgets);
+
+      // No reversal - base stays at 20
+      expect(result.resistanceContext).toBeUndefined();
+
+      // Apply all modifiers forward: 20 * 1.25 * 0.5 = 12.5
+      expect(result.adjustedResistance).toBeCloseTo(12.5, 1);
+    });
+  });
+
+  describe('Modified Mode with Gadgets in Scan', () => {
+    it('should reverse laser AND gadgets when both in scan', () => {
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!; // 0.7x resist
+      const optimax = GADGETS.find(g => g.id === 'optimax')!; // 0.7x resist
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: helixI, modules: [null, null] }],
+      };
+
+      // Modified reading of 9.8 with Helix (0.7) and OptiMax (0.7)
+      // Scan modifier = 0.7 * 0.7 = 0.49
+      // True base = 9.8 / 0.49 = 20
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 9.8,
+        resistanceMode: 'modified',
+        includeGadgetsInScan: true,
+      };
+
+      const enabledGadgets = [optimax, null, null];
+      const scanGadgets = [optimax, null, null];
+
+      const result = calculateBreakability(config, rock, enabledGadgets, undefined, scanGadgets);
+
+      // Derived base = 9.8 / 0.49 = 20
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+
+      // Adjusted = 20 * 0.7 * 0.7 = 9.8
+      expect(result.adjustedResistance).toBeCloseTo(9.8, 1);
+    });
+  });
+
+  describe('Gadget "In Scan" vs "Enabled" separation', () => {
+    it('should use scanGadgets for reversal and enabledGadgets for forward calculation', () => {
+      // Scenario: 2 gadgets were on rock during scan, but user disabled one for "what if"
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
+      const sabir = GADGETS.find(g => g.id === 'sabir')!; // 0.5x
+      const optimax = GADGETS.find(g => g.id === 'optimax')!; // 0.7x
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: pitman, modules: [null, null] }],
+      };
+
+      // Base reading of 7 with both gadgets on rock (0.5 * 0.7 = 0.35)
+      // True base = 7 / 0.35 = 20
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 7,
+        resistanceMode: 'base',
+        includeGadgetsInScan: true,
+      };
+
+      // Both gadgets were in scan
+      const scanGadgets = [sabir, optimax, null];
+      // But only Sabir is enabled for forward calc
+      const enabledGadgets = [sabir, null, null];
+
+      const result = calculateBreakability(config, rock, enabledGadgets, undefined, scanGadgets);
+
+      // Derived base = 7 / (0.5 * 0.7) = 7 / 0.35 = 20
+      expect(result.resistanceContext?.derivedBaseValue).toBeCloseTo(20, 1);
+
+      // Forward: Pitman (1.25) * Sabir only (0.5) = 0.625
+      // Adjusted = 20 * 0.625 = 12.5
+      expect(result.adjustedResistance).toBeCloseTo(12.5, 1);
+    });
+
+    it('should handle no gadgets marked "In Scan" even when gadgets are enabled', () => {
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
+      const sabir = GADGETS.find(g => g.id === 'sabir')!;
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: pitman, modules: [null, null] }],
+      };
+
+      // Base reading, gadgets in scan is checked, but no gadgets marked
+      const rock: Rock = {
+        mass: 1000,
+        resistance: 20,
+        resistanceMode: 'base',
+        includeGadgetsInScan: true,
+      };
+
+      // No gadgets in scan (all null)
+      const scanGadgets = [null, null, null];
+      // But Sabir is enabled for forward
+      const enabledGadgets = [sabir, null, null];
+
+      const result = calculateBreakability(config, rock, enabledGadgets, undefined, scanGadgets);
+
+      // No reversal since scanGadgetModifier = 1
+      expect(result.resistanceContext).toBeUndefined();
+
+      // Forward: 20 * 1.25 * 0.5 = 12.5
+      expect(result.adjustedResistance).toBeCloseTo(12.5, 1);
+    });
+  });
+});

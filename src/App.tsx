@@ -50,8 +50,9 @@ function App() {
   const [gadgets, setGadgets] = useState<(Gadget | null)[]>([null, null, null]);
   const [gadgetCount, setGadgetCount] = useState(3);
   const [gadgetEnabled, setGadgetEnabled] = useState<boolean[]>([true, true, true]);
+  const [gadgetInScan, setGadgetInScan] = useState<boolean[]>([false, false, false]);
 
-  // Update gadgetEnabled array and trim gadgets array when gadgetCount changes
+  // Update gadgetEnabled/InScan arrays and trim gadgets array when gadgetCount changes
   useEffect(() => {
     setGadgetEnabled(prev => {
       const newEnabled = Array(gadgetCount).fill(true);
@@ -60,6 +61,14 @@ function App() {
         newEnabled[i] = prev[i];
       }
       return newEnabled;
+    });
+    setGadgetInScan(prev => {
+      const newInScan = Array(gadgetCount).fill(false);
+      // Preserve existing inScan states up to the new count
+      for (let i = 0; i < Math.min(prev.length, gadgetCount); i++) {
+        newInScan[i] = prev[i];
+      }
+      return newInScan;
     });
     // Trim gadgets array to match the new count (fix for issue #34)
     setGadgets(prev => {
@@ -83,7 +92,8 @@ function App() {
     saveCurrentConfiguration(selectedShip, config);
   }, [selectedShip, config]);
 
-  // Smart hint detection: Show hint if resistance is low and equipment modifiers exist
+  // Smart hint detection: Show hint if resistance is low and modifiers might explain it
+  // But don't show if gadgets could explain the low resistance (user should check "Gadgets in scan" instead)
   const showResistanceHint = useMemo(() => {
     if (rock.resistance === 0 || rock.resistance >= 20) return false;
 
@@ -92,8 +102,19 @@ function App() {
       laser.laserHead && laser.laserHead.resistModifier !== 1
     );
 
+    // Check if gadgets with resist modifiers are selected (could explain low resistance)
+    const hasGadgetModifiers = gadgets.some(gadget =>
+      gadget && gadget.id !== 'none' && gadget.resistModifier !== 1
+    );
+
+    // Don't suggest "switch to Modified" if gadgets could explain the low resistance
+    // User should use "Gadgets in scan" checkbox instead
+    if (hasGadgetModifiers && !rock.includeGadgetsInScan) {
+      return false;
+    }
+
     return hasEquipmentModifiers;
-  }, [rock.resistance, config.lasers]);
+  }, [rock.resistance, rock.includeGadgetsInScan, config.lasers, gadgets]);
 
   // Resistance mode handlers
   const handleResistanceModeToggle = () => {
@@ -175,21 +196,33 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [equipmentConfigKey]);
 
-  // Filter gadgets to only include enabled ones
+  // Filter gadgets to only include enabled ones (for forward calculation)
   const enabledGadgets = gadgets.map((gadget, index) =>
     gadgetEnabled[index] ? gadget : null
   );
 
+  // Build scanGadgets array from gadgets marked "In Scan" (for reverse calculation)
+  const scanGadgets = gadgets.map((gadget, index) =>
+    gadgetInScan[index] ? gadget : null
+  );
+
   // Calculate result based on mode (single ship or mining group)
   const result = useMiningGroup
-    ? calculateGroupBreakability(miningGroup, rock, enabledGadgets)
-    : calculateBreakability(config, rock, enabledGadgets, selectedShip.id);
+    ? calculateGroupBreakability(miningGroup, rock, enabledGadgets, scanGadgets)
+    : calculateBreakability(config, rock, enabledGadgets, selectedShip.id, scanGadgets);
 
   // Handle toggling gadget enabled state
   const handleToggleGadget = (index: number) => {
     const newEnabled = [...gadgetEnabled];
     newEnabled[index] = !newEnabled[index];
     setGadgetEnabled(newEnabled);
+  };
+
+  // Handle toggling gadget "In Scan" state
+  const handleToggleGadgetInScan = (index: number) => {
+    const newInScan = [...gadgetInScan];
+    newInScan[index] = !newInScan[index];
+    setGadgetInScan(newInScan);
   };
 
   const handleShipChange = (ship: Ship) => {
@@ -425,18 +458,38 @@ function App() {
                   {Array.from({ length: gadgetCount }).map((_, index) => {
                     const gadget = gadgets[index];
                     const isEnabled = gadgetEnabled[index] !== false;
+                    const isInScan = gadgetInScan[index] === true;
                     const effects = getGadgetEffects(gadget);
 
                     return (
                     <div key={index} className="compact-form-group gadget-select-wrapper">
-                      <label>Gadget {index + 1}</label>
+                      <div className="gadget-label-row">
+                        <label>Gadget {index + 1}</label>
+                        {rock.includeGadgetsInScan && gadget && gadget.id !== 'none' && (
+                          <label className="in-scan-checkbox">
+                            <input
+                              type="checkbox"
+                              checked={isInScan}
+                              onChange={() => handleToggleGadgetInScan(index)}
+                              title="Check if this gadget was attached to the rock when you scanned"
+                            />
+                            <span>In Scan</span>
+                          </label>
+                        )}
+                      </div>
                       <select
                         value={gadgets[index]?.id || 'none'}
                         onChange={(e) => {
-                          const gadget = GADGETS.find((g) => g.id === e.target.value) || null;
+                          const newGadget = GADGETS.find((g) => g.id === e.target.value) || null;
                           const newGadgets = [...gadgets];
-                          newGadgets[index] = gadget;
+                          newGadgets[index] = newGadget;
                           setGadgets(newGadgets);
+                          // Clear inScan state when gadget is removed
+                          if (!newGadget || newGadget.id === 'none') {
+                            const newInScan = [...gadgetInScan];
+                            newInScan[index] = false;
+                            setGadgetInScan(newInScan);
+                          }
                         }}
                         title={gadgets[index] && gadgets[index].id !== 'none' ?
                           formatGadgetTooltip(gadgets[index]) : 'Select a gadget'}
@@ -469,6 +522,15 @@ function App() {
                       )}
                     </div>
                   );})}
+                  {/* Guidance message when "Gadgets in Scan" is checked but none marked - at bottom */}
+                  {rock.includeGadgetsInScan &&
+                   gadgets.some(g => g && g.id !== 'none') &&
+                   !gadgetInScan.some((inScan, i) => inScan && gadgets[i] && gadgets[i]!.id !== 'none') && (
+                    <div className="gadgets-scan-hint">
+                      <span className="hint-icon">💡</span>
+                      <span>Mark which gadgets were on the rock when you scanned</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

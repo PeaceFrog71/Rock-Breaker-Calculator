@@ -202,6 +202,13 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             <li><strong>Toggle Functionality:</strong> Click gadgets, ships, and lasers to toggle on/off for "what if" scenarios</li>
             <li><strong>Color-Coded Results:</strong> Green (CAN BREAK, &gt;20% margin), Yellow (LOW MARGIN BREAK, &lt;20% margin), Red (CANNOT BREAK)</li>
           </ul>
+
+          <h3>Resistance Scanning</h3>
+          <ul>
+            <li><strong>Base Resistance:</strong> Scanned from MOLE cockpit, or any ship when laser is <em>out of range</em></li>
+            <li><strong>Modified Resistance:</strong> Scanned with mining laser <em>in range</em> - affected by laser/module modifiers</li>
+            <li><strong>Gadgets in Scan:</strong> Gadgets attach directly to the rock and affect <em>both</em> Base and Modified readings. Mark which gadgets were on the rock when you scanned.</li>
+          </ul>
         </div>
       </div>
     );
