@@ -343,9 +343,6 @@ export default function ResultDisplay({
                 imageRendering: "pixelated",
                 // GOLEM needs extra brightness
                 filter: flyingShipType === "golem" ? "brightness(1.3)" : undefined,
-                // Rotation depends on background mode:
-                // - Landscape: no rotation (ships already level with horizon)
-                // - Starfield: rotate Prospector/GOLEM up ~20 degrees to level them
                 transform: (() => {
                   const parts: string[] = [];
                   if (flyingShipDirection === "from-left") {
