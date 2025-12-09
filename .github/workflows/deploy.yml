@@ -1,0 +1,77 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: main
+
+      - name: Checkout beta
+        uses: actions/checkout@v4
+        with:
+          ref: beta
+          path: beta
+        continue-on-error: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: main/package-lock.json
+
+      - name: Build main
+        run: |
+          cd main
+          npm ci
+          npm run build
+
+      - name: Build beta
+        run: |
+          cd beta
+          npm ci
+          # Set base path for beta subdirectory
+          sed -i 's|base: .*|base: "/beta/",|' vite.config.ts || true
+          npm run build
+          # Move beta build to subfolder
+          mkdir -p ../main/dist/beta
+          cp -r dist/* ../main/dist/beta/
+        continue-on-error: true
+
+      - name: Add CNAME
+        run: echo "rockbreaker.peacefroggaming.com" > main/dist/CNAME
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: main/dist
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
