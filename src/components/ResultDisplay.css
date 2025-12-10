@@ -738,8 +738,8 @@
 .possible-break-warning {
   margin-top: 0.75rem;
   padding: 0.75rem;
-  background: rgba(255, 140, 0, 0.1);
-  border-left: 3px solid #ff8c00;
+  background: rgba(255, 170, 0, 0.1);
+  border-left: 3px solid var(--warning);
   border-radius: 4px;
   font-family: inherit;
   font-size: 0.95rem;
@@ -748,7 +748,7 @@
   line-height: 1.5;
 }
 
-.possible-break-warning .warning-label {
+.warning-label {
   color: var(--warning);
   font-weight: 700;
   margin-right: 0.25rem;
@@ -767,10 +767,10 @@
   border-left: 3px solid var(--warning);
   border-radius: 4px;
   font-family: inherit;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   font-weight: 400;
   color: var(--text-primary);
-  line-height: 1.4;
+  line-height: 1.5;
   max-width: 100%;
 }
 

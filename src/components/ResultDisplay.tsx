@@ -1458,19 +1458,17 @@ export default function ResultDisplay({
           </div>
         )}
 
-        {((result.powerMarginPercent >= -10 && result.powerMarginPercent < 0) ||
+        {((result.powerMarginPercent >= -15 && result.powerMarginPercent < 0) ||
           (result.powerMarginPercent > 0 &&
             result.powerMarginPercent <= 10)) && (
           <div className="distance-tip" onClick={(e) => e.stopPropagation()}>
-            <strong>Tip:</strong> Reducing laser distance may increase chances
+            <span className="warning-label">TIP:</span> Reducing laser distance may increase chances
             of a successful break.
           </div>
         )}
 
         {isPossibleBreak && (
           <div className="possible-break-warning" onClick={(e) => e.stopPropagation()}>
-            <span className="warning-label">NOTE:</span> Possible break with reduced distance to rock.
-            <br />
             <span className="warning-label">CAUTION:</span> Reduced distance breaks can lead to equipment damage and/or bodily injury.
           </div>
         )}
