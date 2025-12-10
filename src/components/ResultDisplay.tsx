@@ -204,16 +204,27 @@ export default function ResultDisplay({
   }, []);
 
   const getStatusClass = () => {
-    if (!result.canBreak) return "cannot-break";
-    if (result.powerMarginPercent < 20) return "marginal";
-    return "can-break";
+    if (result.canBreak) {
+      if (result.powerMarginPercent < 20) return "marginal";
+      return "can-break";
+    }
+    // Power is below required - check if within "possible break" range (-15% to 0%)
+    if (result.powerMarginPercent >= -15) return "possible-break";
+    return "cannot-break";
   };
 
   const getStatusText = () => {
-    if (!result.canBreak) return "CANNOT BREAK";
-    if (result.powerMarginPercent < 20) return "LOW MARGIN BREAK";
-    return "CAN BREAK";
+    if (result.canBreak) {
+      if (result.powerMarginPercent < 20) return "LOW MARGIN BREAK";
+      return "CAN BREAK";
+    }
+    // Power is below required - check if within "possible break" range (-15% to 0%)
+    if (result.powerMarginPercent >= -15) return "POSSIBLE BREAK";
+    return "CANNOT BREAK";
   };
+
+  // Check if we're in the "possible break" zone for showing the warning
+  const isPossibleBreak = !result.canBreak && result.powerMarginPercent >= -15;
 
   const powerPercentage =
     result.adjustedLPNeeded > 0
@@ -226,13 +237,6 @@ export default function ResultDisplay({
   const hasOvercharge = powerPercentage > 100;
   const hasExcessiveOvercharge = result.powerMarginPercent > 100; // >100% margin = >200% total power
   const hasCriticalOvercharge = result.powerMarginPercent > 100;
-
-  console.log(
-    "hasExcessiveOvercharge:",
-    hasExcessiveOvercharge,
-    "powerMarginPercent:",
-    result.powerMarginPercent
-  );
 
   // Calculate the percentage of the bar that should show overcharge gradient
   // If we have 120% power, the rightmost 20% of the bar should be red
@@ -1368,20 +1372,9 @@ export default function ResultDisplay({
                         } ${onToggleGadget ? "clickable" : ""}`}
                         title={tooltipText}
                         onClick={(e) => {
-                          console.log(
-                            "Gadget icon clicked:",
-                            index,
-                            gadget.name
-                          );
                           e.stopPropagation();
                           if (onToggleGadget) {
-                            console.log(
-                              "Calling onToggleGadget for index:",
-                              index
-                            );
                             onToggleGadget(index);
-                          } else {
-                            console.log("onToggleGadget is not defined");
                           }
                         }}>
                         {getGadgetSymbol(gadget.id)}
@@ -1420,6 +1413,8 @@ export default function ResultDisplay({
                         ? "var(--success)"
                         : getStatusClass() === "marginal"
                         ? "var(--warning)"
+                        : getStatusClass() === "possible-break"
+                        ? "#ff8c00"
                         : "var(--danger)"
                     } 0%,
                     ${
@@ -1427,6 +1422,8 @@ export default function ResultDisplay({
                         ? "var(--accent-cyan)"
                         : getStatusClass() === "marginal"
                         ? "var(--accent-gold)"
+                        : getStatusClass() === "possible-break"
+                        ? "#ffaa33"
                         : "#ff6688"
                     } ${Math.max(100 - overchargeGradientPercent, 50)}%,
                     ${
@@ -1467,6 +1464,14 @@ export default function ResultDisplay({
           <div className="distance-tip" onClick={(e) => e.stopPropagation()}>
             <strong>Tip:</strong> Reducing laser distance may increase chances
             of a successful break.
+          </div>
+        )}
+
+        {isPossibleBreak && (
+          <div className="possible-break-warning" onClick={(e) => e.stopPropagation()}>
+            <span className="warning-label">NOTE:</span> Possible break with reduced distance to rock.
+            <br />
+            <span className="warning-label">CAUTION:</span> Reduced distance breaks can lead to equipment damage and/or bodily injury.
           </div>
         )}
       </div>
