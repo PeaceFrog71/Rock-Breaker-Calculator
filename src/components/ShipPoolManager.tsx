@@ -80,7 +80,11 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
       if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
         return;
       }
-      updateShipConfig(existing.id, trimmedName, ship.ship, ship.config);
+      const updated = updateShipConfig(existing.id, trimmedName, ship.ship, ship.config);
+      if (!updated) {
+        alert('Failed to update the existing ship configuration. Saving as a new configuration instead.');
+        saveShipConfig(trimmedName, ship.ship, ship.config);
+      }
     } else {
       saveShipConfig(trimmedName, ship.ship, ship.config);
     }
