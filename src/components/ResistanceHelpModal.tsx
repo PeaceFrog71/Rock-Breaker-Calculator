@@ -16,7 +16,7 @@ export default function ResistanceHelpModal({ isOpen, onClose }: ResistanceHelpM
         <h2>Resistance Scanning Setup</h2>
         <p className="resistance-intro">
           The calculator needs to know how you scanned the rock's resistance to give accurate results.
-          Choose the correct mode using the <strong>Base/Modified</strong> button.
+          Choose the correct mode using the <strong>Resistance Mode selector above the resistance input</strong>.
         </p>
 
         <div className="resistance-section">
