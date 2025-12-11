@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import './ResistanceHelpModal.css';
 
 interface ResistanceHelpModalProps {
@@ -6,6 +7,22 @@ interface ResistanceHelpModalProps {
 }
 
 export default function ResistanceHelpModal({ isOpen, onClose }: ResistanceHelpModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
