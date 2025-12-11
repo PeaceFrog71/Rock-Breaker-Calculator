@@ -37,6 +37,7 @@ function App() {
   const [config, setConfig] = useState<MiningConfiguration>(
     loadedState?.config || initializeDefaultLasersForShip(SHIPS[0])
   );
+  const [currentConfigName, setCurrentConfigName] = useState<string | undefined>(undefined);
   const [rock, setRock] = useState<Rock>({
     mass: 25000,
     resistance: 30,
@@ -233,10 +234,12 @@ function App() {
 
   const handleLoadConfiguration = (
     ship: Ship,
-    loadedConfig: MiningConfiguration
+    loadedConfig: MiningConfiguration,
+    name: string
   ) => {
     setSelectedShip(ship);
     setConfig(loadedConfig);
+    setCurrentConfigName(name);
   };
 
   const handleToggleShip = (shipId: string) => {
@@ -586,6 +589,7 @@ function App() {
                   <ConfigManager
                     currentShip={selectedShip}
                     currentConfig={config}
+                    currentConfigName={currentConfigName}
                     onLoad={handleLoadConfiguration}
                   />
                 </>

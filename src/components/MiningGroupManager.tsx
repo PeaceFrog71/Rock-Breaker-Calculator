@@ -41,18 +41,24 @@ export default function MiningGroupManager({
       (g) => g.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
+    // Update the group's name to match what's being saved
+    const groupToSave = { ...currentMiningGroup, name: trimmedName };
+
     if (existing) {
       if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
         return;
       }
-      const updated = updateMiningGroup(existing.id, trimmedName, currentMiningGroup);
+      const updated = updateMiningGroup(existing.id, trimmedName, groupToSave);
       if (!updated) {
         alert('Failed to update the mining group. It may have been removed. Saving as a new group instead.');
-        saveMiningGroup(trimmedName, currentMiningGroup);
+        saveMiningGroup(trimmedName, groupToSave);
       }
     } else {
-      saveMiningGroup(trimmedName, currentMiningGroup);
+      saveMiningGroup(trimmedName, groupToSave);
     }
+
+    // Update the current group's name in parent state
+    onLoad(groupToSave);
 
     setSavedGroups(getSavedMiningGroups());
     setGroupName('');
@@ -62,7 +68,8 @@ export default function MiningGroupManager({
   const handleLoad = (id: string) => {
     const group = loadMiningGroup(id);
     if (group) {
-      onLoad(group.miningGroup);
+      // Include the saved name in the loaded group
+      onLoad({ ...group.miningGroup, name: group.name });
     }
   };
 
@@ -80,7 +87,10 @@ export default function MiningGroupManager({
       <div className="config-actions">
         <button
           className="btn-primary"
-          onClick={() => setShowDialog(true)}
+          onClick={() => {
+            setGroupName(currentMiningGroup.name || '');
+            setShowDialog(true);
+          }}
           disabled={currentMiningGroup.ships.length === 0}
           title={currentMiningGroup.ships.length === 0 ? 'Add ships to save group' : 'Save current mining group'}
         >

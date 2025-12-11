@@ -18,6 +18,11 @@
   font-size: 1.3rem;
 }
 
+.ship-pool-header h2 .group-name {
+  color: var(--accent-gold);
+  font-weight: normal;
+}
+
 .add-ship-button {
   background: var(--bg-secondary);
   color: var(--accent-cyan);

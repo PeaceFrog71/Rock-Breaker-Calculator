@@ -107,7 +107,10 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
   return (
     <div className="ship-pool-manager">
       <div className="ship-pool-header">
-        <h2>Mining Group</h2>
+        <h2>
+          Mining Group
+          {miningGroup.name && <span className="group-name">: {miningGroup.name}</span>}
+        </h2>
         <button className="add-ship-button" onClick={handleAddShip}>
           + Add Ship
         </button>

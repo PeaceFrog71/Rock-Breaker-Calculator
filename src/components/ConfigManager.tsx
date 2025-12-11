@@ -15,12 +15,14 @@ import './ConfigManager.css';
 interface ConfigManagerProps {
   currentShip: Ship;
   currentConfig: MiningConfiguration;
-  onLoad: (ship: Ship, config: MiningConfiguration) => void;
+  currentConfigName?: string;
+  onLoad: (ship: Ship, config: MiningConfiguration, name: string) => void;
 }
 
 export default function ConfigManager({
   currentShip,
   currentConfig,
+  currentConfigName,
   onLoad,
 }: ConfigManagerProps) {
   const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
@@ -57,7 +59,7 @@ export default function ConfigManager({
   const handleLoad = (id: string) => {
     const config = loadShipConfig(id);
     if (config) {
-      onLoad(config.ship, config.config);
+      onLoad(config.ship, config.config, config.name);
     }
   };
 
@@ -93,7 +95,10 @@ export default function ConfigManager({
       <h2>Saved Configurations</h2>
 
       <div className="config-actions">
-        <button className="btn-primary" onClick={() => setShowDialog(true)}>
+        <button className="btn-primary" onClick={() => {
+          setConfigName(currentConfigName || '');
+          setShowDialog(true);
+        }}>
           💾 Save Current
         </button>
         <label className="btn-secondary">

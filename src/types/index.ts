@@ -100,6 +100,7 @@ export interface ShipInstance {
 
 export interface MiningGroup {
   ships: ShipInstance[]; // Array of ships in the mining pool (max 4)
+  name?: string; // Optional name for the group (preserved when loaded from saved configs)
 }
 
 // Ship presets
