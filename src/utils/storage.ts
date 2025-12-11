@@ -65,7 +65,6 @@ function migrateLegacyData(): void {
 
     if (ships.length > 0) {
       localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(ships));
-      console.log(`Migrated ${ships.length} ships to unified library`);
     }
   } catch (error) {
     console.error('Error migrating legacy data:', error);
