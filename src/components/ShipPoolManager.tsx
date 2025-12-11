@@ -3,7 +3,7 @@ import type { MiningGroup, ShipInstance } from '../types';
 import ShipConfigModal from './ShipConfigModal';
 import ShipPoolLibrary from './ShipPoolLibrary';
 import MiningGroupManager from './MiningGroupManager';
-import { saveShipConfig } from '../utils/storage';
+import { saveShipConfig, updateShipConfig, getSavedShipConfigs } from '../utils/storage';
 import './ShipPoolManager.css';
 
 interface ShipPoolManagerProps {
@@ -68,9 +68,21 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
 
   const handleSaveShipToLibrary = (ship: ShipInstance) => {
     const name = prompt('Enter a name for this ship configuration:', ship.name);
-    if (name && name.trim()) {
-      // Save to unified ship library (no longer save as ship instance)
-      saveShipConfig(name, ship.ship, ship.config);
+    if (!name || !name.trim()) return;
+
+    const trimmedName = name.trim();
+    const savedConfigs = getSavedShipConfigs();
+    const existing = savedConfigs.find(
+      (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
+        return;
+      }
+      updateShipConfig(existing.id, trimmedName, ship.ship, ship.config);
+    } else {
+      saveShipConfig(trimmedName, ship.ship, ship.config);
     }
   };
 

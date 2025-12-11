@@ -4,6 +4,7 @@ import type { SavedShipConfig } from '../utils/storage';
 import {
   getSavedShipConfigs,
   saveShipConfig,
+  updateShipConfig,
   deleteShipConfig,
   loadShipConfig,
   exportShipConfig,
@@ -34,7 +35,20 @@ export default function ConfigManager({
       return;
     }
 
-    saveShipConfig(configName, currentShip, currentConfig);
+    const trimmedName = configName.trim();
+    const existing = savedConfigs.find(
+      (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
+        return;
+      }
+      updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
+    } else {
+      saveShipConfig(trimmedName, currentShip, currentConfig);
+    }
+
     setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);
@@ -137,7 +151,7 @@ export default function ConfigManager({
                   className="btn-load"
                   title="Load"
                 >
-                  ↻
+                  ↑
                 </button>
                 <button
                   onClick={() => handleExport(config)}

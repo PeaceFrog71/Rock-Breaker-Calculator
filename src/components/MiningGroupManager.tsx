@@ -4,6 +4,7 @@ import type { SavedMiningGroup } from '../utils/storage';
 import {
   getSavedMiningGroups,
   saveMiningGroup,
+  updateMiningGroup,
   deleteMiningGroup,
   loadMiningGroup,
 } from '../utils/storage';
@@ -35,7 +36,20 @@ export default function MiningGroupManager({
       return;
     }
 
-    saveMiningGroup(groupName, currentMiningGroup);
+    const trimmedName = groupName.trim();
+    const existing = savedGroups.find(
+      (g) => g.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
+        return;
+      }
+      updateMiningGroup(existing.id, trimmedName, currentMiningGroup);
+    } else {
+      saveMiningGroup(trimmedName, currentMiningGroup);
+    }
+
     setSavedGroups(getSavedMiningGroups());
     setGroupName('');
     setShowDialog(false);
@@ -113,7 +127,7 @@ export default function MiningGroupManager({
                   className="btn-load"
                   title="Load"
                 >
-                  ↻
+                  ↑
                 </button>
                 <button
                   onClick={() => handleDelete(group.id, group.name)}
