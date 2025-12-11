@@ -1,0 +1,105 @@
+# BreakIt Calculator - Project Memory
+
+This document provides Claude with persistent context about the BreakIt Calculator project.
+
+## Project Overview
+
+**BreakIt Calculator** is a Star Citizen mining power calculator that helps miners determine if they can break asteroids with their current equipment configuration.
+
+- **Version**: See `package.json` for current version
+- **Tech Stack**: React 19 + TypeScript + Vite
+- **Deployment**: GitHub Pages via `npm run deploy`
+- **Repository**: PeaceFrog71/BreakIt-Calculator
+
+## Quick Commands
+
+```bash
+npm run dev      # Start dev server (port 5173)
+npm run build    # TypeScript check + Vite build
+npm run test     # Run Vitest in watch mode
+npm run test:run # Run tests once
+npm run lint     # ESLint check
+npm run deploy   # Build and deploy to GitHub Pages
+```
+
+## Architecture
+
+### Directory Structure
+```
+src/
+├── components/     # React components (LaserPanel, ResultDisplay, etc.)
+├── types/          # TypeScript types + equipment database
+├── utils/          # Calculation engine, formatters, helpers
+├── assets/         # Ship images, animations
+├── App.tsx         # Main application component
+└── App.css         # Styling
+```
+
+### Key Files
+- `src/types/index.ts` - Equipment database (lasers, modules, gadgets, ships)
+- `src/utils/calculator.ts` - Core mining calculation formulas
+- `src/utils/calculator.test.ts` - Unit tests for calculations
+
+### Supported Ships
+1. **MISC Prospector** - 1 laser, Size 1
+2. **Argo MOLE** - 3 lasers, Size 2
+3. **Drake GOLEM** - 1 laser, Size 1 (fixed equipment)
+
+## Calculation Logic
+
+### Power Stacking
+- Module power percentages **ADD** together (e.g., two +35% = +70%)
+- Combined modifier is then **MULTIPLIED** by laser base power
+- Example: 3600 power × 1.70 modifier = 6120 power
+
+### Resistance Stacking
+- Resistance modifiers **MULTIPLY** together
+- Example: 0.90 × 0.90 = 0.81 (not 0.80)
+
+### Breakability Formula
+```
+powerMargin = (totalPower - powerNeeded) / powerNeeded
+```
+- **CAN BREAK**: margin >= 20%
+- **LOW MARGIN BREAK (marginal)**: 0% <= margin < 20%
+- **POSSIBLE BREAK**: -15% <= margin < 0%
+- **CANNOT BREAK**: margin < -15%
+
+## Version Control
+
+**CRITICAL**: Always use `/vc` (Victor) for all git operations. Victor enforces:
+- Issue-based workflow ("If it's not in an issue, it doesn't exist")
+- Branch naming: `feat/<issue#>-<desc>`, `fix/<issue#>-<desc>`, `chore/<issue#>-<desc>`
+- Semantic versioning (patch for fixes, minor for features)
+- PR workflow: feature → dev → main
+- **NEVER push directly to main**
+
+See `.claude/commands/vc.md` for full Victor documentation.
+
+## Coding Standards
+
+### TypeScript
+- Strict mode enabled
+- Prefer `type` over `interface` for object shapes
+- Export types from `src/types/index.ts`
+
+### React Components
+- Functional components with hooks only
+- Props interface defined above component
+- Keep component files focused - extract utilities to `src/utils/`
+
+### Testing
+- Use Vitest for unit tests
+- Test files co-located: `calculator.test.ts` next to `calculator.ts`
+- Focus on calculation accuracy - verify against in-game values
+
+## Data Source
+
+Equipment data is based on **Star Citizen v4.3.1** from community mining spreadsheets and in-game testing. Data may need updates with new game patches.
+
+## References
+
+- @package.json - Version and scripts
+- @src/types/index.ts - Equipment database
+- @src/utils/calculator.ts - Calculation formulas
+- @.claude/commands/vc.md - Victor (version control)
