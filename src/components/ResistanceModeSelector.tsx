@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './ResistanceModeSelector.css';
+import ResistanceHelpModal from './ResistanceHelpModal';
 
 interface Props {
   value: number;
@@ -20,41 +21,22 @@ export default function ResistanceModeSelector({
   onModeToggle,
   onGadgetToggle,
 }: Props) {
-  const [showTooltip, setShowTooltip] = useState(false);
-
-  const tooltipContent = `Resistance Type:
-
-• Base Resistance
-  Scanned from MOLE cockpit (no laser)
-  Calculator applies equipment modifiers
-
-• Modified Resistance
-  Scanned with laser equipped
-  (Prospector/MOLE turret)
-  Calculator reverse-calculates base
-
-Default: Base mode when uncertain`;
+  const [showHelp, setShowHelp] = useState(false);
 
   return (
     <div className="compact-form-group resistance-input-group">
       <label>
         Resistance
         <button
-          className="info-icon"
-          onMouseEnter={() => setShowTooltip(true)}
-          onMouseLeave={() => setShowTooltip(false)}
-          onClick={() => setShowTooltip(!showTooltip)}
+          className="resistance-help-icon"
+          onClick={() => setShowHelp(true)}
           type="button"
-          aria-label="Resistance mode information"
+          aria-label="Resistance scanning help"
         >
-          ⓘ
+          ?
         </button>
-        {showTooltip && (
-          <div className="tooltip-popup">
-            <div className="tooltip-content">{tooltipContent}</div>
-          </div>
-        )}
       </label>
+      <ResistanceHelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       <input
         type="number"

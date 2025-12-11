@@ -18,39 +18,28 @@
   letter-spacing: 0.5px;
 }
 
-.info-icon {
-  background: none;
-  border: none;
+.resistance-help-icon {
+  background: transparent;
+  border: 1px solid var(--accent-cyan);
   color: var(--accent-cyan);
-  cursor: help;
-  font-size: 0.9rem;
-  padding: 0 0.25rem;
-  line-height: 1;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: bold;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: 0.25rem;
+  transition: all 0.2s ease;
 }
 
-.info-icon:hover {
-  color: var(--accent-gold);
-}
-
-.tooltip-popup {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 1000;
-  background: var(--panel-bg, #1a1a1a);
-  border: 1px solid var(--accent-cyan, #00d9ff);
-  border-radius: 4px;
-  padding: 1rem;
-  white-space: pre-line;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  max-width: 300px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  margin-top: 0.5rem;
-}
-
-.tooltip-content {
-  color: var(--text-primary, #e0e0e0);
+.resistance-help-icon:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
 }
 
 .resistance-mode-controls {
@@ -172,11 +161,5 @@
 
   .hint-btn {
     align-self: flex-end;
-  }
-
-  .tooltip-popup {
-    left: auto;
-    right: 0;
-    max-width: 250px;
   }
 }

@@ -1,0 +1,176 @@
+/* Resistance Help Modal - Star Citizen Theme */
+
+.resistance-help-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.resistance-help-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  max-height: 85vh;
+  width: 90%;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
+              0 0 80px rgba(0, 217, 255, 0.1);
+}
+
+.resistance-help-modal::-webkit-scrollbar {
+  width: 10px;
+}
+
+.resistance-help-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+
+.resistance-help-modal::-webkit-scrollbar-thumb {
+  background: var(--accent-cyan);
+  border-radius: 5px;
+}
+
+.resistance-help-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-gold);
+}
+
+.resistance-help-modal .close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-size: 1.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.resistance-help-modal .close-button:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px var(--accent-cyan);
+}
+
+.resistance-help-modal h2 {
+  color: var(--accent-cyan);
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.resistance-help-modal .resistance-intro {
+  color: var(--text-primary);
+  font-size: 1rem;
+  background: rgba(0, 217, 255, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  border-left: 3px solid var(--accent-cyan);
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.resistance-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 217, 255, 0.2);
+}
+
+.resistance-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.resistance-section h3 {
+  color: var(--accent-cyan);
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+  padding-bottom: 0.5rem;
+}
+
+.resistance-section p {
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.resistance-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.resistance-section li {
+  color: var(--text-secondary);
+  padding: 0.4rem 0;
+  padding-left: 1.5rem;
+  position: relative;
+  line-height: 1.5;
+}
+
+.resistance-section li::before {
+  content: '▸';
+  color: var(--accent-gold);
+  position: absolute;
+  left: 0;
+  font-size: 1rem;
+}
+
+.resistance-section li strong {
+  color: var(--text-primary);
+}
+
+.resistance-section li em {
+  color: var(--accent-gold);
+  font-style: italic;
+}
+
+.resistance-section .resistance-note {
+  color: var(--accent-gold);
+  font-size: 0.9rem;
+  font-style: italic;
+  margin: 0.75rem 0 0 0;
+  padding-left: 0.5rem;
+  border-left: 2px solid rgba(255, 193, 7, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .resistance-help-modal {
+    padding: 1.5rem;
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .resistance-help-modal h2 {
+    font-size: 1.3rem;
+    padding-right: 2rem;
+  }
+
+  .resistance-section h3 {
+    font-size: 1rem;
+  }
+}

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import './HelpModal.css';
+import ResistanceHelpContent from './ResistanceHelpContent';
 
 type UserMode = 'casual-single' | 'casual-group' | 'return-single' | 'return-group' | 'trainer-single' | 'trainer-group' | null;
 
@@ -203,12 +204,11 @@ export default function HelpModal({ isOpen, onClose }: HelpModalProps) {
             <li><strong>Color-Coded Results:</strong> Green (CAN BREAK, &gt;20% margin), Yellow (LOW MARGIN BREAK, &lt;20% margin), Red (CANNOT BREAK)</li>
           </ul>
 
-          <h3>Resistance Scanning</h3>
-          <ul>
-            <li><strong>Base Resistance:</strong> Scanned from MOLE cockpit, or any ship when laser is <em>out of range</em></li>
-            <li><strong>Modified Resistance:</strong> Scanned with mining laser <em>in range</em> - affected by laser/module modifiers</li>
-            <li><strong>Gadgets in Scan:</strong> Gadgets attach directly to the rock and affect <em>both</em> Base and Modified readings. Mark which gadgets were on the rock when you scanned.</li>
-          </ul>
+          <h3>Resistance Scanning Setup</h3>
+          <ResistanceHelpContent 
+            headingLevel="h4"
+            introText="The calculator needs to know how you scanned the rock's resistance to give accurate results. Choose the correct mode in the Resistance Mode selector above the resistance input."
+          />
         </div>
       </div>
     );
