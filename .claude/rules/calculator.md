@@ -16,9 +16,21 @@ const power = basePower * multiplier; // 3600 * 1.70 = 6120
 ```
 
 ### Resistance Calculation
-Resistance modifiers MULTIPLY together:
+Resistance stacking has TWO levels:
+
+**Level 1 - Within a single laser** (modules on one laser):
+Module resistance percentages ADD, then MULTIPLY by laser head modifier:
 ```typescript
-// Two 0.90 modifiers = 0.81 (not 0.80!)
+// Laser (0.7x) + Module (+15%) + Module (+15%)
+const moduleSum = 0.15 + 0.15; // = 0.30
+const moduleMultiplier = 1 + moduleSum; // = 1.30
+const laserModifier = 0.7 * moduleMultiplier; // = 0.91
+```
+
+**Level 2 - Across multiple lasers** (ship-to-ship or laser-to-laser):
+Laser resistance modifiers MULTIPLY together:
+```typescript
+// Two lasers with 0.90 modifiers = 0.81 (not 0.80!)
 const totalModifier = 0.90 * 0.90; // = 0.81
 const effectiveResistance = baseResistance * totalModifier;
 ```
