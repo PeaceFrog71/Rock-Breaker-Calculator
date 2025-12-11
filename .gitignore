@@ -14,8 +14,9 @@ dist-electron
 .vite
 *.local
 *.local.*
+# Claude Code - keep local settings private, share commands/rules
 .claude/settings.local.json
-.claude/*
+.claude/settings.json
 
 # Editor directories and files
 .vscode/*
