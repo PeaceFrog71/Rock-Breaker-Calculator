@@ -45,7 +45,11 @@ export default function MiningGroupManager({
       if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
         return;
       }
-      updateMiningGroup(existing.id, trimmedName, currentMiningGroup);
+      const updated = updateMiningGroup(existing.id, trimmedName, currentMiningGroup);
+      if (!updated) {
+        alert('Failed to update the mining group. It may have been removed. Saving as a new group instead.');
+        saveMiningGroup(trimmedName, currentMiningGroup);
+      }
     } else {
       saveMiningGroup(trimmedName, currentMiningGroup);
     }
