@@ -9,6 +9,7 @@ import {
 import {
   initializeDefaultLasersForShip,
 } from "./utils/shipDefaults";
+import { toggleModuleActive } from "./utils/moduleHelpers";
 import {
   formatGadgetTooltip,
   getGadgetEffects,
@@ -301,22 +302,12 @@ function App() {
       currentLaser.moduleActive = currentLaser.modules.map(() => false);
     }
 
-    const targetModule = currentLaser.modules[moduleIndex];
-    const isActivating = !currentLaser.moduleActive[moduleIndex];
-
-    // Toggle the module active state
-    const updatedModuleActive = [...currentLaser.moduleActive];
-
-    // If activating a sustained module, deactivate other sustained modules (Surge can stack)
-    if (isActivating && targetModule?.category === 'active' && targetModule.activationType === 'sustained') {
-      currentLaser.modules.forEach((mod, idx) => {
-        if (mod && mod.category === 'active' && mod.activationType === 'sustained' && idx !== moduleIndex) {
-          updatedModuleActive[idx] = false;
-        }
-      });
-    }
-
-    updatedModuleActive[moduleIndex] = isActivating;
+    // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+    const updatedModuleActive = toggleModuleActive(
+      currentLaser.modules,
+      currentLaser.moduleActive,
+      moduleIndex
+    );
 
     updatedLasers[laserIndex] = {
       ...currentLaser,
@@ -337,22 +328,12 @@ function App() {
           currentLaser.moduleActive = currentLaser.modules.map(() => false);
         }
 
-        const targetModule = currentLaser.modules[moduleIndex];
-        const isActivating = !currentLaser.moduleActive[moduleIndex];
-
-        // Toggle the module active state
-        const updatedModuleActive = [...currentLaser.moduleActive];
-
-        // If activating a sustained module, deactivate other sustained modules (Surge can stack)
-        if (isActivating && targetModule?.category === 'active' && targetModule.activationType === 'sustained') {
-          currentLaser.modules.forEach((mod, idx) => {
-            if (mod && mod.category === 'active' && mod.activationType === 'sustained' && idx !== moduleIndex) {
-              updatedModuleActive[idx] = false;
-            }
-          });
-        }
-
-        updatedModuleActive[moduleIndex] = isActivating;
+        // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+        const updatedModuleActive = toggleModuleActive(
+          currentLaser.modules,
+          currentLaser.moduleActive,
+          moduleIndex
+        );
 
         updatedLasers[laserIndex] = {
           ...currentLaser,

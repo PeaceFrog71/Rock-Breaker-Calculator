@@ -130,7 +130,7 @@ You'll need these active modules for testing:
 - [ ] An instant spike then back to Rime effects
 - [ ] A sustained 30s effect that replaced Rime
 
-**Notes:** The Stampede is not instantaneous and can only be run with a surge. Any other active module activation will deactivate the active Stampede.
+**Notes:** The Stampede is not instantaneous and can only be run with a Surge. Any other active module activation will deactivate the active Stampede.
 
 ---
 
