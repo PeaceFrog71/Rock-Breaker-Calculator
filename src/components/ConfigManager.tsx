@@ -157,7 +157,7 @@ export default function ConfigManager({
                       const power = calculateLaserPower(laser, true);
                       return (
                         <span key={idx} className="config-box laser-box">
-                          {laser.laserHead.name}
+                          {laser.laserHead!.name}
                           {moduleCount > 0 && <span className="module-count">+{moduleCount}</span>}
                           <span className="power">{power.toFixed(0)}</span>
                         </span>
