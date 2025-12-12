@@ -10,6 +10,7 @@ import {
   exportShipConfig,
   importShipConfig,
 } from '../utils/storage';
+import { calculateLaserPower } from '../utils/calculator';
 import './ConfigManager.css';
 
 interface ConfigManagerProps {
@@ -95,7 +96,7 @@ export default function ConfigManager({
 
   return (
     <div className="config-manager panel">
-      <h2>Saved Configurations</h2>
+      <h2>Ship Library</h2>
 
       <div className="config-actions">
         <button className="btn-primary" onClick={() => {
@@ -144,10 +145,31 @@ export default function ConfigManager({
           savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
             <div key={config.id} className="config-item">
               <div className="config-info">
-                <div className="config-name">{config.name}</div>
-                <div className="config-meta">
-                  {config.ship.name} • {config.config.lasers.length} laser
-                  {config.config.lasers.length > 1 ? 's' : ''}
+                <div className="config-header">
+                  <div className="config-name">{config.name}</div>
+                  <div className="config-meta">{config.ship.name}</div>
+                </div>
+                <div className="config-details">
+                  {config.config.lasers
+                    .filter(laser => laser.laserHead && laser.laserHead.id !== 'none')
+                    .map((laser, idx) => {
+                      const moduleCount = laser.modules.filter(m => m && m.id !== 'none').length;
+                      const power = calculateLaserPower(laser, true);
+                      return (
+                        <span key={idx} className="config-box laser-box">
+                          {laser.laserHead.name}
+                          {moduleCount > 0 && <span style={{ opacity: 0.7 }}>+{moduleCount}</span>}
+                          <span className="power">{power.toFixed(0)}</span>
+                        </span>
+                      );
+                    })}
+                  {(() => {
+                    const totalPower = config.config.lasers.reduce((sum, laser) =>
+                      sum + (laser.laserHead && laser.laserHead.id !== 'none' ? calculateLaserPower(laser, true) : 0), 0);
+                    return totalPower > 0 ? (
+                      <span className="config-box stats-box">Σ {totalPower.toFixed(0)}</span>
+                    ) : null;
+                  })()}
                 </div>
                 <div className="config-date">
                   {new Date(config.updatedAt).toLocaleDateString()}

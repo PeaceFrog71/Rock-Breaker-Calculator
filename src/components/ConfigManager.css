@@ -112,17 +112,72 @@
   flex: 1;
 }
 
+.config-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
 .config-name {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1.05rem;
-  margin-bottom: 0.25rem;
 }
 
 .config-meta {
   font-size: 0.85rem;
   color: var(--accent-blue);
-  margin-bottom: 0.25rem;
+}
+
+.config-details {
+  margin: 0.5rem 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.config-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.config-box.laser-box {
+  border-color: var(--accent-cyan);
+}
+
+.config-box.module-box {
+  border-color: var(--accent-purple);
+  font-weight: 500;
+}
+
+.config-box.stats-box {
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.config-box .power {
+  color: var(--success);
+}
+
+.config-ship-entry {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.config-ship-entry:first-of-type {
+  margin-top: 0.25rem;
+  padding-top: 0;
+  border-top: none;
 }
 
 .config-date {

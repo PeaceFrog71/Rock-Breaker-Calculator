@@ -4,7 +4,9 @@ import ShipConfigModal from './ShipConfigModal';
 import ShipPoolLibrary from './ShipPoolLibrary';
 import MiningGroupManager from './MiningGroupManager';
 import { saveShipConfig, updateShipConfig, getSavedShipConfigs } from '../utils/storage';
+import { calculateLaserPower } from '../utils/calculator';
 import './ShipPoolManager.css';
+import './ConfigManager.css';
 
 interface ShipPoolManagerProps {
   miningGroup: MiningGroup;
@@ -166,13 +168,28 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                   </div>
                 </div>
                 <div className="ship-card-body">
-                  <div className="ship-summary">
-                    <div className="summary-item">
-                      <span className="label">Lasers:</span>
-                      <span className="value">
-                        {ship.config.lasers.filter((l) => l.laserHead && l.laserHead.id !== 'none').length} / {ship.ship.laserSlots}
-                      </span>
-                    </div>
+                  <div className="config-details">
+                    {ship.config.lasers
+                      .filter(laser => laser.laserHead && laser.laserHead.id !== 'none')
+                      .map((laser, idx) => {
+                        const moduleCount = laser.modules.filter(m => m && m.id !== 'none').length;
+                        const power = calculateLaserPower(laser, true);
+                        return (
+                          <span key={idx} className="config-box laser-box">
+                            {laser.laserHead.name}
+                            {moduleCount > 0 && <span style={{ opacity: 0.7 }}>+{moduleCount}</span>}
+                            <span className="power">{power.toFixed(0)}</span>
+                          </span>
+                        );
+                      })}
+                    {(() => {
+                      const activeLasers = ship.config.lasers.filter(l => l.laserHead && l.laserHead.id !== 'none');
+                      if (activeLasers.length <= 1) return null; // Only show sum for multi-laser ships (Mole)
+                      const totalPower = activeLasers.reduce((sum, laser) => sum + calculateLaserPower(laser, true), 0);
+                      return totalPower > 0 ? (
+                        <span className="config-box stats-box">Σ {totalPower.toFixed(0)}</span>
+                      ) : null;
+                    })()}
                   </div>
                 </div>
               </div>
