@@ -55,6 +55,14 @@
         transform: scaleX(1.65) !important;
         transform-origin: left center !important;
       }
+      /* Hide Ko-fi's button visually but keep it clickable */
+      .floatingchat-container-wrap > *:first-child,
+      .floatingchat-container-wrap button,
+      .floatingchat-container-wrap [class*="btn"],
+      .floatingchat-container-wrap-mobi > *:first-child,
+      .floatingchat-container-wrap-mobi button {
+        opacity: 0 !important;
+      }
       /* Our styled overlay button in lower left - nice oval shape */
       .kofi-overlay-btn {
         position: fixed;
