@@ -8,8 +8,32 @@ This document provides Claude with persistent context about the BreakIt Calculat
 
 - **Version**: See `package.json` for current version
 - **Tech Stack**: React 19 + TypeScript + Vite
-- **Deployment**: GitHub Pages via `npm run deploy`
 - **Repository**: PeaceFrog71/BreakIt-Calculator
+
+## Deployment
+
+### Sites
+| Site | URL | Branch | Deploy Method |
+|------|-----|--------|---------------|
+| **Main (Production)** | https://rockbreaker.peacefroggaming.com | `main` | GitHub Actions |
+| **Beta (Testing)** | https://rockbreaker.peacefroggaming.com/beta/ | `beta` | GitHub Actions |
+
+### How Deployment Works
+- **GitHub Actions** (`.github/workflows/deploy.yml`) handles all deployments
+- Triggers automatically on push to `main` or `beta` branches
+- Builds both sites and deploys to GitHub Pages
+- Beta is built with `/beta/` base path and served as subdirectory
+
+### Workflow
+1. **Development**: Work on feature branches, merge to `dev`
+2. **Beta Testing**: Merge `dev` → `beta`, auto-deploys to beta site
+3. **Production Release**: Merge `dev` → `main`, auto-deploys to main site
+
+### Manual Deploy (if needed)
+```bash
+npm run deploy   # Deploys current branch to gh-pages (legacy method)
+```
+Note: Prefer using GitHub Actions by pushing to main/beta branches
 
 ## Quick Commands
 
@@ -103,3 +127,5 @@ Equipment data is based on **Star Citizen v4.3.1** from community mining spreads
 - @src/types/index.ts - Equipment database
 - @src/utils/calculator.ts - Calculation formulas
 - @.claude/commands/vc.md - Victor (version control)
+- @docs/kofi-integration.md - Ko-fi button overlay technique
+- @.github/workflows/deploy.yml - Deployment workflow
