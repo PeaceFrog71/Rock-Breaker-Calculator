@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/x-icon" href="/peacefrog-favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rock Breaker Calculator - Star Citizen Mining Tool</title>
 
@@ -31,5 +31,68 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Ko-fi Widget -->
+    <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+    <script>
+      kofiWidgetOverlay.draw('peacefroggaming', {
+        'type': 'floating-chat',
+        'floating-chat.donateButton.text': 'Support',
+        'floating-chat.donateButton.background-color': '#00ff88',
+        'floating-chat.donateButton.text-color': '#0a0e27'
+      });
+    </script>
+    <style>
+      /* Move Ko-fi's widget to lower left and stretch it */
+      .floatingchat-container-wrap,
+      .floatingchat-container-wrap-mobi,
+      [class*="floatingchat-container-wrap"] {
+        bottom: 10px !important;
+        top: auto !important;
+        left: 10px !important;
+        right: auto !important;
+        transform: scaleX(1.65) !important;
+        transform-origin: left center !important;
+      }
+      /* Our styled overlay button in lower left - nice oval shape */
+      .kofi-overlay-btn {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        background: linear-gradient(135deg, #0d1229 0%, #1a1f3c 100%);
+        color: #00d9ff;
+        font-family: 'Orbitron', 'Electrolize', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border: 2px solid #00ff88;
+        border-radius: 50px;
+        box-shadow:
+          0 4px 12px rgba(0, 0, 0, 0.4),
+          0 0 10px rgba(0, 255, 136, 0.2);
+        z-index: 2147483647 !important;
+        pointer-events: none;
+      }
+      .kofi-overlay-btn img {
+        width: 36px;
+        height: 36px;
+        filter: drop-shadow(0 0 4px rgba(0, 255, 136, 0.5));
+      }
+      .kofi-overlay-btn span {
+        line-height: 1.3;
+        text-align: center;
+      }
+    </style>
+    <!-- Our styled button overlay - clicks pass through to Ko-fi underneath -->
+    <div class="kofi-overlay-btn">
+      <img src="/rieger-icon.png" alt="" />
+      <span>Buy me a Rieger-C3<br />on KO-FI</span>
+    </div>
   </body>
 </html>
