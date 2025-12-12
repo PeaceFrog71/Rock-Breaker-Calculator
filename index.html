@@ -53,6 +53,16 @@
         right: auto !important;
         transform: scaleX(1.65) !important;
         transform-origin: left center !important;
+        background: transparent !important;
+      }
+      /* Hide Ko-fi's visible elements */
+      [class*="floatingchat-container-wrap"] *,
+      .floatingchat-container-wrap *,
+      .floatingchat-container-wrap-mobi * {
+        background: transparent !important;
+        box-shadow: none !important;
+        border: none !important;
+        color: transparent !important;
       }
       /* Our styled overlay button in lower left - nice oval shape */
       .kofi-overlay-btn {
