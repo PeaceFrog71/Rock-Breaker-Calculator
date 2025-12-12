@@ -420,6 +420,7 @@ function App() {
                     />
                   </div>
                 </div>
+
               </div>
 
               {/* Center - Mining Graphic */}
