@@ -9,6 +9,7 @@ import {
 import {
   initializeDefaultLasersForShip,
 } from "./utils/shipDefaults";
+import { toggleModuleActive } from "./utils/moduleHelpers";
 import {
   formatGadgetTooltip,
   getGadgetEffects,
@@ -301,9 +302,12 @@ function App() {
       currentLaser.moduleActive = currentLaser.modules.map(() => false);
     }
 
-    // Toggle the module active state
-    const updatedModuleActive = [...currentLaser.moduleActive];
-    updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+    // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+    const updatedModuleActive = toggleModuleActive(
+      currentLaser.modules,
+      currentLaser.moduleActive,
+      moduleIndex
+    );
 
     updatedLasers[laserIndex] = {
       ...currentLaser,
@@ -324,9 +328,12 @@ function App() {
           currentLaser.moduleActive = currentLaser.modules.map(() => false);
         }
 
-        // Toggle the module active state
-        const updatedModuleActive = [...currentLaser.moduleActive];
-        updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+        // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+        const updatedModuleActive = toggleModuleActive(
+          currentLaser.modules,
+          currentLaser.moduleActive,
+          moduleIndex
+        );
 
         updatedLasers[laserIndex] = {
           ...currentLaser,

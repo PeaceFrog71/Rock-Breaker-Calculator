@@ -27,6 +27,7 @@ export interface Module {
   inertMaterialsModifier?: number; // Inert Materials (0.8 = -20%)
   clusterModifier?: number; // Cluster Modifier (1.3 = +30%)
   category: 'active' | 'passive';
+  activationType?: 'stackable' | 'sustained'; // For active modules: stackable (Surge) can run with others, sustained (all others) only one at a time
   duration?: string; // Duration for active modules (e.g., "60s")
   uses?: number; // Number of uses for active modules
 }
@@ -134,14 +135,15 @@ export const LASER_HEADS: LaserHead[] = [
 export const MODULES: Module[] = [
   { id: 'none', name: '---', powerModifier: 1, resistModifier: 1, category: 'passive' },
   // Active Modules
-  { id: 'brandt', name: 'Brandt', powerModifier: 1.35, resistModifier: 1.15, shatterDamageModifier: 0.7, category: 'active', duration: '60s', uses: 5 },
-  { id: 'forel', name: 'Forel', powerModifier: 1.0, resistModifier: 1.15, overchargeRateModifier: 0.4, extractionPowerModifier: 1.5, category: 'active', duration: '60s', uses: 6 },
-  { id: 'lifeline', name: 'Lifeline', powerModifier: 1.0, resistModifier: 0.85, instabilityModifier: 0.8, overchargeRateModifier: 1.6, category: 'active', duration: '15s', uses: 3 },
-  { id: 'optimum', name: 'Optimum', powerModifier: 0.85, resistModifier: 1.0, instabilityModifier: 0.9, overchargeRateModifier: 0.2, category: 'active', duration: '60s', uses: 5 },
-  { id: 'rime', name: 'Rime', powerModifier: 0.85, resistModifier: 0.75, shatterDamageModifier: 0.9, category: 'active', duration: '20s', uses: 10 },
-  { id: 'stampede', name: 'Stampede', powerModifier: 1.35, resistModifier: 1.0, instabilityModifier: 0.9, shatterDamageModifier: 0.9, extractionPowerModifier: 0.85, category: 'active', duration: '30s', uses: 6 },
-  { id: 'surge', name: 'Surge', powerModifier: 1.5, resistModifier: 0.85, instabilityModifier: 1.1, category: 'active', duration: '15s', uses: 7 },
-  { id: 'torpid', name: 'Torpid', powerModifier: 1.0, resistModifier: 1.0, chargeRateModifier: 1.6, overchargeRateModifier: 0.4, shatterDamageModifier: 1.4, category: 'active', duration: '60s', uses: 5 },
+  // activationType: 'stackable' = can run with other actives (only Surge), 'sustained' = only one at a time
+  { id: 'brandt', name: 'Brandt', powerModifier: 1.35, resistModifier: 1.15, shatterDamageModifier: 0.7, category: 'active', activationType: 'sustained', duration: '60s', uses: 5 },
+  { id: 'forel', name: 'Forel', powerModifier: 1.0, resistModifier: 1.15, overchargeRateModifier: 0.4, extractionPowerModifier: 1.5, category: 'active', activationType: 'sustained', duration: '60s', uses: 6 },
+  { id: 'lifeline', name: 'Lifeline', powerModifier: 1.0, resistModifier: 0.85, instabilityModifier: 0.8, overchargeRateModifier: 1.6, category: 'active', activationType: 'sustained', duration: '15s', uses: 3 },
+  { id: 'optimum', name: 'Optimum', powerModifier: 0.85, resistModifier: 1.0, instabilityModifier: 0.9, overchargeRateModifier: 0.2, category: 'active', activationType: 'sustained', duration: '60s', uses: 5 },
+  { id: 'rime', name: 'Rime', powerModifier: 0.85, resistModifier: 0.75, shatterDamageModifier: 0.9, category: 'active', activationType: 'sustained', duration: '20s', uses: 10 },
+  { id: 'stampede', name: 'Stampede', powerModifier: 1.35, resistModifier: 1.0, instabilityModifier: 0.9, shatterDamageModifier: 0.9, extractionPowerModifier: 0.85, category: 'active', activationType: 'sustained', duration: '30s', uses: 6 },
+  { id: 'surge', name: 'Surge', powerModifier: 1.5, resistModifier: 0.85, instabilityModifier: 1.1, category: 'active', activationType: 'stackable', duration: '15s', uses: 7 },
+  { id: 'torpid', name: 'Torpid', powerModifier: 1.0, resistModifier: 1.0, chargeRateModifier: 1.6, overchargeRateModifier: 0.4, shatterDamageModifier: 1.4, category: 'active', activationType: 'sustained', duration: '60s', uses: 5 },
   // Passive Modules
   { id: 'fltr', name: 'FLTR', powerModifier: 1.0, resistModifier: 1.0, extractionPowerModifier: 0.85, inertMaterialsModifier: 0.8, category: 'passive' },
   { id: 'fltr-l', name: 'FLTR-L', powerModifier: 1.0, resistModifier: 1.0, extractionPowerModifier: 0.9, inertMaterialsModifier: 0.77, category: 'passive' },
