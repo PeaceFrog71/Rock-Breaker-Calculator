@@ -53,16 +53,22 @@
         right: auto !important;
         transform: scaleX(1.65) !important;
         transform-origin: left center !important;
-        background: transparent !important;
       }
-      /* Hide Ko-fi's visible elements */
-      [class*="floatingchat-container-wrap"] *,
-      .floatingchat-container-wrap *,
-      .floatingchat-container-wrap-mobi * {
+      /* Hide Ko-fi's button visually but keep it clickable */
+      .floatingchat-container-wrap,
+      .floatingchat-container-wrap-mobi,
+      [class*="floatingchat-container-wrap"],
+      .floatingchat-container-wrap > *,
+      .floatingchat-container-wrap-mobi > * {
         background: transparent !important;
-        box-shadow: none !important;
-        border: none !important;
-        color: transparent !important;
+        background-color: transparent !important;
+      }
+      .floatingchat-container-wrap > *:first-child,
+      .floatingchat-container-wrap button,
+      .floatingchat-container-wrap [class*="btn"],
+      .floatingchat-container-wrap-mobi > *:first-child,
+      .floatingchat-container-wrap-mobi button {
+        opacity: 0 !important;
       }
       /* Our styled overlay button in lower left - nice oval shape */
       .kofi-overlay-btn {
