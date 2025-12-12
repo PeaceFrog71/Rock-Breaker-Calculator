@@ -66,7 +66,7 @@ You'll need these active modules for testing:
 - [ ] Both appear to be active simultaneously (stacking)
 - [ ] Other behavior: **\*\***\*\*\*\***\*\***\_**\*\***\*\*\*\***\*\***
 
-## **Notes:** Active modules can only be run one at a time. Starting a second active module with stop the running module and start the new module.
+## **Notes:** Active modules can only be run one at a time. Starting a second active module will stop the running module and start the new module.
 
 ### Test 2: Surge with Active Sustained Module
 
