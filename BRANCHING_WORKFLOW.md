@@ -35,25 +35,45 @@ git commit -m "Description of changes"
 git push -u origin feature/your-feature-name
 ```
 
-### 3. Merging to Dev for Testing
+### 3. Creating Pull Requests
 
-When your feature is ready for broader testing:
+When your feature is ready, create a PR to `dev`:
 
 ```bash
-# Switch to dev branch
+# Push your feature branch to GitHub
+git push -u origin feature/your-feature-name
+
+# Create PR targeting dev (IMPORTANT: always specify --base dev)
+gh pr create --base dev --title "feat: Your feature description (#issue)" --body "Description here. Fixes #issue"
+```
+
+**IMPORTANT:** Always include `--base dev` when creating PRs!
+- Without `--base dev`, PRs default to `main` (dangerous!)
+- If you forget, fix it with: `gh pr edit <PR#> --base dev`
+
+**PR Checklist:**
+- [ ] Target branch is `dev` (not `main`)
+- [ ] Title includes issue number
+- [ ] Body includes `Fixes #<issue>` to auto-close the issue
+
+### 4. Merging to Dev for Testing
+
+After PR review and approval:
+
+```bash
+# Merge PR via GitHub UI or CLI
+gh pr merge <PR#>
+
+# Or manually merge and push
 git checkout dev
-
-# Merge your feature
 git merge feature/your-feature-name
-
-# Push to GitHub
 git push origin dev
 
 # Test thoroughly in dev mode
 npm run dev
 ```
 
-### 4. Merging to Main (Production)
+### 5. Merging to Main (Production)
 
 Only when dev is stable and tested:
 
@@ -74,7 +94,7 @@ git push origin main --tags
 npm run deploy
 ```
 
-### 5. Cleaning Up
+### 6. Cleaning Up
 
 After merging to main, delete the feature branch:
 
