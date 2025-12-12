@@ -204,6 +204,8 @@ export default function ResultDisplay({
   }, []);
 
   const getStatusClass = () => {
+    // No laser power means can't break
+    if (result.totalLaserPower === 0) return "cannot-break";
     if (result.canBreak) {
       if (result.powerMarginPercent < 20) return "marginal";
       return "can-break";
@@ -214,6 +216,8 @@ export default function ResultDisplay({
   };
 
   const getStatusText = () => {
+    // No laser power means can't break
+    if (result.totalLaserPower === 0) return "CANNOT BREAK";
     if (result.canBreak) {
       if (result.powerMarginPercent < 20) return "LOW MARGIN BREAK";
       return "CAN BREAK";
@@ -224,7 +228,8 @@ export default function ResultDisplay({
   };
 
   // Check if we're in the "possible break" zone for showing the warning
-  const isPossibleBreak = !result.canBreak && result.powerMarginPercent >= -15;
+  // Exclude zero power - that's just "cannot break", not "possible break"
+  const isPossibleBreak = !result.canBreak && result.totalLaserPower > 0 && result.powerMarginPercent >= -15;
 
   const powerPercentage =
     result.adjustedLPNeeded > 0
