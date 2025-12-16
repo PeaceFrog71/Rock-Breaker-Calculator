@@ -1,6 +1,13 @@
 import type { MiningConfiguration, Rock, CalculationResult, LaserConfiguration, MiningGroup, Gadget } from '../types';
 
 /**
+ * Maximum adjusted resistance value (just under 100% to prevent division by zero).
+ * When resistance >= 100%, the energy formula produces negative/infinite values.
+ * This matches behavior of other mining calculators that cap at 100%.
+ */
+export const MAX_ADJUSTED_RESISTANCE = 99.99;
+
+/**
  * Derive base resistance from a modified (scanned-with-laser) value
  * Formula: baseResistance = modifiedResistance / totalModifier
  */
@@ -222,7 +229,9 @@ export function calculateBreakability(
     scanGadgetModifier
   );
 
-  const adjustedResistance = effectiveResistance;
+  // Cap adjusted resistance to prevent negative/infinite energy calculations
+  // This can happen when multiple resistance-increasing lasers stack (e.g., Arbor, Pitman)
+  const adjustedResistance = Math.min(effectiveResistance, MAX_ADJUSTED_RESISTANCE);
   const totalCombinedModifier = totalResistModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
@@ -393,7 +402,9 @@ export function calculateGroupBreakability(
     scanGadgetModifier
   );
 
-  const adjustedResistance = effectiveResistance;
+  // Cap adjusted resistance to prevent negative/infinite energy calculations
+  // This can happen when multiple resistance-increasing lasers stack (e.g., Arbor, Pitman)
+  const adjustedResistance = Math.min(effectiveResistance, MAX_ADJUSTED_RESISTANCE);
   const totalCombinedModifier = equipmentModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
