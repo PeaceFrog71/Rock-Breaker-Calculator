@@ -222,7 +222,9 @@ export function calculateBreakability(
     scanGadgetModifier
   );
 
-  const adjustedResistance = effectiveResistance;
+  // Cap adjusted resistance at 99.99% to prevent negative/infinite energy calculations
+  // This can happen when multiple resistance-increasing lasers stack (e.g., Arbor, Pitman)
+  const adjustedResistance = Math.min(effectiveResistance, 99.99);
   const totalCombinedModifier = totalResistModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
@@ -393,7 +395,9 @@ export function calculateGroupBreakability(
     scanGadgetModifier
   );
 
-  const adjustedResistance = effectiveResistance;
+  // Cap adjusted resistance at 99.99% to prevent negative/infinite energy calculations
+  // This can happen when multiple resistance-increasing lasers stack (e.g., Arbor, Pitman)
+  const adjustedResistance = Math.min(effectiveResistance, 99.99);
   const totalCombinedModifier = equipmentModifier * gadgetModifier;
 
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
