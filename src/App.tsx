@@ -435,7 +435,7 @@ function App() {
                   rel="noopener noreferrer"
                   className="kofi-mobile-inline"
                 >
-                  <img src="/rieger-icon.png" alt="" />
+                  <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
                   <span>Buy me a Rieger-C3<br />on KO-FI</span>
                 </a>
               </div>

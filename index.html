@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/peacefrog-favicon.ico" />
-    <meta name="viewport" content="width=900, initial-scale=1.0, shrink-to-fit=yes" />
+    <meta name="viewport" content="width=800, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
     <title>Rock Breaker Calculator - Star Citizen Mining Tool</title>
 
     <!-- Open Graph / Social Media Preview -->
@@ -49,8 +49,24 @@
         font-family: 'Orbitron', 'Electrolize', sans-serif;
       }
       #rotate-overlay .rotate-icon {
-        font-size: 4rem;
+        width: 64px;
+        height: 64px;
         margin-bottom: 1rem;
+        border: 3px solid #00d9ff;
+        border-radius: 8px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #rotate-overlay .rotate-icon::after {
+        content: '';
+        width: 24px;
+        height: 24px;
+        border: 3px solid #00ff88;
+        border-top: none;
+        border-left: none;
+        transform: rotate(-45deg);
       }
       #rotate-overlay h2 {
         margin: 0 0 0.5rem 0;
@@ -73,15 +89,15 @@
       }
     </style>
     <div id="rotate-overlay">
-      <div class="rotate-icon">📱↻</div>
+      <div class="rotate-icon" aria-hidden="true"></div>
       <h2>Please Rotate Your Device</h2>
       <p>This app works best in landscape mode</p>
-      <button id="rotate-dismiss">Got it</button>
+      <button id="rotate-dismiss" aria-label="Dismiss rotation prompt">Got it</button>
     </div>
     <script>
       (function() {
-        var overlay = document.getElementById('rotate-overlay');
-        var dismissed = sessionStorage.getItem('rotateDismissed');
+        const overlay = document.getElementById('rotate-overlay');
+        let dismissed = sessionStorage.getItem('rotateDismissed') !== null;
 
         function isPortrait() {
           // Use screen dimensions for actual device orientation
@@ -104,6 +120,13 @@
           }
         }
 
+        // Debounce resize events to avoid performance issues
+        let resizeTimeout;
+        function debouncedUpdateOverlay() {
+          clearTimeout(resizeTimeout);
+          resizeTimeout = setTimeout(updateOverlay, 100);
+        }
+
         // Dismiss handler
         document.getElementById('rotate-dismiss').addEventListener('click', function() {
           overlay.style.display = 'none';
@@ -114,9 +137,9 @@
         // Check on load
         updateOverlay();
 
-        // Listen for orientation changes
-        window.addEventListener('resize', updateOverlay);
-        if (screen.orientation) {
+        // Listen for orientation changes - use debounced for resize
+        window.addEventListener('resize', debouncedUpdateOverlay);
+        if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
           screen.orientation.addEventListener('change', updateOverlay);
         }
         window.addEventListener('orientationchange', updateOverlay);
@@ -127,11 +150,11 @@
 
     <!-- Ko-fi Widget - only load on desktop -->
     <script>
-      // Only load Ko-fi widget on desktop (viewport > 900px)
-      if (window.innerWidth > 900) {
-        var script = document.createElement('script');
-        script.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
-        script.onload = function() {
+      // Only load Ko-fi widget on desktop (viewport > 800px)
+      if (window.innerWidth > 800) {
+        const kofiScript = document.createElement('script');
+        kofiScript.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
+        kofiScript.onload = function() {
           kofiWidgetOverlay.draw('peacefroggaming', {
             'type': 'floating-chat',
             'floating-chat.donateButton.text': 'Support',
@@ -139,7 +162,7 @@
             'floating-chat.donateButton.text-color': '#0a0e27'
           });
         };
-        document.body.appendChild(script);
+        document.body.appendChild(kofiScript);
       }
     </script>
     <style>
@@ -205,7 +228,7 @@
         text-align: center;
       }
       /* On mobile: hide desktop Ko-fi overlay */
-      @media screen and (max-width: 900px) {
+      @media screen and (max-width: 800px) {
         .floatingchat-container-wrap,
         .floatingchat-container-wrap-mobi,
         [class*="floatingchat-container-wrap"] {
