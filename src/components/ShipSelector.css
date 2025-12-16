@@ -1,3 +1,10 @@
+.ship-selector h2 .config-name {
+  color: var(--accent-gold);
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
 .ship-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));

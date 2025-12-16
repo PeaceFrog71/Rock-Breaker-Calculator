@@ -104,10 +104,23 @@ button, .btn-primary, .btn-secondary {
 .version-tag {
   font-family: var(--font-body);
   font-size: 0.75rem;
-  color: var(--text-secondary);
+  color: var(--accent-blue);
   letter-spacing: 0.1em;
   margin-top: 0.25rem;
-  opacity: 0.7;
+}
+
+.feedback-link {
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  text-decoration: none;
+  opacity: 0.8;
+  margin-top: 1rem;
+  transition: opacity 0.2s ease;
+}
+
+.feedback-link:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .subtitle {

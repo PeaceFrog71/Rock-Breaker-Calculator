@@ -5,12 +5,16 @@ import './ShipSelector.css';
 interface ShipSelectorProps {
   selectedShip: Ship;
   onShipChange: (ship: Ship) => void;
+  configName?: string;
 }
 
-export default function ShipSelector({ selectedShip, onShipChange }: ShipSelectorProps) {
+export default function ShipSelector({ selectedShip, onShipChange, configName }: ShipSelectorProps) {
   return (
     <div className="ship-selector panel">
-      <h2>Select Ship</h2>
+      <h2>
+        Select Ship
+        {configName && <span className="config-name">: {configName}</span>}
+      </h2>
       <div className="ship-grid">
         {SHIPS.map((ship) => (
           <button

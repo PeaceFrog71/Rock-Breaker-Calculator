@@ -9,6 +9,7 @@ import {
 import {
   initializeDefaultLasersForShip,
 } from "./utils/shipDefaults";
+import { toggleModuleActive } from "./utils/moduleHelpers";
 import {
   formatGadgetTooltip,
   getGadgetEffects,
@@ -37,6 +38,7 @@ function App() {
   const [config, setConfig] = useState<MiningConfiguration>(
     loadedState?.config || initializeDefaultLasersForShip(SHIPS[0])
   );
+  const [currentConfigName, setCurrentConfigName] = useState<string | undefined>(undefined);
   const [rock, setRock] = useState<Rock>({
     mass: 25000,
     resistance: 30,
@@ -229,14 +231,17 @@ function App() {
     setSelectedShip(ship);
     const newConfig = initializeDefaultLasersForShip(ship);
     setConfig(newConfig);
+    setCurrentConfigName(undefined); // Clear config name when switching ships
   };
 
   const handleLoadConfiguration = (
     ship: Ship,
-    loadedConfig: MiningConfiguration
+    loadedConfig: MiningConfiguration,
+    name: string
   ) => {
     setSelectedShip(ship);
     setConfig(loadedConfig);
+    setCurrentConfigName(name);
   };
 
   const handleToggleShip = (shipId: string) => {
@@ -297,9 +302,12 @@ function App() {
       currentLaser.moduleActive = currentLaser.modules.map(() => false);
     }
 
-    // Toggle the module active state
-    const updatedModuleActive = [...currentLaser.moduleActive];
-    updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+    // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+    const updatedModuleActive = toggleModuleActive(
+      currentLaser.modules,
+      currentLaser.moduleActive,
+      moduleIndex
+    );
 
     updatedLasers[laserIndex] = {
       ...currentLaser,
@@ -320,9 +328,12 @@ function App() {
           currentLaser.moduleActive = currentLaser.modules.map(() => false);
         }
 
-        // Toggle the module active state
-        const updatedModuleActive = [...currentLaser.moduleActive];
-        updatedModuleActive[moduleIndex] = !updatedModuleActive[moduleIndex];
+        // Use helper to handle stacking rules (sustained modules are mutually exclusive)
+        const updatedModuleActive = toggleModuleActive(
+          currentLaser.modules,
+          currentLaser.moduleActive,
+          moduleIndex
+        );
 
         updatedLasers[laserIndex] = {
           ...currentLaser,
@@ -348,6 +359,14 @@ function App() {
         <div className="header-title">
           <h1>PeaceFrog's Rock Breaker</h1>
           <span className="version-tag">v{version}</span>
+          <a
+            href="https://forms.gle/GziNwLBcwaWpZVNy5"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="feedback-link"
+          >
+            Report Bugs / Request Features / Provide Feedback
+          </a>
         </div>
         <button
           className="help-button"
@@ -408,6 +427,7 @@ function App() {
                     />
                   </div>
                 </div>
+
               </div>
 
               {/* Center - Mining Graphic */}
@@ -563,6 +583,7 @@ function App() {
                   <ShipSelector
                     selectedShip={selectedShip}
                     onShipChange={handleShipChange}
+                    configName={currentConfigName}
                   />
 
                   <div className="lasers-container">
@@ -586,6 +607,7 @@ function App() {
                   <ConfigManager
                     currentShip={selectedShip}
                     currentConfig={config}
+                    currentConfigName={currentConfigName}
                     onLoad={handleLoadConfiguration}
                   />
                 </>

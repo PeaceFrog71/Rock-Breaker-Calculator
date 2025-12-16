@@ -4,22 +4,26 @@ import type { SavedShipConfig } from '../utils/storage';
 import {
   getSavedShipConfigs,
   saveShipConfig,
+  updateShipConfig,
   deleteShipConfig,
   loadShipConfig,
   exportShipConfig,
   importShipConfig,
 } from '../utils/storage';
+import { calculateLaserPower } from '../utils/calculator';
 import './ConfigManager.css';
 
 interface ConfigManagerProps {
   currentShip: Ship;
   currentConfig: MiningConfiguration;
-  onLoad: (ship: Ship, config: MiningConfiguration) => void;
+  currentConfigName?: string;
+  onLoad: (ship: Ship, config: MiningConfiguration, name: string) => void;
 }
 
 export default function ConfigManager({
   currentShip,
   currentConfig,
+  currentConfigName,
   onLoad,
 }: ConfigManagerProps) {
   const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
@@ -34,7 +38,23 @@ export default function ConfigManager({
       return;
     }
 
-    saveShipConfig(configName, currentShip, currentConfig);
+    const trimmedName = configName.trim();
+    const existing = savedConfigs.find(
+      (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
+        return;
+      }
+      updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
+    } else {
+      saveShipConfig(trimmedName, currentShip, currentConfig);
+    }
+
+    // Update parent state with the saved name
+    onLoad(currentShip, currentConfig, trimmedName);
+
     setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);
@@ -43,7 +63,7 @@ export default function ConfigManager({
   const handleLoad = (id: string) => {
     const config = loadShipConfig(id);
     if (config) {
-      onLoad(config.ship, config.config);
+      onLoad(config.ship, config.config, config.name);
     }
   };
 
@@ -76,10 +96,13 @@ export default function ConfigManager({
 
   return (
     <div className="config-manager panel">
-      <h2>Saved Configurations</h2>
+      <h2>Ship Library</h2>
 
       <div className="config-actions">
-        <button className="btn-primary" onClick={() => setShowDialog(true)}>
+        <button className="btn-primary" onClick={() => {
+          setConfigName(currentConfigName || '');
+          setShowDialog(true);
+        }}>
           💾 Save Current
         </button>
         <label className="btn-secondary">
@@ -122,10 +145,31 @@ export default function ConfigManager({
           savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
             <div key={config.id} className="config-item">
               <div className="config-info">
-                <div className="config-name">{config.name}</div>
-                <div className="config-meta">
-                  {config.ship.name} • {config.config.lasers.length} laser
-                  {config.config.lasers.length > 1 ? 's' : ''}
+                <div className="config-header">
+                  <div className="config-name">{config.name}</div>
+                  <div className="config-meta">{config.ship.name}</div>
+                </div>
+                <div className="config-details">
+                  {config.config.lasers
+                    .filter(laser => laser.laserHead && laser.laserHead.id !== 'none')
+                    .map((laser, idx) => {
+                      const moduleCount = laser.modules.filter(m => m && m.id !== 'none').length;
+                      const power = calculateLaserPower(laser, true);
+                      return (
+                        <span key={idx} className="config-box laser-box">
+                          {laser.laserHead!.name}
+                          {moduleCount > 0 && <span className="module-count">+{moduleCount}</span>}
+                          <span className="power">{power.toFixed(0)}</span>
+                        </span>
+                      );
+                    })}
+                  {(() => {
+                    const totalPower = config.config.lasers.reduce((sum, laser) =>
+                      sum + (laser.laserHead && laser.laserHead.id !== 'none' ? calculateLaserPower(laser, true) : 0), 0);
+                    return totalPower > 0 ? (
+                      <span className="config-box stats-box">Σ {totalPower.toFixed(0)}</span>
+                    ) : null;
+                  })()}
                 </div>
                 <div className="config-date">
                   {new Date(config.updatedAt).toLocaleDateString()}
@@ -137,7 +181,7 @@ export default function ConfigManager({
                   className="btn-load"
                   title="Load"
                 >
-                  ↻
+                  ▲
                 </button>
                 <button
                   onClick={() => handleExport(config)}

@@ -14,8 +14,18 @@
 
 .ship-pool-header h2 {
   margin: 0;
-  color: var(--text-primary);
   font-size: 1.3rem;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.ship-pool-header h2 .group-name {
+  color: var(--accent-gold);
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .add-ship-button {
