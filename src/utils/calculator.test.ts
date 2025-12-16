@@ -856,6 +856,35 @@ describe('Mining Calculator - Core Formulas', () => {
       expect(result.baseLPNeeded).toBeGreaterThan(0);
       expect(result.adjustedLPNeeded).toBeGreaterThan(0);
     });
+
+    it('should cap adjusted resistance at 99.99% when stacking exceeds 100%', () => {
+      // Use multiple Arbor MH1 lasers (1.25 resist modifier each) to push resistance over 100%
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+
+      // Create a config with 6 Arbor lasers: 1.25^6 = 3.81 modifier
+      // On a 30% resistance rock: 30 * 3.81 = 114.3% (would cause negative energy)
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: arborMH1, modules: [null] },
+          { laserHead: arborMH1, modules: [null] },
+          { laserHead: arborMH1, modules: [null] },
+          { laserHead: arborMH1, modules: [null] },
+          { laserHead: arborMH1, modules: [null] },
+          { laserHead: arborMH1, modules: [null] },
+        ],
+      };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 30 };
+      const result = calculateBreakability(config, rock, gadgets);
+
+      // Adjusted resistance should be capped at 99.99%
+      expect(result.adjustedResistance).toBe(99.99);
+      // LP needed should be positive (not negative or infinite)
+      expect(result.adjustedLPNeeded).toBeGreaterThan(0);
+      expect(Number.isFinite(result.adjustedLPNeeded)).toBe(true);
+      // Should be marked as cannot break
+      expect(result.canBreak).toBe(false);
+    });
   });
 });
 
@@ -1147,6 +1176,70 @@ describe('Mining Calculator - Group Operations', () => {
       const result = calculateGroupBreakability(group, rock, gadgets);
 
       expect(result.totalLaserPower).toBe(0);
+      expect(result.canBreak).toBe(false);
+    });
+
+    it('should cap adjusted resistance at 99.99% in multi-ship groups (issue #85)', () => {
+      // Reproduce bug: 4 ships with resistance-increasing lasers push resistance over 100%
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const mole = SHIPS.find(s => s.id === 'mole')!;
+      const golem = SHIPS.find(s => s.id === 'golem')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 1.25 resist
+      const arborMH2 = LASER_HEADS.find(l => l.id === 'arbor-mh2')!; // 1.25 resist
+      const pitman = LASER_HEADS.find(l => l.id === 'pitman')!; // 1.25 resist
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Prospector',
+        config: { lasers: [{ laserHead: arborMH1, modules: [null] }] },
+        isActive: true,
+      };
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: mole,
+        name: 'MOLE 1',
+        config: {
+          lasers: [
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+          ],
+        },
+        isActive: true,
+      };
+      const ship3: ShipInstance = {
+        id: '3',
+        ship: golem,
+        name: 'GOLEM',
+        config: { lasers: [{ laserHead: pitman, modules: [null, null] }] },
+        isActive: true,
+      };
+      const ship4: ShipInstance = {
+        id: '4',
+        ship: mole,
+        name: 'MOLE 2',
+        config: {
+          lasers: [
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+            { laserHead: arborMH2, modules: [null, null], isManned: true },
+          ],
+        },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2, ship3, ship4] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Without cap: 20% * (1.25^8) = 20% * 5.96 = 119.2% (causes negative energy)
+      // With cap: should be capped at 99.99%
+      expect(result.adjustedResistance).toBe(99.99);
+      expect(result.adjustedLPNeeded).toBeGreaterThan(0);
+      expect(Number.isFinite(result.adjustedLPNeeded)).toBe(true);
       expect(result.canBreak).toBe(false);
     });
   });
