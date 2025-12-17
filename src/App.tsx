@@ -401,6 +401,7 @@ function App() {
                     <label>Mass</label>
                     <input
                       type="number"
+                      inputMode="decimal"
                       value={rock.mass === 0 ? '' : rock.mass}
                       onChange={(e) => setRock({ ...rock, mass: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                       min="0"
@@ -420,6 +421,7 @@ function App() {
                     <label>Instability</label>
                     <input
                       type="number"
+                      inputMode="decimal"
                       value={!rock.instability ? '' : rock.instability}
                       onChange={(e) => setRock({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
                       min="0"
