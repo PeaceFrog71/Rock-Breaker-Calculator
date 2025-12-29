@@ -22,6 +22,7 @@ export default function ResistanceModeSelector({
   onGadgetToggle,
 }: Props) {
   const [showHelp, setShowHelp] = useState(false);
+  const [showHintHelp, setShowHintHelp] = useState(false);
 
   return (
     <div className="compact-form-group resistance-input-group">
@@ -74,9 +75,16 @@ export default function ResistanceModeSelector({
 
         {showHint && mode === 'base' && (
           <div className="resistance-hint">
-            <div className="hint-text">
-              <span className="hint-icon">💡</span>
-              <span>Low resistance + equipment modifiers detected. Scanned with laser?</span>
+            <div className="hint-header">
+              <span className="hint-text">Laser scan?</span>
+              <button
+                className="hint-help-icon"
+                onClick={() => setShowHintHelp(true)}
+                type="button"
+                aria-label="Why am I seeing this?"
+              >
+                ?
+              </button>
             </div>
             <button
               className="hint-btn"
@@ -85,6 +93,28 @@ export default function ResistanceModeSelector({
             >
               Switch to Modified
             </button>
+          </div>
+        )}
+
+        {showHintHelp && (
+          <div
+            className="hint-modal-overlay"
+            onClick={() => setShowHintHelp(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hint-modal-title"
+          >
+            <div className="hint-modal" onClick={(e) => e.stopPropagation()}>
+              <button
+                className="hint-modal-close"
+                onClick={() => setShowHintHelp(false)}
+                type="button"
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <p id="hint-modal-title">Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode for accurate calculations.</p>
+            </div>
           </div>
         )}
       </div>
