@@ -29,6 +29,16 @@ import ResistanceModeSelector from "./components/ResistanceModeSelector";
 import pfLogo from "./assets/PFlogo.png";
 import { version } from "../package.json";
 
+// Default rock values for reset functionality
+const DEFAULT_ROCK: Rock = {
+  mass: 25000,
+  resistance: 30,
+  instability: 50,
+  name: "The Rock",
+  resistanceMode: 'base',
+  includeGadgetsInScan: false,
+};
+
 function App() {
   // Load saved state or use defaults
   const loadedState = loadCurrentConfiguration();
@@ -39,13 +49,7 @@ function App() {
     loadedState?.config || initializeDefaultLasersForShip(SHIPS[0])
   );
   const [currentConfigName, setCurrentConfigName] = useState<string | undefined>(undefined);
-  const [rock, setRock] = useState<Rock>({
-    mass: 25000,
-    resistance: 30,
-    name: "The Rock",
-    resistanceMode: 'base',
-    includeGadgetsInScan: false,
-  });
+  const [rock, setRock] = useState<Rock>({ ...DEFAULT_ROCK });
   const [miningGroup, setMiningGroup] = useState<MiningGroup>({
     ships: [],
   });
@@ -154,14 +158,32 @@ function App() {
     }
   };
 
-  const handleRockClear = () => {
-    setRock({
-      mass: 0,
-      resistance: 0,
-      name: '',
-      resistanceMode: 'base',
-      includeGadgetsInScan: false,
-    });
+  // Check if rock values match defaults
+  const isRockAtDefaults = useMemo(() => {
+    return rock.mass === DEFAULT_ROCK.mass &&
+      rock.resistance === DEFAULT_ROCK.resistance &&
+      rock.instability === DEFAULT_ROCK.instability &&
+      rock.name === DEFAULT_ROCK.name &&
+      rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
+      rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
+  }, [rock]);
+
+  // Toggle between Reset (to defaults) and Clear (to empty)
+  const handleRockResetClear = () => {
+    if (isRockAtDefaults) {
+      // At defaults → Clear all values
+      setRock({
+        mass: 0,
+        resistance: 0,
+        instability: 0,
+        name: '',
+        resistanceMode: 'base',
+        includeGadgetsInScan: false,
+      });
+    } else {
+      // Custom or cleared values → Reset to defaults
+      setRock({ ...DEFAULT_ROCK });
+    }
   };
 
   // Auto-clear scanning ship when switching to base mode
@@ -440,9 +462,9 @@ function App() {
                   </div>
                   <button
                     className="clear-rock-button"
-                    onClick={handleRockClear}
+                    onClick={handleRockResetClear}
                   >
-                    Clear
+                    {isRockAtDefaults ? 'Clear' : 'Reset'}
                   </button>
                 </div>
 
