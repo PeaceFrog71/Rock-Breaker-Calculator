@@ -128,7 +128,10 @@ function App() {
   const [activeRockSlot, setActiveRockSlot] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-active-rock-slot');
-      return saved ? parseInt(saved, 10) : 0;
+      if (!saved) return 0;
+      const parsed = parseInt(saved, 10);
+      // Validate slot is in valid range (0-2)
+      return parsed >= 0 && parsed <= 2 ? parsed : 0;
     } catch {
       return 0;
     }
@@ -231,7 +234,7 @@ function App() {
   // Toggle between Reset (to defaults) and Clear (to empty)
   const handleRockResetClear = () => {
     if (isRockAtDefaults) {
-      // At defaults → Clear all values
+      // At defaults → Clear all values (including scanning metadata)
       setRock({
         mass: 0,
         resistance: 0,
@@ -239,6 +242,9 @@ function App() {
         name: '',
         resistanceMode: 'base',
         includeGadgetsInScan: false,
+        originalScannedValue: undefined,
+        scannedByShipId: undefined,
+        scannedByLaserIndex: undefined,
       });
     } else {
       // Custom or cleared values → Reset to defaults
@@ -255,8 +261,8 @@ function App() {
     newSlots[activeRockSlot] = { ...rock };
     setRockSlots(newSlots);
 
-    // Load the new slot's values
-    setRock({ ...rockSlots[newSlotIndex] });
+    // Load the new slot's values from the updated slots array
+    setRock({ ...newSlots[newSlotIndex] });
 
     // Set the new slot as active
     setActiveRockSlot(newSlotIndex);
@@ -539,6 +545,7 @@ function App() {
                   <button
                     className="clear-rock-button"
                     onClick={handleRockResetClear}
+                    aria-label={isRockAtDefaults ? 'Clear all rock values' : 'Reset rock values to defaults'}
                   >
                     {isRockAtDefaults ? 'Clear' : 'Reset'}
                   </button>
@@ -548,7 +555,9 @@ function App() {
                         key={index}
                         className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
                         onClick={() => handleRockSlotSwitch(index)}
-                        title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%`}
+                        title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%, ${slot.instability ?? 50} instability`}
+                        aria-label={`Rock slot ${index + 1}`}
+                        aria-pressed={index === activeRockSlot}
                       >
                         {index + 1}
                       </button>
