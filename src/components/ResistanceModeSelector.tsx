@@ -97,7 +97,13 @@ export default function ResistanceModeSelector({
         )}
 
         {showHintHelp && (
-          <div className="hint-modal-overlay" onClick={() => setShowHintHelp(false)}>
+          <div
+            className="hint-modal-overlay"
+            onClick={() => setShowHintHelp(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hint-modal-title"
+          >
             <div className="hint-modal" onClick={(e) => e.stopPropagation()}>
               <button
                 className="hint-modal-close"
@@ -107,7 +113,7 @@ export default function ResistanceModeSelector({
               >
                 ×
               </button>
-              <p>Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode for accurate calculations.</p>
+              <p id="hint-modal-title">Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode for accurate calculations.</p>
             </div>
           </div>
         )}

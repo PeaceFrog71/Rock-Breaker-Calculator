@@ -183,9 +183,6 @@ function App() {
     saveCurrentConfiguration(selectedShip, config);
   }, [selectedShip, config]);
 
-  // Track if this is the initial mount (to skip certain effects on first render)
-  const isInitialMount = useRef(true);
-
   // Smart hint detection: Show hint if resistance is low and modifiers might explain it
   // But don't show if gadgets could explain the low resistance (user should check "Gadgets in scan" instead)
   const showResistanceHint = useMemo(() => {
@@ -250,7 +247,7 @@ function App() {
   const isRockAtDefaults = useMemo(() => {
     return rock.mass === DEFAULT_ROCK.mass &&
       rock.resistance === DEFAULT_ROCK.resistance &&
-      rock.instability === DEFAULT_ROCK.instability &&
+      (rock.instability ?? DEFAULT_ROCK.instability) === DEFAULT_ROCK.instability &&
       rock.name === DEFAULT_ROCK.name &&
       rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
       rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
@@ -263,7 +260,7 @@ function App() {
       setRock({
         mass: 0,
         resistance: 0,
-        instability: 0,
+        instability: undefined,
         name: '',
         resistanceMode: 'base',
         includeGadgetsInScan: false,
@@ -293,16 +290,24 @@ function App() {
     setActiveRockSlot(newSlotIndex);
   };
 
-  // Auto-clear scanning ship when switching to base mode
+  // Track previous resistance mode to detect mode transitions
+  const prevResistanceMode = useRef(rock.resistanceMode);
+
+  // Auto-clear scanning ship only when TRANSITIONING to base mode (not continuously)
   // Auto-select single ship when switching to modified mode (for Prospector/GOLEM)
   useEffect(() => {
-    if (rock.resistanceMode === 'base') {
+    const wasModified = prevResistanceMode.current === 'modified';
+    const isBase = rock.resistanceMode === 'base';
+    const isModified = rock.resistanceMode === 'modified';
+
+    // Only clear when transitioning FROM modified TO base
+    if (wasModified && isBase && rock.scannedByShipId) {
       setRock(prev => ({
         ...prev,
         scannedByShipId: undefined,
         scannedByLaserIndex: undefined,
       }));
-    } else if (rock.resistanceMode === 'modified' && !useMiningGroup && !rock.scannedByShipId) {
+    } else if (isModified && !useMiningGroup && !rock.scannedByShipId) {
       // Auto-select for single-laser ships (Prospector/GOLEM)
       if (selectedShip.id === 'prospector' || selectedShip.id === 'golem') {
         setRock(prev => ({
@@ -312,6 +317,8 @@ function App() {
         }));
       }
     }
+
+    prevResistanceMode.current = rock.resistanceMode;
   }, [rock.resistanceMode, useMiningGroup, selectedShip.id, rock.scannedByShipId]);
 
   // Create a stable reference for equipment config (only laser heads and modules, not manned state)
@@ -324,14 +331,17 @@ function App() {
     })));
   }, [config.lasers]);
 
-  // Clear scanning ship when equipment config changes in modified mode
+  // Track the initial equipment config key to detect actual changes (not just initial load)
+  const initialEquipmentConfigKey = useRef(equipmentConfigKey);
+
+  // Clear scanning ship when equipment config ACTUALLY changes (not on initial load)
   // This should NOT trigger when just toggling laser manned state (isManned)
-  // Skip on initial mount to preserve persisted scanning ship from localStorage
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
+    // Skip if this is the initial config (same as what was loaded)
+    if (equipmentConfigKey === initialEquipmentConfigKey.current) {
       return;
     }
+    // Equipment config has actually changed - clear scanning ship if in modified mode
     if (rock.resistanceMode === 'modified' && rock.scannedByShipId) {
       setRock(prev => ({
         ...prev,
@@ -585,7 +595,7 @@ function App() {
                         key={index}
                         className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
                         onClick={() => handleRockSlotSwitch(index)}
-                        title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%, ${slot.instability ?? 50} instability`}
+                        title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
                         aria-label={`Rock slot ${index + 1}`}
                         aria-pressed={index === activeRockSlot}
                       >
