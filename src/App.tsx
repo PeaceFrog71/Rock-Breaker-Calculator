@@ -93,6 +93,41 @@ function App() {
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
 
+  // Rock save slots (3 slots for quick save/load, pre-filled with defaults)
+  const [rockSlots, setRockSlots] = useState<Rock[]>(() => {
+    try {
+      const saved = localStorage.getItem('rockbreaker-rock-slots');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Migrate old null slots to defaults
+        return parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
+      }
+      return [{ ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }];
+    } catch {
+      return [{ ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }];
+    }
+  });
+
+  // Track which rock slot is currently active (0, 1, or 2)
+  const [activeRockSlot, setActiveRockSlot] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('rockbreaker-active-rock-slot');
+      return saved ? parseInt(saved, 10) : 0;
+    } catch {
+      return 0;
+    }
+  });
+
+  // Persist rock slots to localStorage
+  useEffect(() => {
+    localStorage.setItem('rockbreaker-rock-slots', JSON.stringify(rockSlots));
+  }, [rockSlots]);
+
+  // Persist active slot to localStorage
+  useEffect(() => {
+    localStorage.setItem('rockbreaker-active-rock-slot', activeRockSlot.toString());
+  }, [activeRockSlot]);
+
   // Auto-save when config or ship changes
   useEffect(() => {
     saveCurrentConfiguration(selectedShip, config);
@@ -184,6 +219,22 @@ function App() {
       // Custom or cleared values → Reset to defaults
       setRock({ ...DEFAULT_ROCK });
     }
+  };
+
+  // Handle rock slot switch: save current to old slot, load new slot
+  const handleRockSlotSwitch = (newSlotIndex: number) => {
+    if (newSlotIndex === activeRockSlot) return; // Already active, do nothing
+
+    // Save current rock values to the currently active slot
+    const newSlots = [...rockSlots];
+    newSlots[activeRockSlot] = { ...rock };
+    setRockSlots(newSlots);
+
+    // Load the new slot's values
+    setRock({ ...rockSlots[newSlotIndex] });
+
+    // Set the new slot as active
+    setActiveRockSlot(newSlotIndex);
   };
 
   // Auto-clear scanning ship when switching to base mode
@@ -466,6 +517,18 @@ function App() {
                   >
                     {isRockAtDefaults ? 'Clear' : 'Reset'}
                   </button>
+                  <div className="rock-slots">
+                    {rockSlots.map((slot, index) => (
+                      <button
+                        key={index}
+                        className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
+                        onClick={() => handleRockSlotSwitch(index)}
+                        title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%`}
+                      >
+                        {index + 1}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Mobile Ko-fi link - only visible on mobile */}
