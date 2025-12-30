@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/x-icon" href="/peacefrog-favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=800, initial-scale=1.0, user-scalable=no" />
     <title>Rock Breaker Calculator - Star Citizen Mining Tool</title>
 
     <!-- Open Graph / Social Media Preview -->
@@ -27,21 +27,147 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Electrolize&family=Michroma&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="/assets/index-D3adi6Pf.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-W-G2FkUY.css">
+    <script type="module" crossorigin src="/assets/index-D5qmgMyv.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-JNSJbjfr.css">
   </head>
   <body>
+    <!-- Portrait mode overlay - dismissible prompt to rotate to landscape -->
+    <!-- Inline styles needed because viewport is fixed at 800px width -->
+    <style>
+      #rotate-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        /* Use screen dimensions via JS below for proper sizing */
+        background: #0a0e27;
+        z-index: 999999;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        color: #e0e6ff;
+        font-family: 'Orbitron', 'Electrolize', sans-serif;
+      }
+      #rotate-overlay .rotate-icon {
+        width: 64px;
+        height: 64px;
+        margin-bottom: 1rem;
+        border: 3px solid #00d9ff;
+        border-radius: 8px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #rotate-overlay .rotate-icon::after {
+        content: '';
+        width: 24px;
+        height: 24px;
+        border: 3px solid #00ff88;
+        border-top: none;
+        border-left: none;
+        transform: rotate(-45deg);
+      }
+      #rotate-overlay h2 {
+        margin: 0 0 0.5rem 0;
+        font-size: 1.5rem;
+      }
+      #rotate-overlay p {
+        margin: 0 0 1.5rem 0;
+        opacity: 0.8;
+      }
+      #rotate-overlay button {
+        padding: 0.75rem 2rem;
+        background: linear-gradient(135deg, #00d9ff, #00ff88);
+        color: #0a0e27;
+        border: none;
+        border-radius: 6px;
+        font-family: inherit;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+      }
+    </style>
+    <div id="rotate-overlay" role="dialog" aria-modal="true" aria-labelledby="rotate-title">
+      <div class="rotate-icon" aria-hidden="true"></div>
+      <h2 id="rotate-title">Please Rotate Your Device</h2>
+      <p>This app works best in landscape mode</p>
+      <button id="rotate-dismiss" aria-label="Dismiss rotation prompt">Got it</button>
+    </div>
+    <script>
+      (function() {
+        const overlay = document.getElementById('rotate-overlay');
+        let dismissed = sessionStorage.getItem('rotateDismissed') !== null;
+
+        function isPortrait() {
+          // Try screen.orientation API first (most reliable)
+          if (screen.orientation && screen.orientation.type) {
+            return screen.orientation.type.includes('portrait');
+          }
+          // Try matchMedia (works well on iOS)
+          if (window.matchMedia) {
+            return window.matchMedia('(orientation: portrait)').matches;
+          }
+          // Fallback to screen dimensions
+          return screen.height > screen.width;
+        }
+
+        function updateOverlay() {
+          if (dismissed) {
+            overlay.style.display = 'none';
+            return;
+          }
+          if (isPortrait()) {
+            // Set dimensions to actual screen size
+            overlay.style.width = screen.width + 'px';
+            overlay.style.height = screen.height + 'px';
+            overlay.style.display = 'flex';
+          } else {
+            overlay.style.display = 'none';
+          }
+        }
+
+        // Dismiss handler
+        document.getElementById('rotate-dismiss').addEventListener('click', function() {
+          overlay.style.display = 'none';
+          sessionStorage.setItem('rotateDismissed', 'true');
+          dismissed = true;
+        });
+
+        // Check on load
+        updateOverlay();
+
+        // Listen for orientation changes with multiple methods for reliability
+        if (screen.orientation && typeof screen.orientation.addEventListener === 'function') {
+          screen.orientation.addEventListener('change', updateOverlay);
+        }
+        window.addEventListener('orientationchange', updateOverlay);
+        // Also listen to matchMedia changes (reliable on iOS)
+        if (window.matchMedia) {
+          window.matchMedia('(orientation: portrait)').addEventListener('change', updateOverlay);
+        }
+      })();
+    </script>
     <div id="root"></div>
 
-    <!-- Ko-fi Widget -->
-    <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+    <!-- Ko-fi Widget - only load on desktop -->
     <script>
-      kofiWidgetOverlay.draw('peacefroggaming', {
-        'type': 'floating-chat',
-        'floating-chat.donateButton.text': 'Support',
-        'floating-chat.donateButton.background-color': '#00ff88',
-        'floating-chat.donateButton.text-color': '#0a0e27'
-      });
+      // Only load Ko-fi widget on desktop (screen width > 800px)
+      if (screen.width > 800) {
+        const kofiScript = document.createElement('script');
+        kofiScript.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
+        kofiScript.onload = function() {
+          kofiWidgetOverlay.draw('peacefroggaming', {
+            'type': 'floating-chat',
+            'floating-chat.donateButton.text': 'Support',
+            'floating-chat.donateButton.background-color': '#00ff88',
+            'floating-chat.donateButton.text-color': '#0a0e27'
+          });
+        };
+        document.body.appendChild(kofiScript);
+      }
     </script>
     <style>
       /* Move Ko-fi's widget to lower left and stretch it */
@@ -105,8 +231,19 @@
         line-height: 1.3;
         text-align: center;
       }
+      /* On mobile: hide desktop Ko-fi overlay */
+      @media screen and (max-width: 800px) {
+        .floatingchat-container-wrap,
+        .floatingchat-container-wrap-mobi,
+        [class*="floatingchat-container-wrap"] {
+          display: none !important;
+        }
+        .kofi-overlay-btn {
+          display: none !important;
+        }
+      }
     </style>
-    <!-- Our styled button overlay - clicks pass through to Ko-fi underneath -->
+    <!-- Our styled button overlay - clicks pass through to Ko-fi underneath (desktop) -->
     <div class="kofi-overlay-btn">
       <img src="/rieger-icon.png" alt="" />
       <span>Buy me a Rieger-C3<br />on KO-FI</span>
