@@ -132,7 +132,18 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
     const module = MODULES.find((m) => m.id === moduleId) || null;
     const newModules = [...laser.modules];
     newModules[moduleIndex] = module;
-    onChange({ ...laser, modules: newModules });
+
+    // Reset the moduleActive state for this slot when module changes
+    // New modules should always start as inactive
+    let newModuleActive = laser.moduleActive ? [...laser.moduleActive] : newModules.map(() => false);
+    // Ensure array is the right length
+    while (newModuleActive.length < newModules.length) {
+      newModuleActive.push(false);
+    }
+    // Reset this slot to inactive since it's a new/changed module
+    newModuleActive[moduleIndex] = false;
+
+    onChange({ ...laser, modules: newModules, moduleActive: newModuleActive });
   };
 
   // Check if GOLEM ship - if so, lock to Pitman laser

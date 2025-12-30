@@ -624,8 +624,8 @@ export default function ResultDisplay({
                           style={{
                             position: "absolute",
                             top: `calc(50% + ${shipY - 15}px)`,
-                            left: `calc(50% + ${shipX - shipWidth / 2 - 10}px)`,
-                            transform: "translateY(-50%)",
+                            left: `calc(50% + ${shipX - shipWidth / 2 - 15}px)`,
+                            transform: "translate(-100%, -50%)",
                             display: "flex",
                             flexDirection: "row",
                             gap: "0.25rem",
@@ -661,8 +661,8 @@ export default function ResultDisplay({
                         style={{
                           position: "absolute",
                           top: `calc(50% + ${shipY}px)`,
-                          left: `calc(50% + ${shipX - shipWidth / 2 - 50}px)`,
-                          transform: "translateY(-50%)",
+                          left: `calc(50% + ${shipX - shipWidth / 2 - 15}px)`,
+                          transform: "translate(-100%, -50%)",
                           display: "flex",
                           flexDirection: "column",
                           gap: "0.25rem",
