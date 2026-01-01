@@ -100,6 +100,33 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 
 See `.claude/commands/vc.md` for full Victor documentation.
 
+## Git Learning Mode
+
+**Note**: This section complements Victor (above). Victor enforces *workflow rules* (issue-based workflow, branch naming, PR process). Learning Mode governs *how Claude teaches* - Drew runs commands himself while Claude explains.
+
+**IMPORTANT**: Guide Drew through git commands rather than executing them directly.
+
+When git operations are needed:
+1. **Explain** what command is needed and why
+2. **Show** the exact command to run
+3. **Wait** for Drew to run it (or confirm he wants Claude to run it)
+4. **Explain** the output if needed
+
+This applies to:
+- All git commands (status, add, commit, push, pull, branch, checkout, merge, etc.)
+- GitHub CLI commands (gh pr create, gh issue, etc.)
+
+**Exception**: If Drew explicitly says "just do it" or "run it for me", proceed with execution.
+
+This is a learning exercise - the goal is git fluency, not speed.
+
+## Planning Best Practices
+
+When working on tasks that require planning:
+1. **Save plan files** to `docs/plans/` with descriptive names (e.g., `99-git-learning-mode.md`)
+2. **Keep plans for reference** - they document decisions and can help with similar future tasks
+3. **Include in plan**: Issue number, steps, files to modify, and key decisions made
+
 ## Coding Standards
 
 ### TypeScript
