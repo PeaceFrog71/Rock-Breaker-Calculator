@@ -628,6 +628,7 @@ function App() {
                   miningGroup={useMiningGroup ? miningGroup : undefined}
                   selectedShip={!useMiningGroup ? selectedShip : undefined}
                   config={!useMiningGroup ? config : undefined}
+                  configName={!useMiningGroup ? currentConfigName : undefined}
                   onToggleShip={useMiningGroup ? handleToggleShip : undefined}
                   onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
                   onSetScanningShip={rock.resistanceMode === 'modified' ? handleSetScanningShip : undefined}
