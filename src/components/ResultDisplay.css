@@ -815,40 +815,50 @@
   border-radius: 13px;
 }
 
+/* Power fill base glow effects by state - gradients set dynamically */
 .power-fill.can-break {
-  background: linear-gradient(90deg, var(--success), var(--accent-cyan));
   box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
 }
 
 .power-fill.marginal {
-  background: linear-gradient(90deg, var(--warning), var(--accent-gold));
   box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
 }
 
 .power-fill.possible-break {
-  background: linear-gradient(90deg, #ff8c00, #ffaa33);
   box-shadow: 0 0 15px rgba(255, 140, 0, 0.5);
 }
 
 .power-fill.cannot-break {
-  background: linear-gradient(90deg, var(--danger), #ff6688);
   box-shadow: 0 0 15px rgba(255, 51, 102, 0.5);
 }
 
-/* Overcharge state - applies pulsing animation */
-.power-fill.has-overcharge {
-  animation: pulse-overcharge 2s ease-in-out infinite;
+/* Yellow pulse for >50% surplus power */
+.power-fill.pulse-yellow {
+  animation: pulse-yellow 1.5s ease-in-out infinite;
 }
 
-@keyframes pulse-overcharge {
+@keyframes pulse-yellow {
   0%, 100% {
-    box-shadow: 0 0 15px rgba(255, 170, 0, 0.5);
+    box-shadow: 0 0 15px rgba(255, 170, 0, 0.6);
   }
   50% {
-    box-shadow: 0 0 25px rgba(255, 170, 0, 0.9);
+    box-shadow: 0 0 30px rgba(255, 200, 0, 1);
   }
 }
 
+/* Red backglow for excessive overcharge (>100% surplus) */
+.power-bar.excessive-glow {
+  animation: pulse-red-glow 1s ease-in-out infinite;
+}
+
+@keyframes pulse-red-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.5), inset 0 0 10px rgba(255, 51, 102, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 51, 102, 0.9), inset 0 0 15px rgba(255, 51, 102, 0.4);
+  }
+}
 
 .power-margin-overlay {
   position: absolute;

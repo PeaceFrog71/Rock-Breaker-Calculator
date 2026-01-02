@@ -318,18 +318,9 @@ export default function ResultDisplay({
       ? (result.totalLaserPower / result.adjustedLPNeeded) * 100
       : 0;
 
-  // Determine if we have overcharge (>100%) and if it's excessive (>200%)
-  // Note: powerPercentage represents total power as % of required power
-  // So 200% means you have 2x the required power (100% margin)
-  const hasOvercharge = powerPercentage > 100;
-  const hasExcessiveOvercharge = result.powerMarginPercent > 100; // >100% margin = >200% total power
+  // Determine if we have excessive overcharge (>100% margin = >200% total power)
+  const hasExcessiveOvercharge = result.powerMarginPercent > 100;
   const hasCriticalOvercharge = result.powerMarginPercent > 100;
-
-  // Calculate the percentage of the bar that should show overcharge gradient
-  // If we have 120% power, the rightmost 20% of the bar should be red
-  const overchargeGradientPercent = hasOvercharge
-    ? Math.min(powerPercentage - 100, 100) // Cap at 100% overcharge
-    : 0;
 
   // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
   const getAsteroidSize = () => {
@@ -1419,46 +1410,92 @@ export default function ResultDisplay({
       )}
 
       <div className="power-bar-container" onClick={(e) => e.stopPropagation()}>
-        <div className="power-bar">
-          <div
-            className={`power-fill ${getStatusClass()} ${
-              hasOvercharge ? "has-overcharge" : ""
-            }`}
-            style={{
-              width: "100%",
-              background: hasOvercharge
-                ? `linear-gradient(90deg,
-                    ${
-                      getStatusClass() === "can-break"
-                        ? "var(--success)"
-                        : getStatusClass() === "marginal"
-                        ? "var(--warning)"
-                        : getStatusClass() === "possible-break"
-                        ? "#ff8c00"
-                        : "var(--danger)"
-                    } 0%,
-                    ${
-                      getStatusClass() === "can-break"
-                        ? "var(--accent-cyan)"
-                        : getStatusClass() === "marginal"
-                        ? "var(--accent-gold)"
-                        : getStatusClass() === "possible-break"
-                        ? "#ffaa33"
-                        : "#ff6688"
-                    } ${Math.max(100 - overchargeGradientPercent, 50)}%,
-                    ${
-                      powerPercentage > 150
-                        ? "var(--warning)"
-                        : "var(--accent-gold)"
-                    } ${Math.max(100 - overchargeGradientPercent / 2, 75)}%,
-                    ${
-                      hasExcessiveOvercharge
-                        ? "var(--danger)"
-                        : "var(--warning)"
-                    } 100%)`
-                : undefined,
-            }}
-          />
+        <div className={`power-bar ${hasExcessiveOvercharge ? "excessive-glow" : ""}`}>
+          {(() => {
+            // Calculate bar fill width:
+            // 0% power (-100% surplus) = 0% bar (far left)
+            // 50% power (-50% surplus) = 50% bar (middle)
+            // 100% power (0% surplus) = 75% bar (break threshold)
+            // 200% power (+100% surplus) = 100% bar (far right)
+            let fillWidth: number;
+            if (powerPercentage <= 50) {
+              // 0-50% power maps to 0-50% bar (1:1)
+              fillWidth = powerPercentage;
+            } else if (powerPercentage <= 100) {
+              // 50-100% power maps to 50-75% bar
+              fillWidth = 50 + (powerPercentage - 50) * 0.5;
+            } else {
+              // 100-200% power maps to 75-100% bar
+              const surplus = Math.min(result.powerMarginPercent, 100);
+              fillWidth = 75 + surplus * 0.25;
+            }
+            fillWidth = Math.min(Math.max(fillWidth, 0), 100);
+
+            // Determine pulse class based on surplus
+            // Yellow pulse for 50-100% surplus, red backglow takes over at >100%
+            const surplusPercent = result.powerMarginPercent;
+            const pulseClass = surplusPercent > 50 && surplusPercent <= 100 ? "pulse-yellow" : "";
+
+            // Dynamic gradient based on fill position:
+            // Colors should appear at correct positions relative to full bar
+            // 0-33% bar: solid red
+            // 33-75% bar: red → orange → yellow (yellow-green transition at 75%)
+            // 75% bar: green (break threshold - 0% surplus)
+            // 75-100% bar: green → yellow → orange → red
+            let gradient: string;
+            if (fillWidth <= 33) {
+              // Fill is entirely in the red zone - solid red
+              gradient = "var(--danger)";
+            } else if (fillWidth <= 75) {
+              // Fill extends into red→yellow zone (not yet at break threshold)
+              // NO green until we reach 0% surplus (75% bar position)
+              const redEndPct = (33 / fillWidth) * 100;
+              const orangePct = (42 / fillWidth) * 100;
+              const yellowStartPct = (50 / fillWidth) * 100;
+              // Yellow all the way to the edge - no green yet
+              gradient = `linear-gradient(90deg,
+                var(--danger) 0%,
+                var(--danger) ${redEndPct}%,
+                #ff6600 ${Math.min(orangePct, 100)}%,
+                #ffdd00 ${Math.min(yellowStartPct, 100)}%,
+                #ffdd00 100%)`;
+            } else {
+              // Fill extends into surplus zone (past 75%)
+              // Calculate all color stop positions within the fill
+              // Yellow stays solid right up to green zone
+              const redEndPct = (33 / fillWidth) * 100;
+              const orangePct = (40 / fillWidth) * 100;
+              const yellowStartPct = (45 / fillWidth) * 100;
+              const yellowEndPct = (72 / fillWidth) * 100; // Yellow stays solid until here
+              const greenStartPct = (73 / fillWidth) * 100;
+              const greenEndPct = (80 / fillWidth) * 100;
+              const yellowBackStartPct = (81 / fillWidth) * 100;
+              const yellowBackEndPct = (88 / fillWidth) * 100;
+              const orangeBackPct = (94 / fillWidth) * 100;
+              gradient = `linear-gradient(90deg,
+                var(--danger) 0%,
+                var(--danger) ${redEndPct}%,
+                #ff6600 ${orangePct}%,
+                #ffdd00 ${yellowStartPct}%,
+                #ffdd00 ${yellowEndPct}%,
+                var(--success) ${greenStartPct}%,
+                var(--success) ${greenEndPct}%,
+                #ffdd00 ${yellowBackStartPct}%,
+                #ffdd00 ${yellowBackEndPct}%,
+                #ff6600 ${orangeBackPct}%,
+                var(--danger) 100%)`;
+            }
+
+            return (
+              <div
+                className={`power-fill ${getStatusClass()} ${pulseClass}`}
+                style={{
+                  width: `${fillWidth}%`,
+                  background: gradient,
+                }}
+              />
+            );
+          })()}
           <div className="power-margin-overlay">
             {result.powerMarginPercent >= 0 ? "Surplus:" : "Deficit:"}{" "}
             {formatPercent(result.powerMarginPercent)}
