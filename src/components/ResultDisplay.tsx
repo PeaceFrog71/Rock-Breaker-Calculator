@@ -31,6 +31,11 @@ const SHIP_IMAGES: Record<string, string> = {
   prospector: prospectorShipImage,
 };
 
+// Helper to get short ship name (e.g., "MISC Prospector" → "Prospector")
+function getShortShipName(fullName: string): string {
+  return fullName.split(" ").slice(1).join(" ");
+}
+
 // Laser beam component using tileable GIF
 interface LaserBeamProps {
   startX: number;
@@ -134,6 +139,7 @@ interface ResultDisplayProps {
 interface SingleShipDisplayProps {
   selectedShip?: { id: string; name: string };
   config?: MiningConfiguration;
+  configName?: string;
   onSingleShipToggleLaser?: (laserIndex: number) => void;
   onToggleModule?: (laserIndex: number, moduleIndex: number) => void;
   onGroupToggleModule?: (
@@ -152,6 +158,7 @@ export default function ResultDisplay({
   miningGroup,
   selectedShip,
   config,
+  configName,
   onToggleShip,
   onToggleLaser,
   onSetScanningShip,
@@ -553,8 +560,8 @@ export default function ResultDisplay({
                         );
                       }
                     })()}
-                    <div className="ship-label">
-                      {selectedShip.name.split(" ").slice(1).join(" ")}
+                    <div className="ship-label" title={selectedShip.name}>
+                      {configName || getShortShipName(selectedShip.name)}
                     </div>
 
                   </div>
@@ -971,10 +978,7 @@ export default function ResultDisplay({
                         e.stopPropagation();
                         onToggleShip && onToggleShip(shipInstance.id);
                       }}
-                      title={`${shipInstance.ship.name
-                        .split(" ")
-                        .slice(1)
-                        .join(" ")} - ${isActive ? "ACTIVE" : "INACTIVE"}`}>
+                      title={`${shipInstance.ship.name} - ${isActive ? "ACTIVE" : "INACTIVE"}`}>
                       {(() => {
                         // Calculate ship transform based on position
                         // Left side ships: mirror horizontally to face right
