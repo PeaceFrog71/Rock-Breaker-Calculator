@@ -21,18 +21,18 @@ export interface ShipImageConfig {
  */
 export const SHIP_IMAGE_CONFIG: Record<string, ShipImageConfig> = {
   golem: {
-    width: "58.8px",
-    height: "38.22px",
+    width: "86.4px",
+    height: "56.16px",
     alt: "GOLEM",
   },
   mole: {
-    width: "108.26px",
-    height: "70.37px",
+    width: "120px",
+    height: "78px",
     alt: "MOLE",
   },
   prospector: {
-    width: "64.68px",
-    height: "42.04px",
+    width: "108px",
+    height: "70.2px",
     alt: "Prospector",
   },
 };
@@ -47,13 +47,13 @@ export const SHIP_IMAGE_CONFIG_SMALL: Record<string, ShipImageConfig> = {
     alt: "GOLEM",
   },
   mole: {
-    width: "98.42px",
-    height: "63.97px",
+    width: "88.58px",
+    height: "57.57px",
     alt: "MOLE",
   },
   prospector: {
-    width: "57.75px",
-    height: "37.54px",
+    width: "63.53px",
+    height: "41.29px",
     alt: "Prospector",
   },
 };

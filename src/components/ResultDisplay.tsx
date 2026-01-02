@@ -31,6 +31,62 @@ const SHIP_IMAGES: Record<string, string> = {
   prospector: prospectorShipImage,
 };
 
+/**
+ * Ship-specific visual offset configurations for laser beams and UI elements.
+ * Centralizes all magic numbers for easier maintenance and tuning.
+ */
+interface ShipOffsets {
+  // Laser beam start position offsets (relative to ship center)
+  laser: { x: number; y: number };
+  // Scan icon offset (negative = left of ship)
+  scanIcon: { x: number };
+  // Module buttons offset (negative = left of ship)
+  moduleButtons: { x: number };
+}
+
+const SHIP_OFFSETS: Record<string, ShipOffsets> = {
+  golem: {
+    laser: { x: 0, y: -18 },
+    scanIcon: { x: -62 },
+    moduleButtons: { x: -55 },
+  },
+  mole: {
+    laser: { x: 60, y: 3 },
+    scanIcon: { x: -62 },
+    moduleButtons: { x: -25 },
+  },
+  prospector: {
+    laser: { x: 0, y: -10 },
+    scanIcon: { x: -72 },
+    moduleButtons: { x: -33 },
+  },
+};
+
+/**
+ * Multi-ship mode: position-specific laser offsets by ship type and angle.
+ * Angle values correspond to ship positions around the rock:
+ * - 60°: upper right, 120°: lower right, 240°: lower left, 300°: upper left
+ */
+type PositionAngle = 60 | 120 | 240 | 300;
+
+interface MultiShipLaserOffset {
+  x: number;
+  y: number;  // Added to base Y offset
+}
+
+const MULTI_SHIP_LASER_OFFSETS: Record<string, Partial<Record<PositionAngle, MultiShipLaserOffset>>> = {
+  prospector: {
+    120: { x: -20, y: 0 },  // Lower right
+    240: { x: 20, y: 0 },   // Lower left
+  },
+  mole: {
+    60: { x: -40, y: 5 },    // Upper right
+    120: { x: -50, y: -17 }, // Lower right
+    240: { x: 50, y: -19 },  // Lower left
+    300: { x: 45, y: 5 },    // Upper left
+  },
+};
+
 // Helper to get short ship name (e.g., "MISC Prospector" → "Prospector")
 function getShortShipName(fullName: string): string {
   return fullName.split(" ").slice(1).join(" ");
@@ -177,14 +233,31 @@ export default function ResultDisplay({
   const [flyingShipDirection, setFlyingShipDirection] = useState<
     "from-left" | "from-right"
   >("from-left");
+  const [flyingShipScale, setFlyingShipScale] = useState(1); // Random scale 0.5-1.0
+
+  // Helper to scale flyby ship dimensions with random reduction (keeps integers)
+  const scaleFlybyDimension = (basePx: number): string => {
+    return `${Math.round(basePx * flyingShipScale)}px`;
+  };
+
+  // Helper to get random flyby Y position based on background
+  const getRandomFlybyTop = () => {
+    if (backgroundMode === "starfield") {
+      // Full range with 10% buffer from edges (10-90%)
+      return 10 + Math.random() * 80;
+    } else {
+      // Landscape: top third only (5-30%)
+      return 5 + Math.random() * 25;
+    }
+  };
 
   useEffect(() => {
     const scheduleNextFlyby = () => {
       // Random interval between 3-5 minutes
       const interval = 180000 + Math.random() * 120000;
       return setTimeout(() => {
-        // Set random vertical position in top third (5-30%)
-        setFlyingShipTop(5 + Math.random() * 25);
+        // Set random vertical position based on background
+        setFlyingShipTop(getRandomFlybyTop());
         // Randomly pick a ship type
         const shipTypes: ("prospector" | "mole" | "golem")[] = [
           "prospector",
@@ -198,6 +271,8 @@ export default function ResultDisplay({
         setFlyingShipDirection(
           Math.random() > 0.5 ? "from-left" : "from-right"
         );
+        // Random size reduction 0-50% (scale 0.5-1.0)
+        setFlyingShipScale(0.5 + Math.random() * 0.5);
         setShowFlyingShip(true);
         // Hide after animation completes (12 seconds)
         setTimeout(() => setShowFlyingShip(false), 12000);
@@ -265,33 +340,8 @@ export default function ResultDisplay({
     return { width: 400, height: 400 }; // Huge
   };
 
-  // Calculate rock vertical offset for smaller rocks
-  // Ships are positioned as if for a 25000 mass rock, so smaller rocks need to shift down
-  // This makes the laser visually hit the rock center
-  const getRockVerticalOffset = () => {
-    if (rock.mass < 50000) {
-      const asteroidSize = getAsteroidSize();
-      const asteroidRadius = asteroidSize.width / 2;
-      const positioningRadius = 87.5; // 25000 mass rock radius
-      const tinyRockSize = 100; // Tiny rock diameter
-
-      // For tiny rocks, shift down by positioning difference PLUS full diameter
-      if (rock.mass < 15000) {
-        return positioningRadius - asteroidRadius + tinyRockSize;
-      }
-      // For small and medium rocks, shift down so center matches tiny rock center
-      // Tiny rock center is at: original + (37.5 + 100) = original + 137.5
-      // Rock needs to shift down by: 137.5 - (difference in radii)
-      return (
-        positioningRadius -
-        asteroidRadius +
-        tinyRockSize -
-        (asteroidRadius - tinyRockSize / 2)
-      );
-    }
-    return 0;
-  };
-  const rockVerticalOffset = getRockVerticalOffset();
+  // All rocks centered at the same position (no vertical offset)
+  const rockVerticalOffset = 0;
 
   // Get ship icon based on ship type
   const getShipIcon = (shipId: string) => {
@@ -343,35 +393,30 @@ export default function ResultDisplay({
               }
               alt={`Flying ${flyingShipType}`}
               style={{
-                // Smaller sizes for background/distant effect
+                // Smaller sizes for background/distant effect (120x78 aspect ratio)
+                // Base sizes scaled by random factor (50%-100%)
                 width:
                   flyingShipType === "mole"
-                    ? "68px"
+                    ? scaleFlybyDimension(54)
                     : flyingShipType === "golem"
-                    ? "50px"
-                    : "65px",
+                    ? scaleFlybyDimension(40)
+                    : scaleFlybyDimension(52),
                 height:
                   flyingShipType === "mole"
-                    ? "27px"
+                    ? scaleFlybyDimension(35)
                     : flyingShipType === "golem"
-                    ? "20px"
-                    : "26px",
+                    ? scaleFlybyDimension(26)
+                    : scaleFlybyDimension(34),
                 imageRendering: "pixelated",
-                // GOLEM needs extra brightness
-                filter: flyingShipType === "golem" ? "brightness(1.3)" : undefined,
+                // GOLEM brightness adjusted (was 1.3, reduced 20%)
+                filter: flyingShipType === "golem" ? "brightness(1.04)" : undefined,
                 transform: (() => {
                   const parts: string[] = [];
                   if (flyingShipDirection === "from-left") {
                     parts.push("scaleX(-1)");
                   }
-                  // GOLEM always needs rotation to level it
-                  if (flyingShipType === "golem") {
-                    parts.push("rotate(20deg)");
-                  }
-                  // Prospector needs rotation on both backgrounds
-                  if (flyingShipType === "prospector") {
-                    parts.push("rotate(10deg)");
-                  }
+                  // All ships need rotation to level them
+                  parts.push("rotate(15deg)");
                   return parts.length > 0 ? parts.join(" ") : "none";
                 })(),
               }}
@@ -381,7 +426,7 @@ export default function ResultDisplay({
         <div
           className="rock-container"
           onClick={(e) => e.stopPropagation()}
-          style={!miningGroup ? { transform: "translateX(100px)" } : undefined}>
+          style={!miningGroup ? { transform: "translateX(145px)" } : undefined}>
           {/* Single ship positioned to the left */}
           {!miningGroup &&
             selectedShip &&
@@ -398,24 +443,8 @@ export default function ResultDisplay({
                   ? 110
                   : 66;
 
-              // Adjust radius multiplier based on rock size
-              // For all rocks under 50000 mass, use the same positioning as 25000 mass rock (radius 87.5)
-              let radiusMultiplier = 1.1;
-              let positioningRadius = asteroidRadius; // Default: use actual asteroid radius
-
-              if (rock.mass < 50000) {
-                // All rocks under 50000 - use 25000 mass rock positioning (radius 87.5)
-                positioningRadius = 87.5;
-                radiusMultiplier = 1.3; // Reduced from 1.6 to bring ship closer
-              } else if (rock.mass >= 100000) {
-                // Huge rocks - use same positioning as large rocks
-                radiusMultiplier = 0.9 * (325 / 400); // Scale down proportionally
-              } else if (rock.mass >= 50000) {
-                // Large rocks - bring ships closer to keep controls visible
-                radiusMultiplier = 0.9;
-              }
-
-              const radius = positioningRadius * radiusMultiplier;
+              // Fixed ship position for all rock sizes (matches huge rock positioning)
+              const radius = 146;
               // Subtract 90° to make 0° point to top instead of right
               const adjustedAngle = angle - 90;
               let shipX = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
@@ -426,18 +455,12 @@ export default function ResultDisplay({
 
               const svgSize = 800;
               const center = svgSize / 2;
-              // Laser starts at ship position (center of ship image)
-              // GOLEM needs a higher laser start point to match the ship design
-              const laserYOffset = selectedShip.id === "golem" ? -18 : -10;
-              const laserStartX = center + shipX;
-              const laserStartY = center + shipY + laserYOffset;
-              // Rock visual center - the rock is shifted down by marginTop in the DOM,
-              // Calculate where the laser should hit based on rock size
-              let rockVisualCenterY = center + rockVerticalOffset / 2;
-              // For rocks under 50000, adjust to hit the visual center of the shifted rock
-              if (rock.mass < 50000) {
-                rockVisualCenterY -= asteroidSize.width / 16; // Move up by sixteenth diameter
-              }
+              // Laser starts at ship position with ship-specific offsets
+              const shipOffsets = SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
+              const laserStartX = center + shipX + shipOffsets.laser.x;
+              const laserStartY = center + shipY + shipOffsets.laser.y;
+              // Rock visual center - all rocks centered at same position
+              const rockVisualCenterY = center;
               // Laser ends at rock visual center, but shortened by 20% (or lengthened by 2% for tiny rocks)
               const fullDX = center - laserStartX;
               const fullDY = rockVisualCenterY - laserStartY;
@@ -529,8 +552,8 @@ export default function ResultDisplay({
                     onClick={(e) => e.stopPropagation()}
                     title={selectedShip.name}>
                     {(() => {
-                      // Single ship is always at 180° (left side), so just mirror horizontally
-                      const shipTransform = "scaleX(-1)";
+                      // Single ship - flipped to face right with 15° upward tilt
+                      const shipTransform = "scaleX(-1) rotate(15deg)";
                       // Ship should glow if it has manned lasers (or if it's not a MOLE)
                       const hasActiveLasers = !isMole || numMannedLasers > 0;
                       const shipImageConfig = getShipImageConfig(selectedShip.id);
@@ -587,7 +610,7 @@ export default function ResultDisplay({
                       style={{
                         position: "absolute",
                         top: `calc(50% + ${shipY - 10}px)`,
-                        left: `calc(50% + ${shipX - 50}px)`,
+                        left: `calc(50% + ${shipX + shipOffsets.scanIcon.x}px)`,
                         transform: "translate(-50%, -50%)",
                         cursor: "pointer",
                         pointerEvents: "auto",
@@ -631,7 +654,7 @@ export default function ResultDisplay({
                           style={{
                             position: "absolute",
                             top: `calc(50% + ${shipY - 15}px)`,
-                            left: `calc(50% + ${shipX - shipWidth / 2 - 15}px)`,
+                            left: `calc(50% + ${shipX - shipWidth / 2 + shipOffsets.moduleButtons.x}px)`,
                             transform: "translate(-100%, -50%)",
                             display: "flex",
                             flexDirection: "row",
@@ -829,33 +852,14 @@ export default function ResultDisplay({
                 const positions = [60, 120, 240, 300];
                 const angle = positions[index] || 60;
                 const asteroidSize = getAsteroidSize();
-                // Position ships at radius that scales with rock size
                 const asteroidRadius = asteroidSize.width / 2;
-                // Adjust spacing based on rock size
-                let radiusMultiplier = 1.35;
-                let positioningRadius = asteroidRadius; // Default: use actual asteroid radius
-
-                if (rock.mass < 50000) {
-                  // All rocks under 50000 - use 25000 mass rock positioning (radius 87.5)
-                  positioningRadius = 87.5;
-                  radiusMultiplier = 1.6; // Same as single-ship mode
-                } else if (rock.mass >= 100000) {
-                  radiusMultiplier = 1.1 * (325 / 400); // Huge - same as large
-                } else if (rock.mass >= 50000) {
-                  radiusMultiplier = 1.1; // Large - bring closer
-                }
-                const radius = positioningRadius * radiusMultiplier;
+                // Fixed ship position for all rock sizes (matches huge rock positioning)
+                const radius = 179;
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
                 const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-                // Move ships down - for rocks under 50000, use consistent offset
-                let yOffset;
-                if (rock.mass < 50000) {
-                  // Use small rock height for base offset, plus 50px for positioning
-                  yOffset = 175 * 0.125 + 50; // 21.875 + 50 = 71.875px
-                } else {
-                  yOffset = asteroidSize.height * 0.125;
-                }
+                // Fixed vertical offset for all rock sizes (matches huge rock positioning)
+                const yOffset = 50;
                 const y =
                   Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
                 const isActive = shipInstance.isActive !== false;
@@ -874,16 +878,23 @@ export default function ResultDisplay({
                       (() => {
                         const svgSize = 800;
                         const center = svgSize / 2;
-                        // Laser starts at ship position (center of ship image)
-                        // GOLEM needs a higher laser start point to match the ship design
-                        const laserYOffset = shipInstance.ship.id === "golem" ? -18 : -10;
-                        const laserStartX = center + x;
-                        const laserStartY = center + y + laserYOffset;
-                        // Calculate rock visual center (accounting for rock offset)
-                        let rockVisualCenterY = center + rockVerticalOffset / 2;
-                        if (rock.mass < 50000) {
-                          rockVisualCenterY -= asteroidSize.width / 16; // Move up by sixteenth diameter for rocks under 50000
+
+                        // Get base offsets for this ship type
+                        const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
+                        let laserXOffset = 0;
+                        let laserYOffset = baseOffsets.laser.y;
+
+                        // Apply position-specific adjustments from config
+                        const positionOffsets = MULTI_SHIP_LASER_OFFSETS[shipInstance.ship.id]?.[angle as PositionAngle];
+                        if (positionOffsets) {
+                          laserXOffset = positionOffsets.x;
+                          laserYOffset += positionOffsets.y;
                         }
+
+                        const laserStartX = center + x + laserXOffset;
+                        const laserStartY = center + y + laserYOffset;
+                        // Rock visual center - all rocks centered at same position
+                        const rockVisualCenterY = center;
                         // Laser ends at rock visual center
                         const rockCenterEndX = center;
                         const rockCenterEndY = rockVisualCenterY;
