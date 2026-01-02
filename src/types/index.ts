@@ -104,11 +104,11 @@ export interface MiningGroup {
   name?: string; // Optional name for the group (preserved when loaded from saved configs)
 }
 
-// Ship presets
+// Ship presets - ordered by size: Golem → Prospector → MOLE
 export const SHIPS: Ship[] = [
+  { id: 'golem', name: 'Drake GOLEM', laserSlots: 1, maxLaserSize: 1, description: 'Heavy mining vehicle - Fixed Pitman laser' },
   { id: 'prospector', name: 'MISC Prospector', laserSlots: 1, maxLaserSize: 1, description: 'Solo mining ship - Size 1 lasers only' },
   { id: 'mole', name: 'Argo MOLE', laserSlots: 3, maxLaserSize: 2, minLaserSize: 2, description: 'Multi-crew mining ship - Size 2 lasers only' },
-  { id: 'golem', name: 'Drake GOLEM', laserSlots: 1, maxLaserSize: 1, description: 'Heavy mining vehicle - Fixed Pitman laser' },
 ];
 
 // Laser heads database - modifiers from RedMonster's Mining Cheatsheet
