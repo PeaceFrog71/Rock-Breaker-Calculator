@@ -31,6 +31,62 @@ const SHIP_IMAGES: Record<string, string> = {
   prospector: prospectorShipImage,
 };
 
+/**
+ * Ship-specific visual offset configurations for laser beams and UI elements.
+ * Centralizes all magic numbers for easier maintenance and tuning.
+ */
+interface ShipOffsets {
+  // Laser beam start position offsets (relative to ship center)
+  laser: { x: number; y: number };
+  // Scan icon offset (negative = left of ship)
+  scanIcon: { x: number };
+  // Module buttons offset (negative = left of ship)
+  moduleButtons: { x: number };
+}
+
+const SHIP_OFFSETS: Record<string, ShipOffsets> = {
+  golem: {
+    laser: { x: 0, y: -18 },
+    scanIcon: { x: -62 },
+    moduleButtons: { x: -55 },
+  },
+  mole: {
+    laser: { x: 60, y: 3 },
+    scanIcon: { x: -62 },
+    moduleButtons: { x: -25 },
+  },
+  prospector: {
+    laser: { x: 0, y: -10 },
+    scanIcon: { x: -72 },
+    moduleButtons: { x: -33 },
+  },
+};
+
+/**
+ * Multi-ship mode: position-specific laser offsets by ship type and angle.
+ * Angle values correspond to ship positions around the rock:
+ * - 60°: upper right, 120°: lower right, 240°: lower left, 300°: upper left
+ */
+type PositionAngle = 60 | 120 | 240 | 300;
+
+interface MultiShipLaserOffset {
+  x: number;
+  y: number;  // Added to base Y offset
+}
+
+const MULTI_SHIP_LASER_OFFSETS: Record<string, Partial<Record<PositionAngle, MultiShipLaserOffset>>> = {
+  prospector: {
+    120: { x: -20, y: 0 },  // Lower right
+    240: { x: 20, y: 0 },   // Lower left
+  },
+  mole: {
+    60: { x: -10, y: 10 },   // Upper right
+    120: { x: -50, y: -5 },  // Lower right
+    240: { x: 50, y: -10 },  // Lower left
+    300: { x: 15, y: 10 },   // Upper left
+  },
+};
+
 // Helper to get short ship name (e.g., "MISC Prospector" → "Prospector")
 function getShortShipName(fullName: string): string {
   return fullName.split(" ").slice(1).join(" ");
@@ -399,16 +455,10 @@ export default function ResultDisplay({
 
               const svgSize = 800;
               const center = svgSize / 2;
-              // Laser starts at ship position (center of ship image)
-              // Ship-specific laser start offsets
-              let laserXOffset = 0;
-              let laserYOffset = selectedShip.id === "golem" ? -18 : -10;
-              if (selectedShip.id === "mole") {
-                laserXOffset = 60; // Move laser start right for MOLE
-                laserYOffset = 3; // Move laser start down for MOLE
-              }
-              const laserStartX = center + shipX + laserXOffset;
-              const laserStartY = center + shipY + laserYOffset;
+              // Laser starts at ship position with ship-specific offsets
+              const shipOffsets = SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
+              const laserStartX = center + shipX + shipOffsets.laser.x;
+              const laserStartY = center + shipY + shipOffsets.laser.y;
               // Rock visual center - all rocks centered at same position
               const rockVisualCenterY = center;
               // Laser ends at rock visual center, but shortened by 20% (or lengthened by 2% for tiny rocks)
@@ -502,7 +552,7 @@ export default function ResultDisplay({
                     onClick={(e) => e.stopPropagation()}
                     title={selectedShip.name}>
                     {(() => {
-                      // Single ship - facing right, leveled horizontal
+                      // Single ship - flipped to face right with 15° upward tilt
                       const shipTransform = "scaleX(-1) rotate(15deg)";
                       // Ship should glow if it has manned lasers (or if it's not a MOLE)
                       const hasActiveLasers = !isMole || numMannedLasers > 0;
@@ -560,7 +610,7 @@ export default function ResultDisplay({
                       style={{
                         position: "absolute",
                         top: `calc(50% + ${shipY - 10}px)`,
-                        left: `calc(50% + ${shipX - 62 - (selectedShip.id === 'prospector' ? 10 : 0)}px)`,
+                        left: `calc(50% + ${shipX + shipOffsets.scanIcon.x}px)`,
                         transform: "translate(-50%, -50%)",
                         cursor: "pointer",
                         pointerEvents: "auto",
@@ -604,7 +654,7 @@ export default function ResultDisplay({
                           style={{
                             position: "absolute",
                             top: `calc(50% + ${shipY - 15}px)`,
-                            left: `calc(50% + ${shipX - shipWidth / 2 - 25 - (selectedShip.id === 'golem' ? 30 : 0) - (selectedShip.id === 'prospector' ? 8 : 0)}px)`,
+                            left: `calc(50% + ${shipX - shipWidth / 2 + shipOffsets.moduleButtons.x}px)`,
                             transform: "translate(-100%, -50%)",
                             display: "flex",
                             flexDirection: "row",
@@ -828,30 +878,17 @@ export default function ResultDisplay({
                       (() => {
                         const svgSize = 800;
                         const center = svgSize / 2;
-                        // Laser starts at ship position (center of ship image)
-                        // Position-specific offsets for laser start points
-                        let laserXOffset = 0;
-                        let laserYOffset = shipInstance.ship.id === "golem" ? -18 : -10;
 
-                        // Prospector position adjustments
-                        if (shipInstance.ship.id === "prospector" && angle === 120) {
-                          laserXOffset = -20; // Move laser start left for lower right Prospector
-                        } else if (shipInstance.ship.id === "prospector" && angle === 240) {
-                          laserXOffset = 20; // Move laser start right for lower left Prospector
-                        }
-                        // MOLE position adjustments
-                        if (shipInstance.ship.id === "mole" && angle === 60) {
-                          laserXOffset = -10; // Move laser start left for upper right MOLE
-                          laserYOffset += 10; // Move laser start down for upper right MOLE
-                        } else if (shipInstance.ship.id === "mole" && angle === 300) {
-                          laserXOffset = 15; // Move laser start right for upper left MOLE
-                          laserYOffset += 10; // Move laser start down for upper left MOLE
-                        } else if (shipInstance.ship.id === "mole" && angle === 240) {
-                          laserXOffset = 50; // Move laser start right for lower left MOLE
-                          laserYOffset -= 10; // Move laser start up for lower left MOLE
-                        } else if (shipInstance.ship.id === "mole" && angle === 120) {
-                          laserXOffset = -50; // Move laser start left for lower right MOLE
-                          laserYOffset -= 5; // Move laser start up for lower right MOLE
+                        // Get base offsets for this ship type
+                        const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
+                        let laserXOffset = 0;
+                        let laserYOffset = baseOffsets.laser.y;
+
+                        // Apply position-specific adjustments from config
+                        const positionOffsets = MULTI_SHIP_LASER_OFFSETS[shipInstance.ship.id]?.[angle as PositionAngle];
+                        if (positionOffsets) {
+                          laserXOffset = positionOffsets.x;
+                          laserYOffset += positionOffsets.y;
                         }
 
                         const laserStartX = center + x + laserXOffset;
