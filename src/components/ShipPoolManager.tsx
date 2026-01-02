@@ -90,6 +90,12 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
     } else {
       saveShipConfig(trimmedName, ship.ship, ship.config);
     }
+
+    // Update the ship's name in the mining group to match saved name
+    const updatedShips = miningGroup.ships.map((s) =>
+      s.id === ship.id ? { ...s, name: trimmedName } : s
+    );
+    onChange({ ...miningGroup, ships: updatedShips });
   };
 
   const handleLoadShipFromLibrary = (shipInstance: ShipInstance) => {
