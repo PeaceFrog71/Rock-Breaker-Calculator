@@ -1333,8 +1333,8 @@
   }
 
   .rock-container:has(.multi-ship-mode) .rock-symbol > .asteroid-image {
-    max-width: min(60vw, 240px) !important;
-    max-height: min(30vh, 240px) !important;
+    max-width: 60vw !important;
+    max-height: 35vh !important;
   }
 
   /* Gadget icons stacked vertically in portrait */
@@ -1355,13 +1355,12 @@
     max-height: 100% !important;
     position: relative !important;
     align-items: center !important;
-    justify-content: flex-end !important;
-    padding-right: 0.5rem !important;
+    justify-content: center !important;
   }
 
-  .rock-container:has(.multi-ship-mode) .rock-icon {
-    transform: translateX(30vw) !important;
-  }
+  /* Rock offset calculated dynamically in TSX based on rock size */
+  /* Formula: translateX(calc(25vw + {200 - rockWidth/2}px)) */
+  /* This aligns all rock CENTERS to the same point */
 
   /* Ships container - full height for absolute positioning */
   .ships-around-rock.multi-ship-mode {

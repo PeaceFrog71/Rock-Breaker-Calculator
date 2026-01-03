@@ -354,13 +354,35 @@ export default function ResultDisplay({
   const hasExcessiveOvercharge = result.powerMarginPercent > 100;
   const hasCriticalOvercharge = result.powerMarginPercent > 100;
 
-  // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
+  // Get asteroid size in vh units (viewport-relative for consistent scaling)
+  // Returns { size: number, unit: 'vh' } for portrait mobile, px for desktop
   const getAsteroidSize = () => {
-    if (rock.mass < 15000) return { width: 100, height: 100 }; // and
-    if (rock.mass < 25000) return { width: 175, height: 175 }; // Small
-    if (rock.mass < 50000) return { width: 250, height: 250 }; // Medium
-    if (rock.mass < 100000) return { width: 325, height: 325 }; // Large
-    return { width: 400, height: 400 }; // Huge
+    const isPortraitMobile = isMobile && window.matchMedia('(orientation: portrait)').matches;
+
+    if (isPortraitMobile) {
+      // vh units for portrait mobile - scales with viewport
+      if (rock.mass < 5000) return { width: 12, height: 12, unit: 'vh' }; // Tiny
+      if (rock.mass < 10000) return { width: 18, height: 18, unit: 'vh' }; // Small
+      if (rock.mass < 25000) return { width: 24, height: 24, unit: 'vh' }; // Medium
+      if (rock.mass < 50000) return { width: 30, height: 30, unit: 'vh' }; // Large
+      return { width: 36, height: 36, unit: 'vh' }; // Huge (>= 50,000)
+    }
+
+    // px units for desktop/landscape
+    if (rock.mass < 5000) return { width: 100, height: 100, unit: 'px' }; // Tiny
+    if (rock.mass < 10000) return { width: 175, height: 175, unit: 'px' }; // Small
+    if (rock.mass < 25000) return { width: 250, height: 250, unit: 'px' }; // Medium
+    if (rock.mass < 50000) return { width: 325, height: 325, unit: 'px' }; // Large
+    return { width: 400, height: 400, unit: 'px' }; // Huge (>= 50,000)
+  };
+
+  // Get rock size class for CSS targeting
+  const getRockSizeClass = () => {
+    if (rock.mass < 5000) return 'rock-tiny';
+    if (rock.mass < 10000) return 'rock-small';
+    if (rock.mass < 25000) return 'rock-medium';
+    if (rock.mass < 50000) return 'rock-large';
+    return 'rock-huge';
   };
 
   // All rocks centered at the same position (no vertical offset)
@@ -936,9 +958,9 @@ export default function ResultDisplay({
                   Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
                 const isActive = shipInstance.isActive !== false;
 
-                // Portrait mode: fixed positions at 20%, 40%, 60%, 80% from top
-                // Index 0 = bottom (80%), index 3 = top (20%)
-                const portraitYPercents = [80, 60, 40, 20];
+                // Portrait mode: evenly distributed from 17% to 92% of container height
+                // Index 0 = bottom (92%), index 3 = top (17%)
+                const portraitYPercents = [92, 67, 42, 17];
                 const portraitYPercent = portraitYPercents[index] ?? 50;
 
                 // Check if this ship has any manned lasers (with laser heads configured)
@@ -966,18 +988,18 @@ export default function ResultDisplay({
                         const rockCenterEndY = center;
 
                         if (isPortraitMultiShip) {
-                          // 4 fixed ship positions - first at 80%, filling upward
-                          // In 800-unit SVG: positions at 640, 480, 320, 160
-                          const fixedYPositions = [640, 480, 320, 160];
+                          // 4 ship positions evenly distributed from 92% to 17%
+                          // In 800-unit SVG: positions at 736, 536, 336, 136
+                          const fixedYPositions = [736, 536, 336, 136];
 
-                          // Ships are at CSS left: -3rem, which is outside container
-                          // Use near-left-edge of SVG for laser origin (visible area)
-                          laserStartX = 70;
+                          // Ships are at CSS left: 0, flush to container edge
+                          // Use left edge of SVG for laser origin
+                          laserStartX = 30;
                           laserStartY = fixedYPositions[index] ?? center;
 
-                          // Rock is positioned at flex-end with translateX(120px)
-                          // Target past rock center so laser length scale (0.8) lands on rock surface
-                          rockCenterEndX = center + 350;
+                          // Rock is positioned with translateX(22vw) from flex-end
+                          // In 800-unit SVG, rock center is around 620-650
+                          rockCenterEndX = 640;
                         } else {
                           // Landscape mode: use polar coordinates
                           const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
@@ -1085,7 +1107,7 @@ export default function ResultDisplay({
                       style={isPortraitMultiShip ? {
                         position: "absolute",
                         top: `${portraitYPercent}%`,
-                        left: "0.5rem",
+                        left: "0",
                         transform: "translateY(-50%)",
                       } : {
                         position: "absolute",
@@ -1450,13 +1472,18 @@ export default function ResultDisplay({
 
           {/* Rock in center */}
           <div
-            className={`rock-icon ${getStatusClass()} ${
+            className={`rock-icon ${getStatusClass()} ${getRockSizeClass()} ${
               hasExcessiveOvercharge ? "overcharge-warning" : ""
             }`}
             style={{
               position: "relative",
               marginTop:
                 rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined,
+              // Portrait multi-ship mode: fixed offset for all rock sizes
+              // If centers don't align naturally, we'll tune per-size empirically
+              ...(miningGroup && isMobile && window.matchMedia('(orientation: portrait)').matches ? {
+                transform: `translateX(25vw)`,
+              } : {}),
             }}
             onClick={(e) => e.stopPropagation()}>
             <div
@@ -1468,8 +1495,8 @@ export default function ResultDisplay({
                 alt="Asteroid"
                 className="asteroid-image"
                 style={{
-                  width: `${getAsteroidSize().width}px`,
-                  height: `${getAsteroidSize().height}px`,
+                  width: `${getAsteroidSize().width}${getAsteroidSize().unit}`,
+                  height: `${getAsteroidSize().height}${getAsteroidSize().unit}`,
                   imageRendering: "pixelated",
                 }}
               />
