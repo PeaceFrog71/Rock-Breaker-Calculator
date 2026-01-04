@@ -893,18 +893,24 @@ function App() {
                     miningGroup={miningGroup}
                     onChange={setMiningGroup}
                   />
-                  {/* Ship Library for Mining Group - desktop only (mobile uses drawer) */}
+                  {/* Group Library and Ship Library for Mining Group - desktop only (mobile uses drawers) */}
                   {!isMobile && (
-                    <ConfigManager
-                      onAddToGroup={(shipInstance) => {
-                        if (miningGroup.ships.length >= 4) {
-                          alert('Maximum of 4 ships allowed in mining group');
-                          return;
-                        }
-                        shipInstance.isActive = true;
-                        setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
-                      }}
-                    />
+                    <>
+                      <MiningGroupManager
+                        currentMiningGroup={miningGroup}
+                        onLoad={setMiningGroup}
+                      />
+                      <ConfigManager
+                        onAddToGroup={(shipInstance) => {
+                          if (miningGroup.ships.length >= 4) {
+                            alert('Maximum of 4 ships allowed in mining group');
+                            return;
+                          }
+                          shipInstance.isActive = true;
+                          setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
+                        }}
+                      />
+                    </>
                   )}
                 </>
               ) : (

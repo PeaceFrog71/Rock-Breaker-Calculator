@@ -370,6 +370,47 @@ export function loadMiningGroup(id: string): SavedMiningGroup | null {
   return groups.find((g) => g.id === id) || null;
 }
 
+/**
+ * Export mining group as JSON file download
+ */
+export function exportMiningGroup(savedGroup: SavedMiningGroup): void {
+  const dataStr = JSON.stringify(savedGroup, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(dataBlob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${savedGroup.name.replace(/[^a-z0-9]/gi, '_')}_group.json`;
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Import mining group from JSON file
+ */
+export function importMiningGroup(file: File): Promise<SavedMiningGroup> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target?.result as string);
+        const newGroup = saveMiningGroup(
+          imported.name || 'Imported Group',
+          imported.miningGroup
+        );
+        resolve(newGroup);
+      } catch (error) {
+        reject(new Error('Invalid mining group file'));
+      }
+    };
+
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+}
+
 // ===== HELPER FUNCTIONS =====
 
 /**

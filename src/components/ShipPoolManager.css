@@ -35,13 +35,13 @@
   background: var(--bg-secondary);
   color: var(--accent-cyan);
   border: 1px solid var(--accent-cyan);
-  padding: 0.4rem;
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  width: 3rem;
+  width: 6rem;              /* 1:2 ratio - width is 2x height */
   height: 3rem;
   line-height: 1.2;
   text-align: center;
@@ -110,10 +110,12 @@
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  font-size: 0.6rem;
+  width: auto;              /* Override base width: 100% */
+  max-width: none;          /* Override base max-width */
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 0.15rem 0.3rem;
-  border-radius: 3px;
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -245,4 +247,31 @@
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+/* Mobile: Make Add Ship button a large plus sign */
+@media (pointer: coarse) {
+  .add-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+  }
+
+  .add-ship-button::after {
+    content: '+';
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--accent-cyan);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .add-ship-button:hover::after,
+  .add-ship-button:active::after {
+    color: var(--bg-dark);
+  }
 }

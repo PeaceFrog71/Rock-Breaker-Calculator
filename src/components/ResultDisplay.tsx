@@ -1343,33 +1343,71 @@ export default function ResultDisplay({
                         }
                       })()}
                       <div className="ship-label">{shipInstance.name}</div>
-
-                      {/* Scanning indicator - shows small icon when this ship is the scanner */}
-                      {rock.resistanceMode === 'modified' &&
-                       rock.scannedByShipId === shipInstance.id && (
-                        <span
-                          className="scanning-indicator"
-                          style={isPortraitMultiShip ? {
-                            // Portrait mode: +3vw up and +3vw right of ship
-                            position: "absolute",
-                            top: "-3vw",
-                            right: "-3vw",
-                            fontSize: "0.8rem",
-                            zIndex: 30,
-                            pointerEvents: "none"
-                          } : {
-                            // Landscape mode
-                            position: "absolute",
-                            top: "-15px",
-                            right: "-15px",
-                            fontSize: "0.9rem",
-                            zIndex: 10,
-                            pointerEvents: "none"
-                          }}>
-                          📡
-                        </span>
-                      )}
                     </div>
+
+                    {/* Scanning sensor for Prospector/GOLEM in multi-ship mode */}
+                    {onSetScanningShip &&
+                     rock.resistanceMode === 'modified' &&
+                     (shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&
+                     shipInstance.config.lasers[0]?.laserHead &&
+                     shipInstance.config.lasers[0].laserHead.id !== 'none' && (
+                      <span
+                        className={`scanning-sensor ${
+                          rock.scannedByShipId === shipInstance.id && rock.scannedByLaserIndex === 0
+                            ? 'selected' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onSetScanningShip(shipInstance.id, 0);
+                        }}
+                        title={isMobile ? "Tap to mark as scanning ship" : "Click to mark as scanning ship"}
+                        style={{
+                          position: "absolute",
+                          top: isPortraitMultiShip ? `calc(50% + ${y - 40}px)` : `calc(50% + ${y - 50}px)`,
+                          left: x < 0
+                            ? `calc(50% + ${x - 50}px)`
+                            : `calc(50% + ${x + 50}px)`,
+                          transform: "translate(-50%, -50%)",
+                          cursor: "pointer",
+                          pointerEvents: "auto",
+                          zIndex: 10,
+                          fontSize: isPortraitMultiShip ? "1rem" : "1.2rem"
+                        }}>
+                        📡
+                      </span>
+                    )}
+
+                    {/* Scanning sensor for MOLE on mobile - positioned 3vw up and right of ship */}
+                    {isMobile &&
+                     onSetScanningShip &&
+                     rock.resistanceMode === 'modified' &&
+                     shipInstance.ship.id === 'mole' &&
+                     shipInstance.config.lasers.some(l => l.laserHead && l.laserHead.id !== 'none') && (
+                      <span
+                        className={`scanning-sensor ${
+                          rock.scannedByShipId === shipInstance.id ? 'selected' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          // For MOLE on mobile, select first manned laser
+                          const firstMannedIndex = shipInstance.config.lasers.findIndex(l => l.isManned !== false && l.laserHead && l.laserHead.id !== 'none');
+                          onSetScanningShip(shipInstance.id, firstMannedIndex >= 0 ? firstMannedIndex : 0);
+                        }}
+                        title="Tap to mark as scanning ship"
+                        style={{
+                          position: "absolute",
+                          top: "-3vw",
+                          right: "-3vw",
+                          fontSize: "1rem",
+                          cursor: "pointer",
+                          pointerEvents: "auto",
+                          zIndex: 30,
+                        }}>
+                        📡
+                      </span>
+                    )}
 
                     {/* Active module controls for Prospector/GOLEM in multi-ship mode */}
                     {(shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&

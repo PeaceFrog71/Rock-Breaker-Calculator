@@ -46,6 +46,9 @@ export default function ConfigManager({
       return;
     }
 
+    // Guard: handleSave is only callable when currentShip and currentConfig are defined
+    if (!currentShip || !currentConfig || !onLoad) return;
+
     const trimmedName = configName.trim();
     const existing = savedConfigs.find(
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
