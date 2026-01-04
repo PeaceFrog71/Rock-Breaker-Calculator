@@ -1220,7 +1220,7 @@ button, .btn-primary, .btn-secondary {
   .compact-form-group label,
   .resistance-input-group label,
   .gadget-label-row label {
-    font-size: 0.85rem !important;
+    font-size: 1rem !important;
     font-family: inherit !important;
   }
 
