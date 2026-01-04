@@ -32,24 +32,24 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Ko-fi Widget - only load on desktop -->
+    <!-- Ko-fi Widget - only load on non-tablet desktop -->
     <script>
-      // Only load Ko-fi widget on desktop (screen width > 800px)
-      if (screen.width > 800) {
+      // Detect tablet landscape: touch screen + landscape + tall viewport
+      const isTabletLandscape = 'ontouchstart' in window &&
+        window.innerWidth > window.innerHeight &&
+        window.innerHeight >= 600 &&
+        screen.width > 800;
+
+      // Only load Ko-fi widget popup on desktop (not tablets)
+      if (screen.width > 800 && !isTabletLandscape) {
         const kofiScript = document.createElement('script');
         kofiScript.src = 'https://storage.ko-fi.com/cdn/scripts/overlay-widget.js';
         kofiScript.onload = function() {
-          // Detect tablet landscape: touch screen + landscape + tall enough viewport
-          const isTabletLandscape = 'ontouchstart' in window &&
-            window.innerWidth > window.innerHeight &&
-            window.innerHeight >= 600;
-
           kofiWidgetOverlay.draw('peacefroggaming', {
             'type': 'floating-chat',
             'floating-chat.donateButton.text': 'Support',
             'floating-chat.donateButton.background-color': '#00ff88',
-            'floating-chat.donateButton.text-color': '#0a0e27',
-            'floating-chat.position': isTabletLandscape ? 'right' : 'left'
+            'floating-chat.donateButton.text-color': '#0a0e27'
           });
         };
         document.body.appendChild(kofiScript);
@@ -94,11 +94,12 @@
       .floatingchat-container-wrap-mobi button {
         opacity: 0 !important;
       }
-      /* Our styled overlay button - nice oval shape */
+      /* Our styled Ko-fi button - nice oval shape */
       .kofi-overlay-btn {
         position: fixed;
         bottom: 10px;
         display: flex;
+        text-decoration: none;
         align-items: center;
         justify-content: center;
         gap: 0.5rem;
@@ -138,28 +139,28 @@
           display: none !important;
         }
       }
-      /* Tablet landscape: move Ko-fi to lower right */
+      /* Tablet landscape: Ko-fi button on right, clickable (opens in new tab) */
       @media (orientation: landscape) and (pointer: coarse) and (min-height: 600px) and (min-width: 768px) {
         .floatingchat-container-wrap,
         .floatingchat-container-wrap-mobi,
         [class*="floatingchat-container-wrap"] {
-          left: auto !important;
-          right: 10px !important;
-          transform: scaleX(1.65) scale(0.9) translateX(10%) !important;
-          transform-origin: right bottom !important;
+          display: none !important;  /* Hide widget on tablets */
         }
         .kofi-overlay-btn {
           left: auto !important;
           right: 10px !important;
           transform: scale(0.9) !important;
           transform-origin: right bottom !important;
+          pointer-events: auto !important;  /* Make clickable on tablets */
+          text-decoration: none;
+          cursor: pointer;
         }
       }
     </style>
-    <!-- Our styled button overlay - clicks pass through to Ko-fi underneath (desktop) -->
-    <div class="kofi-overlay-btn">
+    <!-- Ko-fi button: overlay on desktop (clicks pass through), direct link on tablet -->
+    <a class="kofi-overlay-btn" href="https://ko-fi.com/peacefroggaming" target="_blank" rel="noopener noreferrer">
       <img src="/rieger-icon.png" alt="" />
       <span>Buy me a Rieger-C3<br />on KO-FI</span>
-    </div>
+    </a>
   </body>
 </html>
