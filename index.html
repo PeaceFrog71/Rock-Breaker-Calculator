@@ -122,6 +122,23 @@
           display: none !important;
         }
       }
+      /* Tablet landscape: move Ko-fi to lower right */
+      @media (orientation: landscape) and (pointer: coarse) and (min-height: 600px) and (min-width: 768px) {
+        .floatingchat-container-wrap,
+        .floatingchat-container-wrap-mobi,
+        [class*="floatingchat-container-wrap"] {
+          left: auto !important;
+          right: 10px !important;
+          transform: scaleX(1.65) scale(0.9) !important;
+          transform-origin: right bottom !important;
+        }
+        .kofi-overlay-btn {
+          left: auto !important;
+          right: 10px !important;
+          transform: scale(0.9) !important;
+          transform-origin: bottom right !important;
+        }
+      }
     </style>
     <!-- Our styled button overlay - clicks pass through to Ko-fi underneath (desktop) -->
     <div class="kofi-overlay-btn">

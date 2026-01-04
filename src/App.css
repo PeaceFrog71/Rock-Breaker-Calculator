@@ -1221,7 +1221,8 @@ button, .btn-primary, .btn-secondary {
   [class*="floatingchat-container-wrap"] {
     left: auto !important;
     right: 10px !important;
-    transform-origin: right center !important;
+    transform: scaleX(1.65) scale(0.9) !important;
+    transform-origin: right bottom !important;
   }
 
   .kofi-overlay-btn {
@@ -1241,6 +1242,9 @@ button, .btn-primary, .btn-secondary {
 
   /* Center BASE/MODIFIED button text */
   .mode-toggle {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
     text-align: center !important;
   }
 }
