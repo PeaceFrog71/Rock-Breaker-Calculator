@@ -1202,6 +1202,19 @@ button, .btn-primary, .btn-secondary {
     padding: 0.5rem 1rem !important;
   }
 
+  /* Drawer tabs - larger touch targets for tablet */
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    height: 40vh !important;
+    padding: 1.75rem 1.25rem !important;
+  }
+
+  /* Bottom tab - height matches side tabs' width */
+  .mobile-drawer-tab.bottom {
+    height: auto !important;
+    padding: 0.75rem 1rem !important;
+  }
+
   /* Ko-fi button - move to lower right on tablet landscape */
   .floatingchat-container-wrap,
   .floatingchat-container-wrap-mobi,
