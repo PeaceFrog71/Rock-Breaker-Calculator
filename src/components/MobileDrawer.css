@@ -60,7 +60,7 @@
   bottom: 0;
   top: auto;
   width: 90% !important;
-  height: 52vh; /* 30% taller than original 40vh */
+  height: 85vh;
   border-bottom: none;
   border-top: 1px solid var(--accent-cyan);
   border-radius: 20px 20px 0 0;
@@ -110,6 +110,70 @@
 /* Hide "Gadgets" h2 in drawer content (already shown in header) */
 .mobile-drawer.right .gadget-header-compact h2 {
   display: none;
+}
+
+/* Hide "Ship Library" h2 in bottom drawer (already shown in header) */
+.mobile-drawer.bottom .config-manager > h2 {
+  display: none;
+}
+
+/* Ship Library buttons - fill drawer width */
+.mobile-drawer.bottom .config-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.mobile-drawer.bottom .config-actions .btn-primary,
+.mobile-drawer.bottom .config-actions .btn-secondary {
+  flex: 1;
+  padding: 1rem;
+  font-size: 1.1rem;
+  min-height: 3.5rem;
+}
+
+.mobile-drawer.bottom .config-actions .btn-icon {
+  font-size: 1.3rem;
+}
+
+.mobile-drawer.bottom .config-actions .btn-label {
+  font-size: 1.1rem;
+}
+
+/* Config list items in bottom drawer */
+.mobile-drawer.bottom .configs-list {
+  max-height: none;
+  gap: 1rem;
+}
+
+.mobile-drawer.bottom .config-item {
+  padding: 1rem;
+}
+
+.mobile-drawer.bottom .config-name {
+  font-size: 1.2rem;
+}
+
+.mobile-drawer.bottom .config-ship {
+  font-size: 1rem;
+}
+
+.mobile-drawer.bottom .config-box {
+  font-size: 0.9rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.mobile-drawer.bottom .config-buttons {
+  gap: 0.5rem;
+}
+
+.mobile-drawer.bottom .btn-load,
+.mobile-drawer.bottom .btn-export,
+.mobile-drawer.bottom .btn-delete {
+  padding: 0.6rem 1rem;
+  font-size: 1.1rem;
+  min-width: 3rem;
+  min-height: 2.5rem;
 }
 
 .mobile-drawer-close:hover {

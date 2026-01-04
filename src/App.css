@@ -653,12 +653,6 @@ button, .btn-primary, .btn-secondary {
   cursor: not-allowed;
 }
 
-.lasers-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .mode-toggle {
   display: flex;
   gap: 0.5rem;
@@ -1056,7 +1050,7 @@ button, .btn-primary, .btn-secondary {
   .mode-toggle {
     padding: 0.3rem !important;
     gap: 0.3rem !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.4rem !important;
   }
 
   .mode-button {
@@ -1065,9 +1059,15 @@ button, .btn-primary, .btn-secondary {
     letter-spacing: 0 !important;
   }
 
-  /* Ship selector title - centered */
+  /* Ship selector - tighter spacing for mobile */
   .ship-selector h2 {
     text-align: center !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Panel headings - tighter on mobile */
+  .panel h2 {
+    margin-bottom: 0.5rem !important;
   }
 }
 

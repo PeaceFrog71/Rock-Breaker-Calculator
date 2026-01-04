@@ -99,14 +99,16 @@ export default function ConfigManager({
       <h2>Ship Library</h2>
 
       <div className="config-actions">
-        <button className="btn-primary" onClick={() => {
+        <button className="btn-primary btn-icon-text" onClick={() => {
           setConfigName(currentConfigName || '');
           setShowDialog(true);
         }}>
-          💾 Save Current
+          <span className="btn-icon">💾</span>
+          <span className="btn-label">Save Current</span>
         </button>
-        <label className="btn-secondary">
-          📥 Import
+        <label className="btn-secondary btn-icon-text">
+          <span className="btn-icon">📥</span>
+          <span className="btn-label">Import</span>
           <input
             type="file"
             accept=".json"
@@ -145,10 +147,8 @@ export default function ConfigManager({
           savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
             <div key={config.id} className="config-item">
               <div className="config-info">
-                <div className="config-header">
-                  <div className="config-name">{config.name}</div>
-                  <div className="config-meta">{config.ship.name}</div>
-                </div>
+                <div className="config-name">{config.name}</div>
+                <div className="config-ship">{config.ship.name}</div>
                 <div className="config-details">
                   {config.config.lasers
                     .filter(laser => laser.laserHead && laser.laserHead.id !== 'none')

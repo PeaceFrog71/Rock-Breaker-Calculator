@@ -133,7 +133,7 @@ export const LASER_HEADS: LaserHead[] = [
 
 // Modules database - values from RedMonsterSC's Mining Cheatsheet
 export const MODULES: Module[] = [
-  { id: 'none', name: '---', powerModifier: 1, resistModifier: 1, category: 'passive' },
+  { id: 'none', name: 'No Module Selected', powerModifier: 1, resistModifier: 1, category: 'passive' },
   // Active Modules
   // activationType: 'stackable' = can run with other actives (only Surge), 'sustained' = only one at a time
   { id: 'brandt', name: 'Brandt', powerModifier: 1.35, resistModifier: 1.15, shatterDamageModifier: 0.7, category: 'active', activationType: 'sustained', duration: '60s', uses: 5 },

@@ -19,7 +19,7 @@ import {
   loadCurrentConfiguration,
 } from "./utils/storage";
 import ShipSelector from "./components/ShipSelector";
-import LaserPanel from "./components/LaserPanel";
+import LasersSetup from "./components/LasersSetup";
 import ResultDisplay from "./components/ResultDisplay";
 import ConfigManager from "./components/ConfigManager";
 import ShipPoolManager from "./components/ShipPoolManager";
@@ -126,6 +126,7 @@ function App() {
   // Mobile drawer state
   const [rockDrawerOpen, setRockDrawerOpen] = useState(false);
   const [gadgetDrawerOpen, setGadgetDrawerOpen] = useState(false);
+  const [libraryDrawerOpen, setLibraryDrawerOpen] = useState(false);
 
   // Mobile detection via shared hook
   const isMobile = useMobileDetection();
@@ -722,7 +723,7 @@ function App() {
 
                 return (
                   <>
-                    {/* Mobile Drawers */}
+                    {/* Mobile Drawers - Rock and Gadgets on Overview tab */}
                     {isMobile && (
                       <>
                         <MobileDrawer
@@ -809,6 +810,25 @@ function App() {
           {/* Mining Config Tab */}
           {activeTab === "mining" && (
             <div className="mining-config-tab">
+              {/* Mobile Library Drawer - only on Ship Setup tab */}
+              {isMobile && (
+                <MobileDrawer
+                  isOpen={libraryDrawerOpen}
+                  onClose={() => setLibraryDrawerOpen(false)}
+                  onOpen={() => setLibraryDrawerOpen(true)}
+                  side="bottom"
+                  title="Ship Library"
+                  tabLabel="Library"
+                >
+                  <ConfigManager
+                    currentShip={selectedShip}
+                    currentConfig={config}
+                    currentConfigName={currentConfigName}
+                    onLoad={handleLoadConfiguration}
+                  />
+                </MobileDrawer>
+              )}
+
               {/* Mode toggle */}
               <div className="mode-toggle">
                 <button
@@ -836,30 +856,25 @@ function App() {
                     configName={currentConfigName}
                   />
 
-                  <div className="lasers-container">
-                    <h2>Laser Configuration</h2>
-                    {config.lasers.map((laser, index) => (
-                      <LaserPanel
-                        key={index}
-                        laserIndex={index}
-                        laser={laser}
-                        selectedShip={selectedShip}
-                        showMannedToggle={selectedShip.id === 'mole'}
-                        onChange={(updatedLaser) => {
-                          const newLasers = [...config.lasers];
-                          newLasers[index] = updatedLaser;
-                          setConfig({ ...config, lasers: newLasers });
-                        }}
-                      />
-                    ))}
-                  </div>
-
-                  <ConfigManager
-                    currentShip={selectedShip}
-                    currentConfig={config}
-                    currentConfigName={currentConfigName}
-                    onLoad={handleLoadConfiguration}
+                  <LasersSetup
+                    config={config}
+                    selectedShip={selectedShip}
+                    onLaserChange={(index, updatedLaser) => {
+                      const newLasers = [...config.lasers];
+                      newLasers[index] = updatedLaser;
+                      setConfig({ ...config, lasers: newLasers });
+                    }}
                   />
+
+                  {/* Ship Library - only show inline on desktop (mobile uses drawer) */}
+                  {!isMobile && (
+                    <ConfigManager
+                      currentShip={selectedShip}
+                      currentConfig={config}
+                      currentConfigName={currentConfigName}
+                      onLoad={handleLoadConfiguration}
+                    />
+                  )}
                 </>
               )}
             </div>

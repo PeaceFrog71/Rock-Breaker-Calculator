@@ -132,3 +132,25 @@
   color: var(--text-secondary);
   background: rgba(168, 181, 199, 0.15);
 }
+
+/* Make data plaques tappable on mobile when collapsed */
+.laser-panel .component-info-box.tappable {
+  cursor: pointer;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.laser-panel .component-info-box.tappable:active {
+  background: rgba(0, 255, 255, 0.15);
+}
+
+/* Subtle hint that plaques are tappable */
+.laser-panel .component-info-box.tappable::after {
+  content: '✎';
+  position: absolute;
+  right: 0.4rem;
+  top: 0.3rem;
+  color: var(--accent-cyan);
+  font-size: 0.65rem;
+  opacity: 0.5;
+}

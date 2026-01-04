@@ -1,0 +1,53 @@
+.lasers-setup {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.lasers-setup h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.lasers-setup .expand-indicator {
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+}
+
+.lasers-setup .laser-summary {
+  font-size: 0.85rem;
+  font-weight: normal;
+  color: var(--accent-gold);
+  margin-left: auto;
+}
+
+.lasers-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Mobile styles */
+.lasers-setup.mobile h2 {
+  cursor: pointer;
+  user-select: none;
+}
+
+.lasers-setup.mobile h2:active {
+  opacity: 0.8;
+}
+
+/* Remove inner panel styling when inside lasers-setup */
+.lasers-setup .laser-panel.panel {
+  background: var(--bg-dark);
+  border-color: var(--border);
+  padding: 1rem;
+}
+
+.lasers-setup .laser-panel.panel:hover {
+  border-color: var(--accent-blue);
+}
