@@ -1215,6 +1215,18 @@ button, .btn-primary, .btn-secondary {
     left: auto !important;
     right: 10px !important;
   }
+
+  /* Rock Properties labels - smaller, consistent font */
+  .compact-form-group label,
+  .resistance-input-group label {
+    font-size: 0.65rem !important;
+    font-family: inherit !important;
+  }
+
+  /* Center BASE/MODIFIED button text */
+  .mode-toggle {
+    text-align: center !important;
+  }
 }
 
 /* Fallback for very old browsers that don't support writing-mode */
