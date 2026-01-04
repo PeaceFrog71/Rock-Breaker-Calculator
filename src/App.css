@@ -854,6 +854,13 @@ button, .btn-primary, .btn-secondary {
     max-width: 100vw !important;
     box-sizing: border-box !important;
   }
+
+  /* Ensure drawer tabs have vertical text on old browsers */
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    writing-mode: vertical-rl !important;
+    text-orientation: mixed !important;
+  }
 }
 
 /* Mobile responsive overrides - using multiple detection methods */
