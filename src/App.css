@@ -1201,4 +1201,35 @@ button, .btn-primary, .btn-secondary {
     margin: -4rem auto 3.5rem auto !important;
     padding: 0.5rem 1rem !important;
   }
+
+  /* Ko-fi button - move to lower right on tablet landscape */
+  .floatingchat-container-wrap,
+  .floatingchat-container-wrap-mobi,
+  [class*="floatingchat-container-wrap"] {
+    left: auto !important;
+    right: 10px !important;
+    transform-origin: right center !important;
+  }
+
+  .kofi-overlay-btn {
+    left: auto !important;
+    right: 10px !important;
+  }
+}
+
+/* Fallback for very old browsers that don't support writing-mode */
+/* Default: use transform rotation for vertical text */
+.mobile-drawer-tab.left .mobile-drawer-tab-text,
+.mobile-drawer-tab.right .mobile-drawer-tab-text {
+  display: inline-block;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
+
+/* Modern browsers: reset transform and rely on writing-mode instead */
+@supports (writing-mode: vertical-rl) {
+  .mobile-drawer-tab.left .mobile-drawer-tab-text,
+  .mobile-drawer-tab.right .mobile-drawer-tab-text {
+    transform: none;
+  }
 }
