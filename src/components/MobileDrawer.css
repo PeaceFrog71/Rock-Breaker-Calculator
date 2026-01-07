@@ -305,7 +305,7 @@
 /* Edge tabs - visible when drawer is closed */
 .mobile-drawer-tab {
   position: fixed;
-  top: 54%; /* Centered on display area (below header) */
+  top: 50%; /* Centered on page */
   transform: translateY(-50%);
   z-index: 998;
   background: transparent;
@@ -502,6 +502,12 @@
     height: 40vh;
   }
 
+  /* Side tabs - reduced width for iPad */
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    width: 6rem;
+  }
+
   /* Bottom tab - reduced height for iPad to avoid deficit bar collision */
   .mobile-drawer-tab.bottom {
     height: 2.75rem !important;
@@ -535,7 +541,14 @@
   .mobile-drawer-content select {
     padding: 0.5rem 0.75rem;
     min-height: clamp(2.25rem, 5vh, 2.5rem);
-    font-size: 1.5rem;
+    font-size: 1.1rem;
+    max-width: 100%;
+  }
+
+  .mobile-drawer-content select {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .mobile-drawer-content button {
