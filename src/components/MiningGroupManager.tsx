@@ -7,6 +7,8 @@ import {
   updateMiningGroup,
   deleteMiningGroup,
   loadMiningGroup,
+  exportMiningGroup,
+  importMiningGroup,
 } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
 import './ConfigManager.css';
@@ -14,11 +16,13 @@ import './ConfigManager.css';
 interface MiningGroupManagerProps {
   currentMiningGroup: MiningGroup;
   onLoad: (miningGroup: MiningGroup) => void;
+  onAfterLoad?: () => void;
 }
 
 export default function MiningGroupManager({
   currentMiningGroup,
   onLoad,
+  onAfterLoad,
 }: MiningGroupManagerProps) {
   const [savedGroups, setSavedGroups] = useState<SavedMiningGroup[]>(
     getSavedMiningGroups()
@@ -64,6 +68,9 @@ export default function MiningGroupManager({
     setSavedGroups(getSavedMiningGroups());
     setGroupName('');
     setShowDialog(false);
+
+    // Close drawer after save (same callback as after load)
+    onAfterLoad?.();
   };
 
   const handleLoad = (id: string) => {
@@ -71,6 +78,7 @@ export default function MiningGroupManager({
     if (group) {
       // Include the saved name in the loaded group
       onLoad({ ...group.miningGroup, name: group.name });
+      onAfterLoad?.();
     }
   };
 
@@ -81,13 +89,33 @@ export default function MiningGroupManager({
     }
   };
 
+  const handleExport = (group: SavedMiningGroup) => {
+    exportMiningGroup(group);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    importMiningGroup(file)
+      .then((imported) => {
+        setSavedGroups(getSavedMiningGroups());
+        alert(`Imported mining group "${imported.name}"`);
+      })
+      .catch((error) => {
+        alert(`Failed to import: ${error.message}`);
+      });
+
+    e.target.value = '';
+  };
+
   return (
     <div className="config-manager panel">
       <h2>Mining Group Library</h2>
 
       <div className="config-actions">
         <button
-          className="btn-primary"
+          className="btn-primary btn-icon-text"
           onClick={() => {
             setGroupName(currentMiningGroup.name || '');
             setShowDialog(true);
@@ -95,8 +123,19 @@ export default function MiningGroupManager({
           disabled={currentMiningGroup.ships.length === 0}
           title={currentMiningGroup.ships.length === 0 ? 'Add ships to save' : 'Save current group to library'}
         >
-          💾 Save Current
+          <span className="btn-icon">💾</span>
+          <span className="btn-label">Save Group</span>
         </button>
+        <label className="btn-secondary btn-icon-text">
+          <span className="btn-icon">📥</span>
+          <span className="btn-label">Import</span>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleImport}
+            style={{ display: 'none' }}
+          />
+        </label>
       </div>
 
       {showDialog && (
@@ -168,6 +207,13 @@ export default function MiningGroupManager({
                   title="Load"
                 >
                   ▲
+                </button>
+                <button
+                  onClick={() => handleExport(group)}
+                  className="btn-export"
+                  title="Export"
+                >
+                  📤
                 </button>
                 <button
                   onClick={() => handleDelete(group.id, group.name)}

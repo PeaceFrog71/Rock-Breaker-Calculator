@@ -2,12 +2,15 @@
   --bg-dark: #0a0e27;
   --bg-medium: #151a35;
   --bg-light: #1f2642;
+  --bg-primary: #0d1229;
+  --bg-secondary: #141a36;
   --accent: #00d9ff;
   --accent-blue: #00d9ff;
   --accent-cyan: #00ffcc;
   --accent-gold: #ffa500;
   --text-primary: #e0e6ed;
   --text-secondary: #a8b5c7;
+  --text: #e0e6ed;
   --success: #00ff88;
   --warning: #ffaa00;
   --danger: #ff3366;
@@ -64,8 +67,8 @@ button, .btn-primary, .btn-secondary {
 }
 
 .header-logo {
-  width: 120px;
-  height: 120px;
+  width: 156px;
+  height: 156px;
   object-fit: contain;
   filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.6)) drop-shadow(0 0 30px rgba(0, 217, 255, 0.4));
   transition: all 0.3s ease;
@@ -82,6 +85,7 @@ button, .btn-primary, .btn-secondary {
   flex-direction: column;
   align-items: center;
   grid-column: 2;
+  position: relative;
 }
 
 .app-header h1 {
@@ -99,6 +103,13 @@ button, .btn-primary, .btn-secondary {
   text-shadow: 0 0 30px rgba(0, 217, 255, 0.3);
   font-style: italic;
   transform: skewX(-8deg);
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.title-line {
+  display: block;
 }
 
 .version-tag {
@@ -106,7 +117,9 @@ button, .btn-primary, .btn-secondary {
   font-size: 0.75rem;
   color: var(--accent-blue);
   letter-spacing: 0.1em;
-  margin-top: 0.25rem;
+  position: absolute;
+  bottom: -0.5rem;
+  right: 0;
 }
 
 .feedback-link {
@@ -640,12 +653,6 @@ button, .btn-primary, .btn-secondary {
   cursor: not-allowed;
 }
 
-.lasers-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .mode-toggle {
   display: flex;
   gap: 0.5rem;
@@ -773,6 +780,304 @@ button, .btn-primary, .btn-secondary {
   background: var(--accent-cyan);
 }
 
+/* Mobile single-column layout for overview tab */
+.overview-tab.mobile-single-column {
+  display: block !important;
+  grid-template-columns: none !important;
+  min-width: 0 !important;
+  max-width: 100vw;
+  overflow-x: hidden;
+  padding: 0 2.5rem; /* Add horizontal padding for drawer tabs */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.overview-tab.mobile-single-column .overview-center {
+  width: 100% !important;
+  max-width: 100vw;
+  padding: 0;
+  box-sizing: border-box;
+  display: block !important;
+  margin: 0 auto;
+}
+
+/* Mobile responsive overrides - applies to whole app on mobile */
+.overview-tab.mobile-single-column ~ *,
+.overview-tab.mobile-single-column {
+  min-width: 0 !important;
+}
+
+/* Landscape mobile - add padding for drawer tabs */
+@media (orientation: landscape) and (pointer: coarse),
+       (orientation: landscape) and (max-height: 500px) {
+  /* Force everything to fit within viewport minus tab space */
+  .app {
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+  }
+
+  /* Main content area needs padding for drawer tabs */
+  .overview-tab.mobile-single-column {
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .overview-tab.mobile-single-column .overview-center {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    max-width: 375px !important;
+    width: 100% !important;
+  }
+
+  /* Force all children to respect width */
+  .overview-tab.mobile-single-column * {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Header also needs padding for tabs */
+  .app-header {
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tab bar needs padding too */
+  .tab-navigation {
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Ensure drawer tabs have vertical text on old browsers */
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    writing-mode: vertical-rl !important;
+    text-orientation: mixed !important;
+  }
+}
+
+/* Mobile responsive overrides - using multiple detection methods */
+@media (pointer: coarse) and (max-width: 768px),
+       (pointer: coarse) and (max-height: 768px),
+       (hover: none) and (max-width: 768px),
+       (hover: none) and (max-height: 768px),
+       (max-width: 480px) {
+  html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  .app {
+    min-width: 0 !important;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  .app-header {
+    min-width: 0 !important;
+    padding: 1rem;
+  }
+
+  .content-wrapper {
+    min-width: 0 !important;
+    max-width: 100vw;
+    padding: 0.5rem;
+    overflow-x: hidden;
+  }
+
+  /* Force single-column layout - override grid completely */
+  .overview-tab {
+    display: block !important;
+    grid-template-columns: none !important;
+    min-width: 0 !important;
+    max-width: 100vw;
+    width: 100%;
+  }
+
+  .overview-sidebar {
+    display: none !important;
+  }
+
+  .overview-center {
+    width: 100% !important;
+    max-width: 100vw;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto !important;
+    text-align: center;
+  }
+
+  .result-display {
+    width: 100%;
+    max-width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* Ensure rock display fills available space on mobile */
+  .rock-display {
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    margin: 0 auto;
+  }
+
+  /* Center status indicator on mobile */
+  .status-indicator {
+    width: auto;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  /* Center power bar container */
+  .power-bar-container {
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    margin: 0 auto;
+  }
+
+  /* Center stats grid on mobile */
+  .stats-grid {
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    margin: 0 auto;
+  }
+
+  /* Center calculation details */
+  .calculation-details {
+    width: 100%;
+    max-width: calc(100vw - 1rem);
+    margin: 0 auto;
+  }
+}
+
+/* Portrait mode on mobile - force single column centered layout */
+@media (orientation: portrait) and (pointer: coarse),
+       (orientation: portrait) and (max-width: 480px) {
+  /* Ensure full viewport coverage */
+  html, body {
+    background: var(--bg-dark) !important;
+    min-height: 100vh !important;
+    width: 100vw !important;
+  }
+
+  /* Override 800px min-widths that cause horizontal overflow */
+  .app-header {
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    padding: 0.5rem 1.8rem !important; /* Space for tabs */
+    box-sizing: border-box !important;
+    grid-template-columns: 52px 1fr 28px !important; /* Smaller columns */
+    gap: 0.3rem !important;
+  }
+
+  .app-header .header-logo {
+    width: 52px !important;
+    height: 52px !important;
+  }
+
+  .app-header h1 {
+    font-size: 0.85rem !important;
+  }
+
+  .content-wrapper {
+    min-width: 0 !important;
+    max-width: 100vw !important;
+    padding-left: 1.8rem !important;
+    padding-right: 1.8rem !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Nuclear option - force everything full width and centered */
+  .overview-tab,
+  .overview-tab.mobile-single-column {
+    display: block !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 1.8rem !important; /* Space for drawer tabs */
+    box-sizing: border-box !important;
+  }
+
+  .overview-center {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .result-display {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Center child elements with margin auto */
+  .result-display > * {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .rock-display {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  .status-indicator {
+    width: fit-content !important;
+    margin: 0 auto !important;
+  }
+
+  .power-bar-container,
+  .stats-grid,
+  .calculation-details {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.5rem 0 !important;
+  }
+
+  /* Mode toggle buttons - smaller for portrait */
+  .mode-toggle {
+    padding: 0.3rem !important;
+    gap: 0.3rem !important;
+    margin-bottom: 0.4rem !important;
+  }
+
+  .mode-button {
+    padding: 0.5rem 0.5rem !important;
+    font-size: 0.75rem !important;
+    letter-spacing: 0 !important;
+  }
+
+  /* Ship selector - tighter spacing for mobile */
+  .ship-selector h2 {
+    text-align: center !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* Panel headings - tighter on mobile */
+  .panel h2 {
+    margin-bottom: 0.5rem !important;
+  }
+}
+
 /* Mobile Ko-fi inline link - hidden on desktop */
 .kofi-mobile-inline {
   display: none;
@@ -808,5 +1113,176 @@ button, .btn-primary, .btn-secondary {
   .kofi-mobile-inline span {
     line-height: 1.2;
     text-align: center;
+  }
+}
+
+/* ==========================================================================
+   TABLET LANDSCAPE - Override all previous mobile rules for tablets
+   Tablets have landscape height > 600px, phones have < 500px
+   This MUST be at the end of the file to override earlier rules
+   ========================================================================== */
+@media (orientation: landscape) and (pointer: coarse) and (min-height: 600px) and (min-width: 768px) {
+  /* Header - tablet-appropriate sizing (not desktop huge, not phone tiny) */
+  .app-header {
+    padding: 0.75rem 2.5rem !important;
+    grid-template-columns: 60px 1fr 38px !important;
+    gap: 0.5rem !important;
+  }
+
+  .app-header h1 {
+    font-size: 1.4rem !important;
+  }
+
+  .header-logo {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .version-tag {
+    font-size: 0.6rem !important;
+  }
+
+  /* Tab navigation - compact for tablet */
+  .tab-navigation {
+    padding: 0.25rem 2.5rem !important;
+  }
+
+  .tab-button {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* Content area - 75% width, 60% height */
+  .overview-tab.mobile-single-column .overview-center {
+    max-width: calc(75vw - 5rem) !important;
+    width: 100% !important;
+  }
+
+  .overview-center {
+    max-width: calc(75vw - 5rem) !important;
+  }
+
+  /* Result display - scale entire display to fit */
+  /* overflow:hidden contains the laser container that overflows from rock-display */
+  .result-display {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  .rock-display {
+    transform: scale(0.9) !important;
+    transform-origin: top center !important;
+    overflow: hidden !important;
+    border-radius: 12px !important;
+    margin-top: -1rem !important;
+  }
+
+  /* Ensure ship image stays inside container */
+  .rock-display .ship-image-container {
+    overflow: hidden !important;
+    border-radius: 8px !important;
+  }
+
+  /* Status indicator - scale to match display (0.9 scale), tight to display */
+  .status-indicator {
+    padding: 0.5rem 1rem !important;
+    transform: scale(0.9) !important;
+    transform-origin: top center !important;
+    margin: 0 auto 0 auto !important;
+  }
+
+  .status-indicator h2 {
+    font-size: 1.2rem !important;
+  }
+
+  /* Power bar - scale to match display (0.9 scale), pull up to display */
+  .power-bar-container {
+    transform: scale(0.9) !important;
+    transform-origin: top center !important;
+    margin: -4rem auto 3.5rem auto !important;
+    padding: 0.5rem 1rem !important;
+  }
+
+  /* Drawer tabs - larger touch targets for tablet */
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    height: 40vh !important;
+    padding: 1.75rem 1.25rem !important;
+  }
+
+  /* Bottom tab - height matches side tabs' width (1.25rem padding matches side tabs) */
+  .mobile-drawer-tab.bottom {
+    height: auto !important;
+    padding: 1.25rem 1rem !important;
+  }
+
+  /* Ko-fi button - move to lower right on tablet landscape */
+  .floatingchat-container-wrap,
+  .floatingchat-container-wrap-mobi,
+  [class*="floatingchat-container-wrap"] {
+    left: auto !important;
+    right: 10px !important;
+    transform: scaleX(1.65) scale(0.9) !important;
+    transform-origin: right bottom !important;
+  }
+
+  .kofi-overlay-btn {
+    left: auto !important;
+    right: 10px !important;
+    transform: scale(0.9) !important;
+    transform-origin: bottom right !important;
+  }
+
+  /* Rock Properties & Gadget labels - consistent font size */
+  .compact-form-group label,
+  .resistance-input-group label,
+  .gadget-label-row label {
+    font-size: 1rem !important;
+    font-family: inherit !important;
+  }
+
+  /* Center BASE/MODIFIED button text */
+  .mode-toggle {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  /* Remove scale(0.9) from rock-display so display matches container */
+  /* Add overflow:visible so the 800x800 laser container isn't clipped */
+  .rock-display {
+    transform: none !important;
+    overflow: visible !important;
+    border-radius: 12px !important;
+  }
+
+  /* Power bar - no scale needed since rock-display no longer scales */
+  .power-bar-container {
+    transform: none !important;
+    margin: 0 auto 4rem auto !important;
+  }
+
+  /* Add bottom padding for easier scrolling */
+  .App {
+    padding-bottom: 15vh !important;
+  }
+}
+
+/* Fallback for very old browsers that don't support writing-mode */
+/* Default: use transform rotation for vertical text */
+.mobile-drawer-tab.left .mobile-drawer-tab-text,
+.mobile-drawer-tab.right .mobile-drawer-tab-text {
+  display: inline-block;
+  transform: rotate(-90deg);
+  white-space: nowrap;
+}
+
+/* Modern browsers: reset transform and rely on writing-mode instead */
+@supports (writing-mode: vertical-rl) {
+  .mobile-drawer-tab.left .mobile-drawer-tab-text,
+  .mobile-drawer-tab.right .mobile-drawer-tab-text {
+    transform: none;
   }
 }

@@ -1,0 +1,245 @@
+/* Mobile Ship Control Modal - Only visible on mobile */
+
+.mobile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 1rem;
+}
+
+.mobile-modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--accent-cyan);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 320px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+}
+
+.mobile-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+  border-radius: 12px 12px 0 0;
+}
+
+.mobile-modal-header h3 {
+  margin: 0;
+  color: var(--accent-cyan);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.mobile-close-button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.mobile-close-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+}
+
+.mobile-modal-body {
+  padding: 1rem;
+}
+
+.mobile-control-section {
+  margin-bottom: 1.25rem;
+}
+
+.mobile-control-section:last-child {
+  margin-bottom: 0;
+}
+
+.mobile-control-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Toggle Buttons */
+.mobile-toggle-button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+
+.mobile-toggle-button.active {
+  background: rgba(0, 255, 136, 0.2);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.mobile-toggle-button.inactive {
+  background: rgba(128, 128, 128, 0.2);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.mobile-toggle-button:active {
+  transform: scale(0.98);
+}
+
+/* Laser Rows (MOLE) */
+.mobile-laser-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.mobile-laser-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  width: 100%;
+}
+
+/* Manned button row - laser label + manned toggle */
+.mobile-laser-manned-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mobile-laser-label {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--accent-cyan);
+  min-width: 2.5rem;
+  display: flex;
+  align-items: center;
+}
+
+/* Manned toggle button - full width after label */
+.mobile-toggle-button.manned {
+  flex: 1;
+  height: 52px;
+  font-size: 1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Module chips row - spread across full width */
+.mobile-laser-modules {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mobile-module-chip {
+  min-width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: bold;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.mobile-module-chip.active {
+  background: rgba(255, 170, 0, 0.3);
+  border-color: var(--warning);
+  color: var(--warning);
+  box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+}
+
+.mobile-module-chip.inactive {
+  background: rgba(128, 128, 128, 0.2);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+}
+
+.mobile-module-chip:active {
+  transform: scale(0.95);
+}
+
+/* Scanning laser selector */
+.mobile-scanning-lasers {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.mobile-scanning-button {
+  flex: 1;
+  height: 48px;
+  border-radius: 8px;
+  border: 2px solid var(--text-secondary);
+  background: rgba(128, 128, 128, 0.2);
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-scanning-button.selected {
+  background: rgba(0, 255, 255, 0.2);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.mobile-scanning-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.mobile-scanning-button:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.mobile-scanning-button.single-laser {
+  flex: none;
+  width: 100%;
+  height: 52px;
+  font-size: 1rem;
+  letter-spacing: 0.03em;
+}
+
+.mobile-no-controls {
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+  padding: 1rem;
+}

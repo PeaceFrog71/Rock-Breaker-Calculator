@@ -6,6 +6,7 @@
 
 .config-actions {
   display: flex;
+  justify-content: center;
   gap: 0.75rem;
 }
 
@@ -39,6 +40,24 @@
 .btn-secondary:hover {
   border-color: var(--accent-blue);
   background: var(--bg-light);
+}
+
+/* Icon + Text button layout */
+.btn-icon-text {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.btn-label {
+  text-align: center;
 }
 
 .save-dialog {
@@ -112,22 +131,16 @@
   flex: 1;
 }
 
-.config-header {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-}
-
 .config-name {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1.05rem;
 }
 
-.config-meta {
+.config-ship {
   font-size: 0.85rem;
   color: var(--accent-blue);
+  margin-bottom: 0.25rem;
 }
 
 .config-details {
@@ -174,7 +187,10 @@
 
 .config-buttons {
   display: flex;
+  flex-direction: column;
   gap: 0.5rem;
+  margin-left: 1rem;
+  padding: 0.25rem;
 }
 
 .btn-load,

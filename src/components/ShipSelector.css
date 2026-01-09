@@ -5,6 +5,13 @@
   letter-spacing: normal;
 }
 
+/* Mobile: config name on separate line */
+.ship-selector.mobile h2 .config-name {
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
+}
+
 .ship-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -44,4 +51,64 @@
 .ship-lasers {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+/* Expand indicator for mobile collapsed state */
+.expand-indicator {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  opacity: 0.8;
+  transition: transform 0.2s ease;
+}
+
+/* Mobile styles */
+.ship-selector.mobile .ship-button {
+  position: relative;
+}
+
+.ship-selector.mobile.collapsed .ship-grid {
+  display: flex;
+  flex-direction: column;
+}
+
+.ship-selector.mobile.collapsed .ship-button.active {
+  width: 100%;
+}
+
+.ship-selector.mobile.expanded .expand-indicator {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* Portrait mobile - responsive sizing */
+@media screen and (max-width: 600px) and (orientation: portrait) {
+  .ship-selector.mobile .ship-grid {
+    gap: 0.5rem;
+  }
+
+  .ship-selector.mobile .ship-button {
+    padding: 0.75rem 1rem;
+  }
+
+  .ship-selector.mobile .ship-name {
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .ship-selector.mobile .ship-lasers {
+    font-size: 0.75rem;
+  }
+
+  /* When expanded, stack vertically for easy tapping */
+  .ship-selector.mobile.expanded .ship-grid {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ship-selector.mobile.expanded .ship-button {
+    width: 100%;
+  }
 }

@@ -25,8 +25,13 @@
   cursor: pointer;
   font-size: 0.7rem;
   font-weight: bold;
-  width: 16px;
-  height: 16px;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  min-height: 1.25rem;
+  max-width: 1.25rem;
+  max-height: 1.25rem;
+  aspect-ratio: 1;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -34,6 +39,7 @@
   padding: 0;
   margin-left: 0.25rem;
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .resistance-help-icon:hover {
@@ -165,7 +171,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 10000;
 }
 
 .hint-modal {

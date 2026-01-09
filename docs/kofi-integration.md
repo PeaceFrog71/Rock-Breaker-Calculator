@@ -8,6 +8,7 @@
 ## The Challenge
 
 Ko-fi's floating-chat widget renders inside an iframe, making it impossible to:
+
 - Programmatically click the button (cross-origin security)
 - Style the button directly (iframe isolation)
 - Control when/how the popup appears
@@ -73,27 +74,25 @@ We use a **visual overlay** that sits on top of Ko-fi's invisible button. Clicks
 
 ## Critical Values
 
-| Value | Purpose |
-|-------|---------|
-| `scaleX(1.65)` | Stretches Ko-fi's clickable area to match our overlay width |
-| `z-index: 2147483647` | Maximum integer - ensures our overlay stays on top of Ko-fi |
-| `pointer-events: none` | Allows clicks to pass through to Ko-fi underneath |
-| `opacity: 0` | Hides Ko-fi's button while keeping it clickable |
-| `background: transparent` | Removes white rectangle that shows on deployed site |
+
+| Value                     | Purpose                                                     |
+| --------------------------- | ------------------------------------------------------------- |
+| `scaleX(1.65)`            | Stretches Ko-fi's clickable area to match our overlay width |
+| `z-index: 2147483647`     | Maximum integer - ensures our overlay stays on top of Ko-fi |
+| `pointer-events: none`    | Allows clicks to pass through to Ko-fi underneath           |
+| `opacity: 0`              | Hides Ko-fi's button while keeping it clickable             |
+| `background: transparent` | Removes white rectangle that shows on deployed site         |
 
 ---
 
 ## Gotchas & Lessons Learned
 
 1. **`[class*="kofi"]` selector catches our button too!** - Our `.kofi-overlay-btn` class contains "kofi", so don't use that selector for hiding
-
 2. **The white rectangle only shows on deployed site** - Not visible on localhost, so test on deployed site
-
 3. **`overflow: hidden` breaks the popup** - Don't use it - it clips the Ko-fi popup modal
-
 4. **`max-width`/`max-height` also break the popup** - Same issue - clips the expanded popup
-
 5. **The scaleX value (1.65) was found through trial and error:**
+
    - 1.3 = ~80% clickable
    - 1.5 = ~90% clickable
    - 1.65 = full coverage without Ko-fi showing through

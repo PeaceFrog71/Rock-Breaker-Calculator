@@ -7,6 +7,7 @@ import {
   createShipInstanceFromConfig,
 } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
+import { useMobileDetection } from '../hooks/useMobileDetection';
 import './ConfigManager.css';
 
 interface ShipPoolLibraryProps {
@@ -14,6 +15,7 @@ interface ShipPoolLibraryProps {
 }
 
 export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
+  const isMobile = useMobileDetection();
   const [savedShips, setSavedShips] = useState<SavedShipConfig[]>(
     getSavedShipConfigs()
   );
@@ -47,9 +49,11 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
   return (
     <div className="config-manager panel">
       <h2>Ship Library</h2>
-      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-        Load ships from your saved configurations. Ships saved from Single Ship mode or Mining Group mode appear here.
-      </p>
+      {!isMobile && (
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+          Load ships from your saved configurations. Ships saved from Single Ship mode or Mining Group mode appear here.
+        </p>
+      )}
 
       <div className="configs-list">
         {savedShips.length === 0 ? (

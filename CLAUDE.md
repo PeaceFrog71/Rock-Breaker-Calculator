@@ -120,12 +120,52 @@ This applies to:
 
 This is a learning exercise - the goal is git fluency, not speed.
 
-## Planning Best Practices
+## Planning & Session Continuity
 
-When working on tasks that require planning:
-1. **Save plan files** to `docs/plans/` with descriptive names (e.g., `99-git-learning-mode.md`)
-2. **Keep plans for reference** - they document decisions and can help with similar future tasks
-3. **Include in plan**: Issue number, steps, files to modify, and key decisions made
+### Plan File Location
+- **Active plans**: `docs/plans/` with format `<issue#>-<description>.md`
+- Example: `98-ipad-tablet-layout.md`
+
+### At Session Start / After Compaction
+1. **Check for active plans** in `docs/plans/`
+2. **Read the active plan** to restore context
+3. **Continue from where work left off**
+
+### Plan File Structure
+- **Status**: `ACTIVE`, `COMPLETED`, or `ON_HOLD`
+- **Issue**: Link to GitHub issue
+- **Requirements**: What needs to be done
+- **Implementation**: Step-by-step approach
+- **Files**: Key files to modify
+- **Progress**: What's done, what's next
+
+### When Planning
+1. Create plan file in `docs/plans/<issue#>-<desc>.md`
+2. Mark status as `ACTIVE`
+3. Update progress as work proceeds
+4. Mark `COMPLETED` when done (keep for reference)
+
+### Plan File Template
+```md
+# Plan: <Title>
+**Status**: ACTIVE | COMPLETED | ON_HOLD
+**Issue**: #<number>
+**Branch**: <branch-name>
+
+## Requirements
+- ...
+
+## Implementation
+### Step 1: ...
+### Step 2: ...
+
+## Files to Modify
+- path/to/file.tsx
+
+## Progress
+- [x] Completed item
+- [ ] Pending item
+```
 
 ## Coding Standards
 
@@ -143,6 +183,14 @@ When working on tasks that require planning:
 - Use Vitest for unit tests
 - Test files co-located: `calculator.test.ts` next to `calculator.ts`
 - Focus on calculation accuracy - verify against in-game values
+
+### Mobile CSS Guidelines
+- **NEVER use fixed pixel values** (px) for sizing in mobile contexts
+- Use `clamp(min, preferred, max)` for touch targets that scale with viewport
+- Use `%` or `vw/vh` for transforms and positional offsets
+- Use `min(viewport, fixed)` for max-width/height constraints
+- Touch targets minimum: `2.5rem` (~40px) to meet accessibility guidelines
+- Preferred pattern: `clamp(2.5rem, 8vw, 3.5rem)` scales 40-56px across devices
 
 ## Data Source
 

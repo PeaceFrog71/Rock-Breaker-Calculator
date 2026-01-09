@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import './ResistanceModeSelector.css';
 import ResistanceHelpModal from './ResistanceHelpModal';
 
@@ -96,7 +97,7 @@ export default function ResistanceModeSelector({
           </div>
         )}
 
-        {showHintHelp && (
+        {showHintHelp && createPortal(
           <div
             className="hint-modal-overlay"
             onClick={() => setShowHintHelp(false)}
@@ -115,7 +116,8 @@ export default function ResistanceModeSelector({
               </button>
               <p id="hint-modal-title">Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode for accurate calculations.</p>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </div>

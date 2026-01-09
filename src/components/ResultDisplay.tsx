@@ -6,6 +6,7 @@ import type {
   Gadget,
   MiningConfiguration,
   Module,
+  ShipInstance,
 } from "../types";
 import { formatPower, formatPercent } from "../utils/calculator";
 import { formatModuleTooltip } from "../utils/formatters";
@@ -17,12 +18,16 @@ import {
 } from "../utils/laserHelpers";
 import { getShipImageConfig } from "../utils/shipImageMap";
 import { getGadgetSymbol } from "../types";
+import MobileShipControlModal from "./MobileShipControlModal";
+import MobileDrawer from "./MobileDrawer";
+import { useMobileDetection } from "../hooks/useMobileDetection";
 import "./ResultDisplay.css";
 import golemShipImage from "../assets/mining_ship_golem_pixel_120x78.png";
 import moleShipImage from "../assets/mining_ship_mole_pixel_120x78_transparent.png";
 import prospectorShipImage from "../assets/mining_ship_prospector_pixel_120x78.png";
 import asteroidImage from "../assets/asteroid_pixel_1024x1024_true_transparent.png";
 import laserGif from "../assets/mining_laser_wave_tileable.gif";
+import dataLabelHorizontal from "../assets/Data_tray_label_small.png";
 
 // Map ship IDs to their imported image assets
 const SHIP_IMAGES: Record<string, string> = {
@@ -99,6 +104,82 @@ interface LaserBeamProps {
   endX: number;
   endY: number;
   svgSize: number;
+}
+
+// Tablet-specific laser using vw units for positioning
+// Renders at rock-display level, not inside rock-container
+function TabletLaser({ shipId, laserCount = 1, rockMass = 10000 }: { shipId: string; laserCount?: number; rockMass?: number }) {
+  // Ship center at 50% - 17vw, but laser starts from ship's right edge
+  // Rock center at 50% + 23vw
+  // Per-ship horizontal offset from center (vw units)
+  const shipOffsets: Record<string, { x: number; y: number }> = {
+    prospector: { x: 12, y: 0 },   // 50% - 12vw
+    golem: { x: 14, y: -2 },       // 50% - 14vw, up 2vw
+    mole: { x: 10, y: 0 },         // 50% - 10vw
+  };
+  const offsets = shipOffsets[shipId] || { x: 12, y: 0 };
+  const width = offsets.x + 23;  // offset + rock position (23vw)
+  const beamHeight = 20;
+
+  // Scale laser spread based on rock size
+  // Tiny (<5000): 1°, Small (<10000): 2°, Medium (<25000): 3°, Large (<50000): 4°, Huge: 5°
+  const getSpreadAngle = (mass: number): number => {
+    if (mass < 5000) return 1;
+    if (mass < 10000) return 2;
+    if (mass < 25000) return 3;
+    if (mass < 50000) return 4;
+    return 5;
+  };
+
+  const spreadAngle = getSpreadAngle(rockMass);
+
+  // For MOLE with multiple lasers, fan out from same start point
+  const getAngles = (count: number): number[] => {
+    if (count === 1) return [0];
+    if (count === 2) return [-spreadAngle, spreadAngle];
+    if (count === 3) return [-spreadAngle, 0, spreadAngle];
+    return [0];
+  };
+
+  const angles = getAngles(laserCount);
+
+  return (
+    <>
+      {angles.map((angle, index) => (
+        <div
+          key={index}
+          className="tablet-laser-container"
+          style={{
+            position: "absolute",
+            top: "50%",
+            left: `calc(50% - ${offsets.x}vw)`,
+            width: `${width}vw`,
+            height: `${beamHeight}px`,
+            transform: `translateY(calc(-50% + ${offsets.y}vw)) rotate(${angle}deg)`,
+            transformOrigin: "left center",
+            pointerEvents: "none",
+            zIndex: 5,
+          }}>
+          <div
+            className="laser-beam-animated"
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: "100%",
+              height: "100%",
+              backgroundImage: `url(${laserGif})`,
+              backgroundRepeat: "repeat-x",
+              backgroundSize: "auto 100%",
+              imageRendering: "pixelated",
+              filter:
+                "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+            }}
+          />
+        </div>
+      ))}
+    </>
+  );
 }
 
 function LaserBeam({ startX, startY, endX, endY, svgSize }: LaserBeamProps) {
@@ -224,6 +305,11 @@ export default function ResultDisplay({
   backgroundMode = "starfield",
   onToggleBackground,
 }: ResultDisplayProps & SingleShipDisplayProps) {
+  // Mobile detection via shared hook
+  const isMobile = useMobileDetection();
+  const [mobileModalShip, setMobileModalShip] = useState<ShipInstance | null>(null);
+  const [showMobileModal, setShowMobileModal] = useState(false);
+
   // Flying ship easter egg - appears every 5-10 minutes
   const [showFlyingShip, setShowFlyingShip] = useState(false);
   const [flyingShipTop, setFlyingShipTop] = useState(10); // Random position in top third
@@ -234,6 +320,8 @@ export default function ResultDisplay({
     "from-left" | "from-right"
   >("from-left");
   const [flyingShipScale, setFlyingShipScale] = useState(1); // Random scale 0.5-1.0
+  const [overchargeWarningExpanded, setOverchargeWarningExpanded] = useState(false);
+  const [showDataDrawer, setShowDataDrawer] = useState(false);
 
   // Helper to scale flyby ship dimensions with random reduction (keeps integers)
   const scaleFlybyDimension = (basePx: number): string => {
@@ -313,6 +401,27 @@ export default function ResultDisplay({
   // Exclude zero power - that's just "cannot break", not "possible break"
   const isPossibleBreak = !result.canBreak && result.totalLaserPower > 0 && result.powerMarginPercent >= -15;
 
+  // Check if MOLE needs scan info before showing break result
+  // In Modified mode, MOLE needs to know which laser scanned to reverse-calculate base resistance
+  const moleNeedsScanInfo = (() => {
+    if (rock.resistanceMode !== 'modified') return false;
+
+    // Single ship mode - check if MOLE without scanning laser selected
+    if (!miningGroup && selectedShip?.id === 'mole') {
+      return rock.scannedByLaserIndex === undefined;
+    }
+
+    // Multi-ship mode - check if scanned by a MOLE without laser index
+    if (miningGroup && rock.scannedByShipId) {
+      const scannedShip = miningGroup.ships.find(s => s.id === rock.scannedByShipId);
+      if (scannedShip?.ship.id === 'mole' && rock.scannedByLaserIndex === undefined) {
+        return true;
+      }
+    }
+
+    return false;
+  })();
+
   const powerPercentage =
     result.adjustedLPNeeded > 0
       ? (result.totalLaserPower / result.adjustedLPNeeded) * 100
@@ -322,13 +431,35 @@ export default function ResultDisplay({
   const hasExcessiveOvercharge = result.powerMarginPercent > 100;
   const hasCriticalOvercharge = result.powerMarginPercent > 100;
 
-  // Get asteroid size multiplier based on rock size (1:1 aspect ratio)
+  // Get asteroid size in vh units (viewport-relative for consistent scaling)
+  // Returns { size: number, unit: 'vh' } for portrait mobile, px for desktop
   const getAsteroidSize = () => {
-    if (rock.mass < 15000) return { width: 100, height: 100 }; // and
-    if (rock.mass < 25000) return { width: 175, height: 175 }; // Small
-    if (rock.mass < 50000) return { width: 250, height: 250 }; // Medium
-    if (rock.mass < 100000) return { width: 325, height: 325 }; // Large
-    return { width: 400, height: 400 }; // Huge
+    const isPortraitMobile = isMobile && window.matchMedia('(orientation: portrait)').matches;
+
+    if (isPortraitMobile) {
+      // vh units for portrait mobile - scales with viewport
+      if (rock.mass < 5000) return { width: 12, height: 12, unit: 'vh' }; // Tiny
+      if (rock.mass < 10000) return { width: 18, height: 18, unit: 'vh' }; // Small
+      if (rock.mass < 25000) return { width: 24, height: 24, unit: 'vh' }; // Medium
+      if (rock.mass < 50000) return { width: 30, height: 30, unit: 'vh' }; // Large
+      return { width: 36, height: 36, unit: 'vh' }; // Huge (>= 50,000)
+    }
+
+    // px units for desktop/landscape
+    if (rock.mass < 5000) return { width: 100, height: 100, unit: 'px' }; // Tiny
+    if (rock.mass < 10000) return { width: 175, height: 175, unit: 'px' }; // Small
+    if (rock.mass < 25000) return { width: 250, height: 250, unit: 'px' }; // Medium
+    if (rock.mass < 50000) return { width: 325, height: 325, unit: 'px' }; // Large
+    return { width: 400, height: 400, unit: 'px' }; // Huge (>= 50,000)
+  };
+
+  // Get rock size class for CSS targeting
+  const getRockSizeClass = () => {
+    if (rock.mass < 5000) return 'rock-tiny';
+    if (rock.mass < 10000) return 'rock-small';
+    if (rock.mass < 25000) return 'rock-medium';
+    if (rock.mass < 50000) return 'rock-large';
+    return 'rock-huge';
   };
 
   // All rocks centered at the same position (no vertical offset)
@@ -354,14 +485,47 @@ export default function ResultDisplay({
     return moduleId.charAt(0).toUpperCase();
   };
 
+  // Handle mobile ship tap - opens the control modal
+  const handleMobileShipTap = (shipInstance: ShipInstance) => {
+    if (isMobile) {
+      setMobileModalShip(shipInstance);
+      setShowMobileModal(true);
+    }
+  };
+
+  // Create a pseudo-ShipInstance for single ship mode
+  const getSingleShipInstance = (): ShipInstance | null => {
+    if (!selectedShip || !config) return null;
+    return {
+      id: selectedShip.id,
+      ship: {
+        id: selectedShip.id,
+        name: selectedShip.name,
+        laserSlots: config.lasers.length,
+        maxLaserSize: selectedShip.id === 'mole' ? 2 : 1,
+        description: ''
+      },
+      name: configName || selectedShip.name,
+      config: config,
+      isActive: true,
+    };
+  };
+
   return (
     <div className="result-display">
-      <div
-        className={`status-indicator ${getStatusClass()} ${
-          hasCriticalOvercharge ? "critical-overcharge" : ""
-        }`}>
-        <h2>{getStatusText()}</h2>
-      </div>
+      {moleNeedsScanInfo ? (
+        <div className="status-indicator need-scan-info">
+          <h2>NEED SCAN INFO</h2>
+          <span className="need-scan-subtext">Tap ship to select scanning laser</span>
+        </div>
+      ) : (
+        <div
+          className={`status-indicator ${getStatusClass()} ${
+            hasCriticalOvercharge ? "critical-overcharge" : ""
+          }`}>
+          <h2>{getStatusText()}</h2>
+        </div>
+      )}
 
       <div
         className={`rock-display rock-display-centered ${
@@ -414,46 +578,79 @@ export default function ResultDisplay({
             />
           </div>
         )}
+        {/* Tablet laser - rendered at rock-display level for fixed positioning */}
+        {!miningGroup &&
+          selectedShip &&
+          isMobile &&
+          !window.matchMedia('(orientation: portrait)').matches &&
+          window.matchMedia('(min-width: 768px) and (min-height: 600px)').matches &&
+          config &&
+          (selectedShip.id !== 'mole' || getMannedLasers(config).length > 0) && (
+          <TabletLaser
+            shipId={selectedShip.id}
+            laserCount={selectedShip.id === 'mole' ? getMannedLasers(config).length : 1}
+            rockMass={rock.mass}
+          />
+        )}
         <div
           className="rock-container"
           onClick={(e) => e.stopPropagation()}
-          style={!miningGroup ? { transform: "translateX(145px)" } : undefined}>
+          style={!miningGroup && isMobile && !window.matchMedia('(orientation: landscape) and (min-width: 768px) and (min-height: 600px)').matches ? { transform: "translateX(36vw)" } : undefined}>
           {/* Single ship positioned to the left */}
           {!miningGroup &&
             selectedShip &&
             (() => {
-              const asteroidSize = getAsteroidSize();
-              const angle = 270; // Left side (270° - 90° adjustment = 180° which points left)
-              const asteroidRadius = asteroidSize.width / 2;
-
-              // Get ship image width (10% larger for single ship mode)
-              const shipWidth =
-                selectedShip.id === "mole"
-                  ? 148.5
-                  : selectedShip.id === "prospector"
-                  ? 110
-                  : 66;
-
-              // Fixed ship position for all rock sizes (matches huge rock positioning)
-              const radius = 146;
-              // Subtract 90° to make 0° point to top instead of right
-              const adjustedAngle = angle - 90;
-              let shipX = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-              const shipY = Math.sin((adjustedAngle * Math.PI) / 180) * radius;
-
-              // Move ship left by half the ship image width to center it properly
-              shipX -= shipWidth / 2;
-
               const svgSize = 800;
               const center = svgSize / 2;
-              // Laser starts at ship position with ship-specific offsets
+              const asteroidSize = getAsteroidSize();
+              const asteroidRadius = asteroidSize.width / 2;
               const shipOffsets = SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
-              const laserStartX = center + shipX + shipOffsets.laser.x;
-              const laserStartY = center + shipY + shipOffsets.laser.y;
-              // Rock visual center - all rocks centered at same position
+              const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+              // Detect iPad/tablet in landscape (matches CSS media query that applies scale(0.9))
+              const isTabletLandscape = isMobile &&
+                !isPortrait &&
+                window.matchMedia('(min-width: 768px) and (min-height: 600px)').matches;
+
+              // Desktop: ship at 25% from left, rock at 75% from left
+              // Mobile: keep original centered layout
+              let laserStartX: number;
+              let laserStartY: number;
+              let rockCenterX: number;
               const rockVisualCenterY = center;
+
+              if (isMobile) {
+                // Mobile: original layout with ship offset from center
+                const shipX = -220;
+                const mobileAdjustX = selectedShip.id === "mole" ? -25 : 0;
+                const mobileAdjustY = selectedShip.id === "mole" ? -10 : 0;
+
+                // Phone-style positioning as base
+                laserStartX = center + shipX + shipOffsets.laser.x + mobileAdjustX;
+                laserStartY = center + shipOffsets.laser.y + mobileAdjustY;
+
+                // Phone-style positioning as base
+                rockCenterX = center + (isPortrait ? -55 : 0);
+
+                if (isTabletLandscape) {
+                  // Tablet: match CSS vw-based positioning
+                  // Ship CSS: left:50% transform:translate(-50% - 17vw) → center - 17vw
+                  // Rock CSS: translateX(23vw) → center + 23vw
+                  const vwInPx = window.innerWidth / 100;
+                  laserStartX = center - (17 * vwInPx) + shipOffsets.laser.x;
+                  rockCenterX = center + (23 * vwInPx);
+                }
+              } else {
+                // Desktop: ship at 15% from left + 150px offset, rock at 85% from left
+                const shipPositionX = svgSize * 0.15 + 150; // 120px + 150px = 270px
+                const rockPositionX = svgSize * 0.85; // 680px
+                // GOLEM laser starts a bit further right on desktop
+                const golemDesktopAdjust = selectedShip.id === "golem" ? 20 : 0;
+                laserStartX = shipPositionX + shipOffsets.laser.x + golemDesktopAdjust;
+                laserStartY = center + shipOffsets.laser.y;
+                rockCenterX = rockPositionX;
+              }
               // Laser ends at rock visual center, but shortened by 20% (or lengthened by 2% for tiny rocks)
-              const fullDX = center - laserStartX;
+              const fullDX = rockCenterX - laserStartX;
               const fullDY = rockVisualCenterY - laserStartY;
               const laserLengthScale = getLaserLengthScale(rock.mass);
               const laserEndX = laserStartX + fullDX * laserLengthScale;
@@ -467,7 +664,13 @@ export default function ResultDisplay({
               return (
                 <div className="ships-around-rock">
                   {/* Laser beam from ship to rock - only show if MOLE has manned lasers or if not a MOLE */}
+                  {/* Skip for tablet - TabletLaser is rendered at rock-display level instead */}
                   {(() => {
+                    // Skip laser in this container for tablet - it's rendered separately
+                    if (isTabletLandscape) {
+                      return null;
+                    }
+
                     // For MOLE, only render lasers if there are manned lasers
                     if (isMole && numMannedLasers > 0) {
                       const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
@@ -533,15 +736,33 @@ export default function ResultDisplay({
 
                   {/* Ship icon */}
                   <div
-                    className="ship-icon active"
-                    style={{
+                    className={`ship-icon active ship-${selectedShip.id} ${isMobile ? 'mobile-tappable' : ''}`}
+                    style={isMobile ? {
+                      // Mobile: phone-style positioning as base
+                      // Tablet: use vw units for consistent positioning with rock
                       position: "absolute",
-                      top: `calc(50% + ${shipY}px)`,
-                      left: `calc(50% + ${shipX}px)`,
+                      top: "50%",
+                      left: isTabletLandscape ? "50%" : "calc(50% - 220px)",
+                      transform: isTabletLandscape
+                        ? "translate(calc(-50% - 17vw), -50%)"  // Ship center at 25% from left of display
+                        : "translate(-50%, -50%)",
+                    } : {
+                      // Desktop: ship positioned left (moved right 150px)
+                      position: "absolute",
+                      top: "50%",
+                      left: "calc(15% - 130px)",
                       transform: "translate(-50%, -50%)",
                     }}
-                    onClick={(e) => e.stopPropagation()}
-                    title={selectedShip.name}>
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isMobile) {
+                        const singleShipInstance = getSingleShipInstance();
+                        if (singleShipInstance) {
+                          handleMobileShipTap(singleShipInstance);
+                        }
+                      }
+                    }}
+                    title={isMobile ? "Tap for controls" : selectedShip.name}>
                     {(() => {
                       // Single ship - flipped to face right with 15° upward tilt
                       const shipTransform = "scaleX(-1) rotate(15deg)";
@@ -561,6 +782,10 @@ export default function ResultDisplay({
                             style={{
                               width: shipImageConfig.width,
                               height: shipImageConfig.height,
+                              minWidth: shipImageConfig.width,
+                              minHeight: shipImageConfig.height,
+                              maxWidth: "none",
+                              maxHeight: "none",
                               imageRendering: "pixelated",
                               transform: shipTransform,
                             }}
@@ -580,7 +805,7 @@ export default function ResultDisplay({
 
                   </div>
 
-                  {/* Scanning sensor for Prospector/GOLEM (single-laser ships) - positioned to the left (outside) */}
+                  {/* Scanning sensor for Prospector/GOLEM (single-laser ships) - positioned to the left of ship */}
                   {onSetScanningShip &&
                    rock.resistanceMode === 'modified' &&
                    (selectedShip.id === 'prospector' || selectedShip.id === 'golem') &&
@@ -597,11 +822,22 @@ export default function ResultDisplay({
                         e.preventDefault();
                         onSetScanningShip(selectedShip.id, 0);
                       }}
-                      title="Click to mark as scanning ship"
-                      style={{
+                      title={isMobile ? "Tap to mark as scanning ship" : "Click to mark as scanning ship"}
+                      style={isMobile ? {
+                        // Mobile: position above ship (original layout)
                         position: "absolute",
-                        top: `calc(50% + ${shipY - 10}px)`,
-                        left: `calc(50% + ${shipX + shipOffsets.scanIcon.x}px)`,
+                        top: "calc(50% - 10vh)",
+                        left: "calc(50% - 220px)",
+                        transform: "translate(-50%, 0)",
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                        zIndex: 10,
+                        fontSize: "0.75rem"
+                      } : {
+                        // Desktop: controls left of ship (moved left 150px)
+                        position: "absolute",
+                        top: "calc(50% - 10px)",
+                        left: "calc(50% - 430px)",
                         transform: "translate(-50%, -50%)",
                         cursor: "pointer",
                         pointerEvents: "auto",
@@ -642,10 +878,22 @@ export default function ResultDisplay({
                       return (
                         <div
                           className="laser-controls"
-                          style={{
+                          style={isMobile ? {
+                            // Mobile: original layout (hidden by CSS anyway)
                             position: "absolute",
-                            top: `calc(50% + ${shipY - 15}px)`,
-                            left: `calc(50% + ${shipX - shipWidth / 2 + shipOffsets.moduleButtons.x}px)`,
+                            top: "calc(50% - 15px)",
+                            left: "calc(50% - 220px - 30px)",
+                            transform: "translate(-100%, -50%)",
+                            display: "flex",
+                            flexDirection: "row",
+                            gap: "0.25rem",
+                            pointerEvents: "auto",
+                            alignItems: "center",
+                          } : {
+                            // Desktop: left of ship (moved left 150px)
+                            position: "absolute",
+                            top: "calc(50% - 15px)",
+                            left: "calc(50% - 460px)",
                             transform: "translate(-100%, -50%)",
                             display: "flex",
                             flexDirection: "row",
@@ -673,16 +921,18 @@ export default function ResultDisplay({
                       );
                     })()}
 
-                  {/* Laser controls for MOLE */}
-                  {selectedShip.id === "mole" &&
+                  {/* Laser controls for MOLE - hidden on mobile */}
+                  {!isMobile &&
+                    selectedShip.id === "mole" &&
                     onSingleShipToggleLaser &&
                     config && (
                       <div
                         className="laser-controls"
                         style={{
+                          // Desktop only: left of ship (moved left 150px)
                           position: "absolute",
-                          top: `calc(50% + ${shipY}px)`,
-                          left: `calc(50% + ${shipX - shipWidth / 2 - 15}px)`,
+                          top: "50%",
+                          left: "calc(15% - 210px)",
                           transform: "translate(-100%, -50%)",
                           display: "flex",
                           flexDirection: "column",
@@ -837,8 +1087,12 @@ export default function ResultDisplay({
 
           {/* Multiple ships positioned around the rock */}
           {miningGroup && miningGroup.ships.length > 0 && (
-            <div className="ships-around-rock">
+            <div className="ships-around-rock multi-ship-mode">
               {miningGroup.ships.map((shipInstance, index) => {
+                // Check for portrait multi-ship mode
+                const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+                const isPortraitMultiShip = isMobile && isPortrait;
+
                 // Positions: 60°, 120°, 240°, 300° (top is 0°, clockwise)
                 const positions = [60, 120, 240, 300];
                 const angle = positions[index] || 60;
@@ -855,6 +1109,11 @@ export default function ResultDisplay({
                   Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
                 const isActive = shipInstance.isActive !== false;
 
+                // Portrait mode: evenly distributed from 17% to 92% of container height
+                // Index 0 = bottom (92%), index 3 = top (17%)
+                const portraitYPercents = [92, 67, 42, 17];
+                const portraitYPercent = portraitYPercents[index] ?? 50;
+
                 // Check if this ship has any manned lasers (with laser heads configured)
                 const isMole = shipInstance.ship.id === "mole";
                 const mannedLasers = getMannedLasers(shipInstance.config);
@@ -869,26 +1128,169 @@ export default function ResultDisplay({
                       (() => {
                         const svgSize = 800;
                         const center = svgSize / 2;
+                        const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+                        const isPortraitMultiShip = isMobile && isPortrait;
 
-                        // Get base offsets for this ship type
-                        const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
-                        let laserXOffset = 0;
-                        let laserYOffset = baseOffsets.laser.y;
+                        // Portrait multi-ship mode: ships are CSS-positioned on left, rock on right
+                        // Override coordinates to match the CSS layout
+                        let laserStartX: number;
+                        let laserStartY: number;
+                        let rockCenterEndX: number;
+                        const rockCenterEndY = center;
 
-                        // Apply position-specific adjustments from config
-                        const positionOffsets = MULTI_SHIP_LASER_OFFSETS[shipInstance.ship.id]?.[angle as PositionAngle];
-                        if (positionOffsets) {
-                          laserXOffset = positionOffsets.x;
-                          laserYOffset += positionOffsets.y;
+                        if (isPortraitMultiShip) {
+                          // Portrait multi-ship: ships on left (CSS left:0), rock on right (offset 25vw)
+                          //
+                          // Container dimensions:
+                          // - .rock-display has padding: 1rem (16px each side)
+                          // - So actual container width = viewport - 32px
+                          // - Container has aspect-ratio 3:4, so height = width * 4/3
+                          const viewportWidth = window.innerWidth;
+                          const containerPadding = 32; // 1rem × 2 sides
+                          const containerWidth = viewportWidth - containerPadding;
+                          const containerHeight = containerWidth * (4 / 3);
+
+                          // SVG coordinate system: 800×800, centered on container
+                          // SVG point 400 = container center
+                          // To convert CSS (container-relative) to SVG:
+                          //   SVG_x = CSS_x - containerWidth/2 + 400
+
+                          // Ship positions: CSS left: 0, top: percent%
+                          // Ship image dimensions from portrait config (in vw):
+                          const shipWidthsVW: Record<string, number> = {
+                            prospector: 17,  // from SHIP_IMAGE_CONFIG_PORTRAIT
+                            golem: 14,
+                            mole: 24,
+                          };
+                          const shipHeightsVW: Record<string, number> = {
+                            prospector: 11,
+                            golem: 9.1,
+                            mole: 15.6,
+                          };
+                          const shipWidthVW = shipWidthsVW[shipInstance.ship.id] ?? 15;
+                          const shipHeightVW = shipHeightsVW[shipInstance.ship.id] ?? 10;
+                          // Convert vw to pixels: vw units are % of viewport, not container
+                          const shipWidthPx = (shipWidthVW / 100) * viewportWidth;
+                          const shipHeightPx = (shipHeightVW / 100) * viewportWidth;
+
+                          // Ship front (right edge) in container CSS coords
+                          // Add 1.5x ship width to account for flipped images and visual alignment
+                          const shipFrontCSS = shipWidthPx * 1.5;
+
+                          // Convert to SVG coords
+                          laserStartX = shipFrontCSS - containerWidth / 2 + 400;
+
+                          // Ship Y positions: 92%, 67%, 42%, 17% of container height
+                          const portraitYPercents = [0.92, 0.67, 0.42, 0.17];
+                          const shipYPercent = portraitYPercents[index] ?? 0.5;
+
+                          // Y position: convert from container % to SVG coords
+                          const shipYInContainer = shipYPercent * containerHeight;
+                          laserStartY = shipYInContainer - containerHeight / 2 + 400;
+
+                          // Account for CSS margin-top: -2vw on ship-icon
+                          const marginTopOffset = (2 / 100) * viewportWidth;
+                          laserStartY -= marginTopOffset;
+
+                          // Adjust Y to align with ship center (ships use translateY(-50%))
+                          // Upper ships need more offset due to position near container edge
+                          if (index === 3) {
+                            laserStartY += shipHeightPx * 1.4;
+                            // Prospector needs extra adjustments
+                            if (shipInstance.ship.id === 'prospector') {
+                              laserStartX -= shipWidthPx * 0.1;
+                              laserStartY += shipHeightPx * 0.3;
+                            }
+                            // GOLEM needs extra adjustments
+                            if (shipInstance.ship.id === 'golem') {
+                              laserStartX += shipWidthPx * 0.3;
+                              laserStartY += shipHeightPx * 0.6;
+                            }
+                            // MOLE needs extra adjustments
+                            if (shipInstance.ship.id === 'mole') {
+                              laserStartX -= shipWidthPx * 0.4;
+                              laserStartY -= shipHeightPx * 0.1;
+                            }
+                          } else if (index === 2) {
+                            laserStartY += shipHeightPx * 0.3;
+                            // Prospector needs extra adjustments
+                            if (shipInstance.ship.id === 'prospector') {
+                              laserStartY += shipHeightPx * 0.3;
+                            }
+                            // GOLEM needs extra adjustments
+                            if (shipInstance.ship.id === 'golem') {
+                              laserStartX += shipWidthPx * 0.4;
+                              laserStartY += shipHeightPx * 0.3;
+                            }
+                            // MOLE needs extra adjustments
+                            if (shipInstance.ship.id === 'mole') {
+                              laserStartX -= shipWidthPx * 0.4;
+                              laserStartY += shipHeightPx * 0.2;
+                            }
+                          } else if (index === 1) {
+                            laserStartY -= shipHeightPx * 0.8;
+                            laserStartX += shipWidthPx * 0.1;
+                            // Prospector needs extra adjustments
+                            if (shipInstance.ship.id === 'prospector') {
+                              laserStartX -= shipWidthPx * 0.1;
+                              laserStartY += shipHeightPx * 0.4;
+                            }
+                            // GOLEM needs extra adjustments
+                            if (shipInstance.ship.id === 'golem') {
+                              laserStartX += shipWidthPx * 0.3;
+                            }
+                            // MOLE needs extra adjustments
+                            if (shipInstance.ship.id === 'mole') {
+                              laserStartX -= shipWidthPx * 0.5;
+                              laserStartY += shipHeightPx * 0.4;
+                            }
+                          } else if (index === 0) {
+                            laserStartY -= shipHeightPx * 2.0;
+                            laserStartX += shipWidthPx * 0.1;
+                            // Prospector needs extra adjustments
+                            if (shipInstance.ship.id === 'prospector') {
+                              laserStartY += shipHeightPx * 0.3;
+                            }
+                            // GOLEM needs extra adjustments
+                            if (shipInstance.ship.id === 'golem') {
+                              laserStartX += shipWidthPx * 0.3;
+                              laserStartY -= shipHeightPx * 0.3;
+                            }
+                            // MOLE needs extra adjustments
+                            if (shipInstance.ship.id === 'mole') {
+                              laserStartX -= shipWidthPx * 0.5;
+                              laserStartY += shipHeightPx * 0.8;
+                            }
+                          }
+
+                          // Rock is at container center + translateX(25vw)
+                          // Rock center CSS X = containerWidth/2 + 25vw (in viewport pixels)
+                          const rockOffsetPx = (25 / 100) * viewportWidth;
+                          const rockCenterCSS = containerWidth / 2 + rockOffsetPx;
+                          rockCenterEndX = rockCenterCSS - containerWidth / 2 + 400;
+                        } else {
+                          // Landscape mode: use polar coordinates
+                          const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
+                          let laserXOffset = 0;
+                          let laserYOffset = baseOffsets.laser.y;
+
+                          // Apply position-specific adjustments from config
+                          const positionOffsets = MULTI_SHIP_LASER_OFFSETS[shipInstance.ship.id]?.[angle as PositionAngle];
+                          if (positionOffsets) {
+                            laserXOffset = positionOffsets.x;
+                            laserYOffset += positionOffsets.y;
+                          }
+
+                          // Mobile adjustments for MOLE: move laser left 10, up 5
+                          if (isMobile && isMole) {
+                            laserXOffset -= 10;
+                            laserYOffset -= 5;
+                          }
+
+                          laserStartX = center + x + laserXOffset;
+                          laserStartY = center + y + laserYOffset;
+                          rockCenterEndX = center;
                         }
-
-                        const laserStartX = center + x + laserXOffset;
-                        const laserStartY = center + y + laserYOffset;
-                        // Rock visual center - all rocks centered at same position
-                        const rockVisualCenterY = center;
-                        // Laser ends at rock visual center
-                        const rockCenterEndX = center;
-                        const rockCenterEndY = rockVisualCenterY;
 
                         // For MOLE, render multiple lasers with slight angle variations
                         if (isMole) {
@@ -969,8 +1371,13 @@ export default function ResultDisplay({
                     <div
                       className={`ship-icon ${
                         isActive ? "active" : "inactive"
-                      } clickable`}
-                      style={{
+                      } clickable ship-${shipInstance.ship.id} ${isMobile ? 'mobile-tappable' : ''}`}
+                      style={isPortraitMultiShip ? {
+                        position: "absolute",
+                        top: `${portraitYPercent}%`,
+                        left: "0",
+                        transform: "translateY(-50%)",
+                      } : {
                         position: "absolute",
                         top: `calc(50% + ${y}px)`,
                         left: `calc(50% + ${x}px)`,
@@ -978,40 +1385,52 @@ export default function ResultDisplay({
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onToggleShip && onToggleShip(shipInstance.id);
+                        if (isMobile) {
+                          handleMobileShipTap(shipInstance);
+                        } else {
+                          onToggleShip && onToggleShip(shipInstance.id);
+                        }
                       }}
-                      title={`${shipInstance.ship.name} - ${isActive ? "ACTIVE" : "INACTIVE"}`}>
+                      title={isMobile ? "Tap for controls" : `${shipInstance.ship.name} - ${isActive ? "ACTIVE" : "INACTIVE"}`}>
                       {(() => {
                         // Calculate ship transform based on position
-                        // Left side ships: mirror horizontally to face right
-                        const isLeftSide = x < 0;
-                        let shipTransform = isLeftSide ? "scaleX(-1)" : "none";
+                        let shipTransform: string;
 
-                        // GOLEM rotation - positions point toward rock
-                        if (shipInstance.ship.id === "golem") {
-                          if (index === 0) {
-                            // Top right (60°): rotate 30° clockwise
-                            shipTransform = "rotate(30deg)";
-                          } else if (index === 1) {
-                            // Bottom right (120°): rotate 60° clockwise
-                            shipTransform = "rotate(60deg)";
-                          } else if (index === 2) {
-                            // Bottom left (240°): mirror + 60° rotation
-                            shipTransform = "scaleX(-1) rotate(60deg)";
-                          } else if (index === 3) {
-                            // Top left (300°): mirror + 30° rotation
-                            shipTransform = "scaleX(-1) rotate(30deg)";
-                          }
+                        // Portrait mode: all ships on left, facing right
+                        if (isPortraitMultiShip) {
+                          shipTransform = "scaleX(-1)";
                         } else {
-                          // Non-GOLEM ships (MOLE, Prospector) use original logic
-                          // Lower left position (index 2): mirrored + counter-clockwise 30°
-                          if (index === 2) {
-                            shipTransform = "scaleX(-1) rotate(30deg)";
-                          }
+                          // Landscape mode: complex positioning
+                          // Left side ships: mirror horizontally to face right
+                          const isLeftSide = x < 0;
+                          shipTransform = isLeftSide ? "scaleX(-1)" : "none";
 
-                          // Lower right position (index 1): clockwise 30°
-                          if (index === 1) {
-                            shipTransform = "rotate(30deg)";
+                          // GOLEM rotation - positions point toward rock
+                          if (shipInstance.ship.id === "golem") {
+                            if (index === 0) {
+                              // Top right (60°): rotate 30° clockwise
+                              shipTransform = "rotate(30deg)";
+                            } else if (index === 1) {
+                              // Bottom right (120°): rotate 60° clockwise
+                              shipTransform = "rotate(60deg)";
+                            } else if (index === 2) {
+                              // Bottom left (240°): mirror + 60° rotation
+                              shipTransform = "scaleX(-1) rotate(60deg)";
+                            } else if (index === 3) {
+                              // Top left (300°): mirror + 30° rotation
+                              shipTransform = "scaleX(-1) rotate(30deg)";
+                            }
+                          } else {
+                            // Non-GOLEM ships (MOLE, Prospector) use original logic
+                            // Lower left position (index 2): mirrored + counter-clockwise 30°
+                            if (index === 2) {
+                              shipTransform = "scaleX(-1) rotate(30deg)";
+                            }
+
+                            // Lower right position (index 1): clockwise 30°
+                            if (index === 1) {
+                              shipTransform = "rotate(30deg)";
+                            }
                           }
                         }
 
@@ -1045,10 +1464,9 @@ export default function ResultDisplay({
                         }
                       })()}
                       <div className="ship-label">{shipInstance.name}</div>
-
                     </div>
 
-                    {/* Scanning sensor for Prospector/GOLEM (single-laser ships) in multi-ship mode */}
+                    {/* Scanning sensor for Prospector/GOLEM in multi-ship mode */}
                     {onSetScanningShip &&
                      rock.resistanceMode === 'modified' &&
                      (shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&
@@ -1064,17 +1482,49 @@ export default function ResultDisplay({
                           e.preventDefault();
                           onSetScanningShip(shipInstance.id, 0);
                         }}
-                        title="Click to mark as scanning ship"
+                        title={isMobile ? "Tap to mark as scanning ship" : "Click to mark as scanning ship"}
                         style={{
                           position: "absolute",
-                          top: `calc(50% + ${y - 45}px)`,
+                          top: isPortraitMultiShip ? `calc(50% + ${y - 40}px)` : `calc(50% + ${y - 50}px)`,
                           left: x < 0
-                            ? `calc(50% + ${x - 40}px)`
-                            : `calc(50% + ${x + 60}px)`,
+                            ? `calc(50% + ${x - 50}px)`
+                            : `calc(50% + ${x + 50}px)`,
                           transform: "translate(-50%, -50%)",
                           cursor: "pointer",
                           pointerEvents: "auto",
-                          zIndex: 10
+                          zIndex: 10,
+                          fontSize: isPortraitMultiShip ? "1rem" : "1.2rem"
+                        }}>
+                        📡
+                      </span>
+                    )}
+
+                    {/* Scanning sensor for MOLE on mobile - positioned 3vw up and right of ship */}
+                    {isMobile &&
+                     onSetScanningShip &&
+                     rock.resistanceMode === 'modified' &&
+                     shipInstance.ship.id === 'mole' &&
+                     shipInstance.config.lasers.some(l => l.laserHead && l.laserHead.id !== 'none') && (
+                      <span
+                        className={`scanning-sensor ${
+                          rock.scannedByShipId === shipInstance.id ? 'selected' : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          // For MOLE on mobile, select first manned laser
+                          const firstMannedIndex = shipInstance.config.lasers.findIndex(l => l.isManned !== false && l.laserHead && l.laserHead.id !== 'none');
+                          onSetScanningShip(shipInstance.id, firstMannedIndex >= 0 ? firstMannedIndex : 0);
+                        }}
+                        title="Tap to mark as scanning ship"
+                        style={{
+                          position: "absolute",
+                          top: "-3vw",
+                          right: "-3vw",
+                          fontSize: "1rem",
+                          cursor: "pointer",
+                          pointerEvents: "auto",
+                          zIndex: 30,
                         }}>
                         📡
                       </span>
@@ -1146,8 +1596,8 @@ export default function ResultDisplay({
                         );
                       })()}
 
-                    {/* Laser control buttons for MOLE ships */}
-                    {shipInstance.ship.id === "mole" && onToggleLaser && (
+                    {/* Laser control buttons for MOLE ships - hidden on mobile */}
+                    {!isMobile && shipInstance.ship.id === "mole" && onToggleLaser && (
                       <div
                         className="laser-controls"
                         style={{
@@ -1321,13 +1771,20 @@ export default function ResultDisplay({
 
           {/* Rock in center */}
           <div
-            className={`rock-icon ${getStatusClass()} ${
+            className={`rock-icon ${getStatusClass()} ${getRockSizeClass()} ${
               hasExcessiveOvercharge ? "overcharge-warning" : ""
-            }`}
+            } ${!miningGroup && !isMobile ? "desktop-single-ship" : ""}`}
             style={{
-              position: "relative",
               marginTop:
                 rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined,
+              // Portrait multi-ship mode: fixed offset for all rock sizes
+              ...(miningGroup && isMobile && window.matchMedia('(orientation: portrait)').matches ? {
+                transform: `translateX(25vw)`,
+              } : {}),
+              // Tablet landscape single-ship: rock position (guided)
+              ...(!miningGroup && isMobile && window.matchMedia('(orientation: landscape) and (min-width: 768px) and (min-height: 600px)').matches ? {
+                transform: `translateX(23vw)`,
+              } : {}),
             }}
             onClick={(e) => e.stopPropagation()}>
             <div
@@ -1339,8 +1796,8 @@ export default function ResultDisplay({
                 alt="Asteroid"
                 className="asteroid-image"
                 style={{
-                  width: `${getAsteroidSize().width}px`,
-                  height: `${getAsteroidSize().height}px`,
+                  width: `${getAsteroidSize().width}${getAsteroidSize().unit}`,
+                  height: `${getAsteroidSize().height}${getAsteroidSize().unit}`,
                   imageRendering: "pixelated",
                 }}
               />
@@ -1399,16 +1856,22 @@ export default function ResultDisplay({
         </div>
       </div>
 
-      {/* Scanning ship selection message */}
-      {onSetScanningShip && rock.resistanceMode === 'modified' && !rock.scannedByShipId && (
+      {/* Scanning ship selection message - hide when MOLE needs specific laser selection */}
+      {onSetScanningShip && rock.resistanceMode === 'modified' && !rock.scannedByShipId && !moleNeedsScanInfo && (
         <div className="scanning-ship-message">
           <span className="message-icon">📡</span>
           <span className="message-text">
-            Select which ship/laser scanned this rock<br />by activating a sensor icon or laser radio button
+            {isMobile ? (
+              "SELECT SHIP/LASER USED TO SCAN"
+            ) : (
+              <>Select which ship/laser scanned this rock<br />by activating a sensor icon or laser radio button</>
+            )}
           </span>
         </div>
       )}
 
+      {/* Hide power bar when MOLE needs scan info */}
+      {!moleNeedsScanInfo && (
       <div className="power-bar-container" onClick={(e) => e.stopPropagation()}>
         <div className={`power-bar ${hasExcessiveOvercharge ? "excessive-glow" : ""}`}>
           {(() => {
@@ -1508,10 +1971,28 @@ export default function ResultDisplay({
 
         {/* Tip messages at bottom of power bar frame */}
         {hasExcessiveOvercharge && (
-          <div className="overcharge-warning">
-            <strong>WARNING!</strong> Excessive overcharge capability detected.
-            Rock overcharge and premature fracture could easily occur. Approach
-            with caution or reduce the number of lasers used.
+          <div
+            className={`overcharge-warning ${isMobile ? 'mobile-clickable' : ''}`}
+            onClick={(e) => {
+              if (isMobile) {
+                e.stopPropagation();
+                setOverchargeWarningExpanded(!overchargeWarningExpanded);
+              }
+            }}
+          >
+            {isMobile && !overchargeWarningExpanded ? (
+              <div className="overcharge-short">
+                <strong>WARNING!</strong>
+                <br />
+                Overcharge Possible
+              </div>
+            ) : (
+              <>
+                <strong>WARNING!</strong> Excessive overcharge capability detected.
+                Rock overcharge and premature fracture could easily occur. Approach
+                with caution or reduce the number of lasers used.
+              </>
+            )}
           </div>
         )}
 
@@ -1530,77 +2011,204 @@ export default function ResultDisplay({
           </div>
         )}
       </div>
+      )}
 
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-label">Total Laser Power</div>
-          <div className="stat-value">
-            {formatPower(result.totalLaserPower)}
-          </div>
-        </div>
+      {/* Stats grid - inline on desktop, in drawer on mobile */}
+      {isMobile ? (
+        <MobileDrawer
+          isOpen={showDataDrawer}
+          onClose={() => setShowDataDrawer(false)}
+          onOpen={() => setShowDataDrawer(true)}
+          side="bottom"
+          title="Data"
+          tabLabel="DATA"
+          tabImage={dataLabelHorizontal}
+        >
+          <div className="stats-grid mobile-drawer-stats">
+            <div className="stat-card">
+              <div className="stat-label">Total Laser Power</div>
+              <div className="stat-value">
+                {formatPower(result.totalLaserPower)}
+              </div>
+            </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Adjusted Resistance</div>
-          <div className="stat-value">
-            {result.adjustedResistance.toFixed(2)}
-          </div>
-          <div className="stat-subtitle">
-            {result.resistanceContext ? (
-              <>
-                Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
-              </>
-            ) : (
-              <>
-                Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
-              </>
-            )}
-          </div>
-        </div>
+            <div className="stat-card">
+              <div className="stat-label">Adjusted Resistance</div>
+              <div className="stat-value">
+                {result.adjustedResistance.toFixed(2)}
+              </div>
+              <div className="stat-subtitle">
+                {result.resistanceContext ? (
+                  <>
+                    Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+                  </>
+                ) : (
+                  <>
+                    Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+                  </>
+                )}
+              </div>
+            </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Laser Power Required</div>
-          <div className="stat-value">
-            {formatPower(result.adjustedLPNeeded)}
-          </div>
-          <div className="stat-subtitle">
-            Base: {formatPower(result.baseLPNeeded)}
-          </div>
-        </div>
+            <div className="stat-card">
+              <div className="stat-label">Laser Power Required</div>
+              <div className="stat-value">
+                {formatPower(result.adjustedLPNeeded)}
+              </div>
+              <div className="stat-subtitle">
+                Base: {formatPower(result.baseLPNeeded)}
+              </div>
+            </div>
 
-        <div className="stat-card">
-          <div className="stat-label">Power Difference</div>
-          <div
-            className={`stat-value ${
-              result.canBreak ? "positive" : "negative"
-            }`}>
-            {result.canBreak ? "+" : ""}
-            {formatPower(result.powerMargin)}
+            <div className="stat-card">
+              <div className="stat-label">Power Difference</div>
+              <div
+                className={`stat-value ${
+                  result.canBreak ? "positive" : "negative"
+                }`}>
+                {result.canBreak ? "+" : ""}
+                {formatPower(result.powerMargin)}
+              </div>
+              <div className="stat-subtitle">
+                {formatPercent(result.powerMarginPercent)}
+              </div>
+            </div>
           </div>
-          <div className="stat-subtitle">
-            {formatPercent(result.powerMarginPercent)}
-          </div>
-        </div>
-      </div>
 
-      <div className="calculation-details">
-        <h3>Calculation Details</h3>
-        <div className="detail-row">
-          <span>Rock Mass:</span>
-          <span>{rock.mass.toFixed(1)}</span>
+          <div className="calculation-details mobile-drawer-details">
+            <h3>Calculation Details</h3>
+            <div className="detail-row">
+              <span>Rock Mass:</span>
+              <span>{rock.mass.toFixed(1)}</span>
+            </div>
+            <div className="detail-row">
+              <span>Base Resistance:</span>
+              <span>{rock.resistance.toFixed(1)}</span>
+            </div>
+            <div className="detail-row">
+              <span>Total Resist Modifier:</span>
+              <span>{result.totalResistModifier.toFixed(3)}x</span>
+            </div>
+            <div className="detail-row">
+              <span>Formula:</span>
+              <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
+            </div>
+          </div>
+        </MobileDrawer>
+      ) : (
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-label">Total Laser Power</div>
+            <div className="stat-value">
+              {formatPower(result.totalLaserPower)}
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Adjusted Resistance</div>
+            <div className="stat-value">
+              {result.adjustedResistance.toFixed(2)}
+            </div>
+            <div className="stat-subtitle">
+              {result.resistanceContext ? (
+                <>
+                  Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+                </>
+              ) : (
+                <>
+                  Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+                </>
+              )}
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Laser Power Required</div>
+            <div className="stat-value">
+              {formatPower(result.adjustedLPNeeded)}
+            </div>
+            <div className="stat-subtitle">
+              Base: {formatPower(result.baseLPNeeded)}
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-label">Power Difference</div>
+            <div
+              className={`stat-value ${
+                result.canBreak ? "positive" : "negative"
+              }`}>
+              {result.canBreak ? "+" : ""}
+              {formatPower(result.powerMargin)}
+            </div>
+            <div className="stat-subtitle">
+              {formatPercent(result.powerMarginPercent)}
+            </div>
+          </div>
         </div>
-        <div className="detail-row">
-          <span>Base Resistance:</span>
-          <span>{rock.resistance.toFixed(1)}</span>
+      )}
+
+      {/* Calculation details - only show on desktop (mobile has it in drawer) */}
+      {!isMobile && (
+        <div className="calculation-details">
+          <h3>Calculation Details</h3>
+          <div className="detail-row">
+            <span>Rock Mass:</span>
+            <span>{rock.mass.toFixed(1)}</span>
+          </div>
+          <div className="detail-row">
+            <span>Base Resistance:</span>
+            <span>{rock.resistance.toFixed(1)}</span>
+          </div>
+          <div className="detail-row">
+            <span>Total Resist Modifier:</span>
+            <span>{result.totalResistModifier.toFixed(3)}x</span>
+          </div>
+          <div className="detail-row">
+            <span>Formula:</span>
+            <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
+          </div>
         </div>
-        <div className="detail-row">
-          <span>Total Resist Modifier:</span>
-          <span>{result.totalResistModifier.toFixed(3)}x</span>
-        </div>
-        <div className="detail-row">
-          <span>Formula:</span>
-          <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
-        </div>
-      </div>
+      )}
+
+      {/* Mobile Ship Control Modal */}
+      <MobileShipControlModal
+        key={miningGroup
+          ? `group-${mobileModalShip?.id}-${JSON.stringify(miningGroup.ships.find(s => s.id === mobileModalShip?.id)?.config.lasers.map(l => ({ m: l.isManned, a: l.moduleActive })))}`
+          : `single-${JSON.stringify(config?.lasers.map(l => ({ m: l.isManned, a: l.moduleActive })))}`
+        }
+        isOpen={showMobileModal}
+        onClose={() => {
+          setShowMobileModal(false);
+          setMobileModalShip(null);
+        }}
+        shipInstance={miningGroup && mobileModalShip ? miningGroup.ships.find(s => s.id === mobileModalShip.id) : undefined}
+        singleShipConfig={!miningGroup ? config : undefined}
+        shipName={!miningGroup ? (configName || selectedShip?.name) : undefined}
+        shipId={!miningGroup ? selectedShip?.id : undefined}
+        isSingleShipMode={!miningGroup}
+        rock={rock}
+        onToggleShip={onToggleShip}
+        onToggleLaser={(shipIdOrLaserIndex, laserIndex) => {
+          if (!miningGroup) {
+            // Single ship mode
+            onSingleShipToggleLaser?.(shipIdOrLaserIndex as number);
+          } else {
+            // Group mode
+            onToggleLaser?.(shipIdOrLaserIndex as string, laserIndex!);
+          }
+        }}
+        onToggleModule={(shipIdOrLaserIndex, laserIndexOrModuleIndex, moduleIndex) => {
+          if (!miningGroup) {
+            // Single ship mode
+            onToggleModule?.(shipIdOrLaserIndex as number, laserIndexOrModuleIndex);
+          } else {
+            // Group mode
+            onGroupToggleModule?.(shipIdOrLaserIndex as string, laserIndexOrModuleIndex, moduleIndex!);
+          }
+        }}
+        onSetScanningShip={onSetScanningShip}
+      />
     </div>
   );
 }

@@ -22,22 +22,29 @@
 }
 
 .ship-pool-header h2 .group-name {
+  display: block;
   color: var(--accent-gold);
   font-weight: normal;
   text-transform: none;
   letter-spacing: normal;
+  font-size: 0.9rem;
+  margin-top: 0.25rem;
 }
 
 .add-ship-button {
   background: var(--bg-secondary);
   color: var(--accent-cyan);
-  border: 2px solid var(--accent-cyan);
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  border: 1px solid var(--accent-cyan);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  width: 6rem;              /* 1:2 ratio - width is 2x height */
+  height: 3rem;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .add-ship-button:hover,
@@ -80,6 +87,7 @@
   padding: 1rem;
   transition: all 0.2s ease;
   cursor: pointer;
+  position: relative;
 }
 
 .ship-card.active {
@@ -97,17 +105,22 @@
   box-shadow: 0 2px 8px rgba(0, 170, 255, 0.2);
 }
 
-.status-indicator {
-  font-size: 0.65rem;
+/* Ship card ON/OFF status indicator - scoped to ship-card to avoid affecting ResultDisplay's status-indicator */
+.ship-card .status-indicator {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: auto;              /* Override base width: 100% */
+  max-width: none;          /* Override base max-width */
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
-  margin-left: 0.5rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-.status-indicator.on {
+.ship-card .status-indicator.on {
   color: var(--success);
   background: rgba(0, 255, 136, 0.15);
   border: 1px solid var(--success);
@@ -115,7 +128,7 @@
   text-shadow: 0 0 4px rgba(0, 255, 136, 0.6);
 }
 
-.status-indicator.off {
+.ship-card .status-indicator.off {
   color: var(--danger);
   background: rgba(255, 51, 102, 0.15);
   border: 1px solid var(--danger);
@@ -128,12 +141,21 @@
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.ship-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .ship-info h3 {
   margin: 0;
   color: var(--text-primary);
-  font-size: 1.1rem;
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ship-type {
@@ -144,7 +166,11 @@
 
 .ship-actions {
   display: flex;
+  justify-content: center;
   gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
 }
 
 .edit-button,
@@ -158,6 +184,12 @@
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.edit-button {
+  font-size: 1.1rem;
+  padding: 0.3rem 0.6rem;
+  line-height: 1;
 }
 
 .edit-button:hover {
@@ -179,6 +211,7 @@
 
 .remove-button {
   font-size: 1.2rem;
+  font-weight: 700;
   padding: 0.2rem 0.6rem;
   line-height: 1;
 }
@@ -214,4 +247,31 @@
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+/* Mobile: Make Add Ship button a large plus sign */
+@media (pointer: coarse) {
+  .add-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+  }
+
+  .add-ship-button::after {
+    content: '+';
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--accent-cyan);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .add-ship-button:hover::after,
+  .add-ship-button:active::after {
+    color: var(--bg-dark);
+  }
 }

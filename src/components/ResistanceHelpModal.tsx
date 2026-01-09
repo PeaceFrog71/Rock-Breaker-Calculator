@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import './ResistanceHelpModal.css';
 import ResistanceHelpContent from './ResistanceHelpContent';
 
@@ -9,7 +10,8 @@ interface ResistanceHelpModalProps {
 export default function ResistanceHelpModal({ isOpen, onClose }: ResistanceHelpModalProps) {
   if (!isOpen) return null;
 
-  return (
+  // Use portal to render at body level, escaping any parent transform contexts
+  return createPortal(
     <div className="resistance-help-overlay" onClick={onClose}>
       <div className="resistance-help-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>×</button>
@@ -17,6 +19,7 @@ export default function ResistanceHelpModal({ isOpen, onClose }: ResistanceHelpM
         <h2>Resistance Scanning Setup</h2>
         <ResistanceHelpContent />
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
