@@ -338,7 +338,7 @@ function App() {
     prevResistanceMode.current = rock.resistanceMode;
   }, [rock.resistanceMode, useMiningGroup, selectedShip.id, rock.scannedByShipId]);
 
-  // Create a stable reference for equipment config (only laser heads and modules, not manned or active state)
+  // Create a stable reference for equipment config (only laser heads and modules; excludes manned state)
   // This is used to detect when the sensor selection should be cleared
   // Note: moduleActive is intentionally excluded - toggling active modules shouldn't clear the scanning ship
   const equipmentConfigKey = useMemo(() => {
