@@ -765,19 +765,19 @@ function App() {
                           <h2>Rock Properties</h2>
                           {rockPropertiesContent}
                         </div>
-
-                        {/* Mobile Ko-fi link - only visible on mobile */}
-                        <a
-                          href="https://ko-fi.com/peacefroggaming"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="kofi-mobile-inline"
-                        >
-                          <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
-                          <span>Buy me a Rieger-C3<br />on KO-FI</span>
-                        </a>
                       </div>
                     )}
+
+                    {/* Mobile Ko-fi link - CSS controls visibility (shows only on mobile) */}
+                    <a
+                      href="https://ko-fi.com/peacefroggaming"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="kofi-mobile-inline"
+                    >
+                      <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
+                      <span>Buy me a Rieger-C3<br />on KO-FI</span>
+                    </a>
 
                     {/* Center - Mining Graphic */}
                     <div className="overview-center">

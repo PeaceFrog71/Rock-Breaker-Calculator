@@ -112,3 +112,10 @@
     width: 100%;
   }
 }
+
+/* Tablets - reduce ship name font (base 1rem is too large) */
+@media (pointer: coarse) and (min-width: 768px) {
+  .ship-selector.mobile .ship-name {
+    font-size: 0.85rem;
+  }
+}

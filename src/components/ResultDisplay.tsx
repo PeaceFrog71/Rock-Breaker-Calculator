@@ -67,31 +67,6 @@ const SHIP_OFFSETS: Record<string, ShipOffsets> = {
   },
 };
 
-/**
- * Multi-ship mode: position-specific laser offsets by ship type and angle.
- * Angle values correspond to ship positions around the rock:
- * - 60°: upper right, 120°: lower right, 240°: lower left, 300°: upper left
- */
-type PositionAngle = 60 | 120 | 240 | 300;
-
-interface MultiShipLaserOffset {
-  x: number;
-  y: number;  // Added to base Y offset
-}
-
-const MULTI_SHIP_LASER_OFFSETS: Record<string, Partial<Record<PositionAngle, MultiShipLaserOffset>>> = {
-  prospector: {
-    120: { x: -20, y: 0 },  // Lower right
-    240: { x: 20, y: 0 },   // Lower left
-  },
-  mole: {
-    60: { x: -40, y: 5 },    // Upper right
-    120: { x: -50, y: -17 }, // Lower right
-    240: { x: 50, y: -19 },  // Lower left
-    300: { x: 45, y: 5 },    // Upper left
-  },
-};
-
 // Helper to get short ship name (e.g., "MISC Prospector" → "Prospector")
 function getShortShipName(fullName: string): string {
   return fullName.split(" ").slice(1).join(" ");
@@ -109,15 +84,14 @@ interface LaserBeamProps {
 // Tablet-specific laser using vw units for positioning
 // Renders at rock-display level, not inside rock-container
 function TabletLaser({ shipId, laserCount = 1, rockMass = 10000 }: { shipId: string; laserCount?: number; rockMass?: number }) {
-  // Ship center at 50% - 17vw, but laser starts from ship's right edge
-  // Rock center at 50% + 23vw
-  // Per-ship horizontal offset from center (vw units)
+  // Ship center at 50% - 20vw, rock center at 50% + 23vw
+  // Per-ship horizontal offset from ship center (vw units) - laser starts from ship's right edge
   const shipOffsets: Record<string, { x: number; y: number }> = {
-    prospector: { x: 12, y: 0 },   // 50% - 12vw
-    golem: { x: 14, y: -2 },       // 50% - 14vw, up 2vw
-    mole: { x: 10, y: 0 },         // 50% - 10vw
+    prospector: { x: 15, y: 0 },   // 50% - 15vw (5vw right of ship center)
+    golem: { x: 16, y: -2 },       // 50% - 16vw (4vw right of ship center), up 2vw
+    mole: { x: 13, y: 0 },         // 50% - 13vw (7vw right of ship center)
   };
-  const offsets = shipOffsets[shipId] || { x: 12, y: 0 };
+  const offsets = shipOffsets[shipId] || { x: 15, y: 0 };
   const width = offsets.x + 23;  // offset + rock position (23vw)
   const beamHeight = 20;
 
@@ -578,12 +552,12 @@ export default function ResultDisplay({
             />
           </div>
         )}
-        {/* Tablet laser - rendered at rock-display level for fixed positioning */}
+        {/* Tablet laser - rendered at rock-display level for fixed vw-based positioning */}
+        {/* Only for tablets (768px+), phones use in-container SVG laser */}
         {!miningGroup &&
           selectedShip &&
           isMobile &&
-          !window.matchMedia('(orientation: portrait)').matches &&
-          window.matchMedia('(min-width: 768px) and (min-height: 600px)').matches &&
+          window.innerWidth >= 768 &&
           config &&
           (selectedShip.id !== 'mole' || getMannedLasers(config).length > 0) && (
           <TabletLaser
@@ -595,7 +569,7 @@ export default function ResultDisplay({
         <div
           className="rock-container"
           onClick={(e) => e.stopPropagation()}
-          style={!miningGroup && isMobile && !window.matchMedia('(orientation: landscape) and (min-width: 768px) and (min-height: 600px)').matches ? { transform: "translateX(36vw)" } : undefined}>
+          style={undefined}>
           {/* Single ship positioned to the left */}
           {!miningGroup &&
             selectedShip &&
@@ -605,11 +579,6 @@ export default function ResultDisplay({
               const asteroidSize = getAsteroidSize();
               const asteroidRadius = asteroidSize.width / 2;
               const shipOffsets = SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
-              const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-              // Detect iPad/tablet in landscape (matches CSS media query that applies scale(0.9))
-              const isTabletLandscape = isMobile &&
-                !isPortrait &&
-                window.matchMedia('(min-width: 768px) and (min-height: 600px)').matches;
 
               // Desktop: ship at 25% from left, rock at 75% from left
               // Mobile: keep original centered layout
@@ -619,25 +588,58 @@ export default function ResultDisplay({
               const rockVisualCenterY = center;
 
               if (isMobile) {
-                // Mobile: original layout with ship offset from center
-                const shipX = -220;
+                // Mobile: ship on left, rock on right
+                const vwInPx = window.innerWidth / 100;
+                const vhInPx = window.innerHeight / 100;
+                const isPhone = window.innerWidth < 768;
                 const mobileAdjustX = selectedShip.id === "mole" ? -25 : 0;
                 const mobileAdjustY = selectedShip.id === "mole" ? -10 : 0;
 
-                // Phone-style positioning as base
-                laserStartX = center + shipX + shipOffsets.laser.x + mobileAdjustX;
-                laserStartY = center + shipOffsets.laser.y + mobileAdjustY;
+                if (isPhone) {
+                  // Phone: ship center at 15%, rock at center + 20vw
+                  // Ship dimensions in vw: prospector 22vw, mole 28vw, golem 18vw
+                  // LaserBeam uses 800px coords centered on container, so we convert:
+                  // svgX = containerX - containerWidth/2 + 400
+                  const containerWidth = window.innerWidth;
 
-                // Phone-style positioning as base
-                rockCenterX = center + (isPortrait ? -55 : 0);
+                  // Ship widths in vw (from SHIP_IMAGE_CONFIG_PHONE)
+                  const shipWidthsVW: Record<string, number> = {
+                    prospector: 22,
+                    mole: 28,
+                    golem: 18,
+                  };
+                  const shipWidthVW = shipWidthsVW[selectedShip.id] ?? 20;
+                  const shipWidthPx = (shipWidthVW / 100) * containerWidth;
 
-                if (isTabletLandscape) {
-                  // Tablet: match CSS vw-based positioning
-                  // Ship CSS: left:50% transform:translate(-50% - 17vw) → center - 17vw
-                  // Rock CSS: translateX(23vw) → center + 23vw
-                  const vwInPx = window.innerWidth / 100;
-                  laserStartX = center - (17 * vwInPx) + shipOffsets.laser.x;
-                  rockCenterX = center + (23 * vwInPx);
+                  // Ship is at left:0 with translate(-105%, -50%), so front (right edge after flip) is near x=0
+                  // The ship's front is at approximately: 0 - 0.05 * shipWidth (from the -105% translate)
+                  const shipFrontX = -0.05 * shipWidthPx;
+
+                  // Rock center at viewport center + 25vw
+                  const rockContainerX = containerWidth * 0.5 + 25 * vwInPx;
+
+                  // Convert to SVG coords (800px centered on container)
+                  laserStartX = shipFrontX - containerWidth / 2 + center;
+                  laserStartY = center - 10; // Slight upward offset to aim from ship front
+                  rockCenterX = rockContainerX - containerWidth / 2 + center;
+
+                  // Ship-specific adjustments for laser origin (using vw/vh relative units)
+                  if (selectedShip.id === "mole") {
+                    // MOLE: move right by 35.9vw, down 0.2vh
+                    laserStartX += 35.9 * vwInPx;
+                    laserStartY += 0.2 * vhInPx;
+                  } else if (selectedShip.id === "golem") {
+                    // GOLEM: move right by 33vw (no vertical adjustment)
+                    laserStartX += 33 * vwInPx;
+                  } else if (selectedShip.id === "prospector") {
+                    // Prospector: move right by 30vw
+                    laserStartX += 30 * vwInPx;
+                  }
+                } else {
+                  // Tablet: use vw-based positioning
+                  laserStartX = center - (20 * vwInPx) + shipOffsets.laser.x + mobileAdjustX;
+                  laserStartY = center + shipOffsets.laser.y + mobileAdjustY;
+                  rockCenterX = center + (20 * vwInPx);
                 }
               } else {
                 // Desktop: ship at 15% from left + 150px offset, rock at 85% from left
@@ -664,10 +666,12 @@ export default function ResultDisplay({
               return (
                 <div className="ships-around-rock">
                   {/* Laser beam from ship to rock - only show if MOLE has manned lasers or if not a MOLE */}
-                  {/* Skip for tablet - TabletLaser is rendered at rock-display level instead */}
+                  {/* Skip for tablets - TabletLaser is rendered at rock-display level instead */}
+                  {/* Phones use this in-container laser */}
                   {(() => {
-                    // Skip laser in this container for tablet - it's rendered separately
-                    if (isTabletLandscape) {
+                    // Skip laser in this container for tablets - it's rendered separately with vw units
+                    // Phones (width < 768) use this in-container SVG laser
+                    if (isMobile && window.innerWidth >= 768) {
                       return null;
                     }
 
@@ -738,14 +742,14 @@ export default function ResultDisplay({
                   <div
                     className={`ship-icon active ship-${selectedShip.id} ${isMobile ? 'mobile-tappable' : ''}`}
                     style={isMobile ? {
-                      // Mobile: phone-style positioning as base
-                      // Tablet: use vw units for consistent positioning with rock
+                      // Mobile: ship on left side
                       position: "absolute",
                       top: "50%",
-                      left: isTabletLandscape ? "50%" : "calc(50% - 220px)",
-                      transform: isTabletLandscape
-                        ? "translate(calc(-50% - 17vw), -50%)"  // Ship center at 25% from left of display
-                        : "translate(-50%, -50%)",
+                      // Phones: push to left edge of display, Tablets: center then shift left with transform
+                      left: window.innerWidth < 768 ? "0" : "50%",
+                      transform: window.innerWidth < 768
+                        ? "translate(-105%, -50%)"  // Phone: push left to display edge
+                        : "translate(calc(-50% - 20vw), -50%)",  // Tablet: vw-based
                     } : {
                       // Desktop: ship positioned left (moved right 150px)
                       position: "absolute",
@@ -768,7 +772,9 @@ export default function ResultDisplay({
                       const shipTransform = "scaleX(-1) rotate(15deg)";
                       // Ship should glow if it has manned lasers (or if it's not a MOLE)
                       const hasActiveLasers = !isMole || numMannedLasers > 0;
-                      const shipImageConfig = getShipImageConfig(selectedShip.id);
+                      // Use phone config for phones, desktop config otherwise
+                      const isPhone = window.innerWidth < 768;
+                      const shipImageConfig = getShipImageConfig(selectedShip.id, false, false, isPhone && isMobile);
                       const shipImage = SHIP_IMAGES[selectedShip.id];
 
                       if (shipImageConfig && shipImage) {
@@ -782,10 +788,13 @@ export default function ResultDisplay({
                             style={{
                               width: shipImageConfig.width,
                               height: shipImageConfig.height,
-                              minWidth: shipImageConfig.width,
-                              minHeight: shipImageConfig.height,
-                              maxWidth: "none",
-                              maxHeight: "none",
+                              // Only set min/max constraints on desktop; phones use vw-based sizing
+                              ...(!(isPhone && isMobile) && {
+                                minWidth: shipImageConfig.width,
+                                minHeight: shipImageConfig.height,
+                                maxWidth: "none",
+                                maxHeight: "none",
+                              }),
                               imageRendering: "pixelated",
                               transform: shipTransform,
                             }}
@@ -1092,21 +1101,28 @@ export default function ResultDisplay({
                 // Check for portrait multi-ship mode
                 const isPortrait = window.matchMedia('(orientation: portrait)').matches;
                 const isPortraitMultiShip = isMobile && isPortrait;
+                // Ships-on-left for: portrait mobile, OR phones/vintage iPad in landscape (< 1024px)
+                // Larger tablets (iPad Air 1180px, Surface Pro 1368px) use polar layout
+                const useShipsOnLeft = isPortraitMultiShip || (isMobile && window.innerWidth < 1024);
 
                 // Positions: 60°, 120°, 240°, 300° (top is 0°, clockwise)
                 const positions = [60, 120, 240, 300];
                 const angle = positions[index] || 60;
                 const asteroidSize = getAsteroidSize();
                 const asteroidRadius = asteroidSize.width / 2;
-                // Fixed ship position for all rock sizes (matches huge rock positioning)
-                const radius = 179;
+                // Ship position radius in vw units for responsive scaling
+                // ~18vw gives good spacing on tablets (iPad Air to Surface Pro)
+                const radiusVW = 18;
+                const yOffsetVW = 4; // Slight downward shift
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
-                const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-                // Fixed vertical offset for all rock sizes (matches huge rock positioning)
-                const yOffset = 50;
-                const y =
-                  Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
+                // Calculate x, y in vw units for relative positioning
+                const xVW = Math.cos((adjustedAngle * Math.PI) / 180) * radiusVW;
+                const yVW = Math.sin((adjustedAngle * Math.PI) / 180) * radiusVW + yOffsetVW;
+                // Keep pixel values for legacy code paths
+                const viewportWidth = window.innerWidth;
+                const x = (xVW / 100) * viewportWidth;
+                const y = (yVW / 100) * viewportWidth;
                 const isActive = shipInstance.isActive !== false;
 
                 // Portrait mode: evenly distributed from 17% to 92% of container height
@@ -1131,15 +1147,19 @@ export default function ResultDisplay({
                         const isPortrait = window.matchMedia('(orientation: portrait)').matches;
                         const isPortraitMultiShip = isMobile && isPortrait;
 
-                        // Portrait multi-ship mode: ships are CSS-positioned on left, rock on right
+                        // Mobile multi-ship mode: ships are CSS-positioned on left, rock on right
                         // Override coordinates to match the CSS layout
                         let laserStartX: number;
                         let laserStartY: number;
                         let rockCenterEndX: number;
                         const rockCenterEndY = center;
 
-                        if (isPortraitMultiShip) {
-                          // Portrait multi-ship: ships on left (CSS left:0), rock on right (offset 25vw)
+                        // Ships-on-left layout for: portrait mobile, OR phones/vintage iPad in landscape (< 1024px)
+                        // Larger tablets (iPad Air, Surface Pro) in landscape use polar layout
+                        const useShipsOnLeft = isPortraitMultiShip || (isMobile && window.innerWidth < 1024);
+
+                        if (useShipsOnLeft) {
+                          // Ships-on-left mode: ships on left (CSS left:0), rock on right (offset 25vw)
                           //
                           // Container dimensions:
                           // - .rock-display has padding: 1rem (16px each side)
@@ -1269,30 +1289,82 @@ export default function ResultDisplay({
                           const rockCenterCSS = containerWidth / 2 + rockOffsetPx;
                           rockCenterEndX = rockCenterCSS - containerWidth / 2 + 400;
                         } else {
-                          // Landscape mode: use polar coordinates
-                          const baseOffsets = SHIP_OFFSETS[shipInstance.ship.id] || SHIP_OFFSETS.prospector;
-                          let laserXOffset = 0;
-                          let laserYOffset = baseOffsets.laser.y;
+                          // Tablet polar layout: use vw units for responsive scaling
+                          // Laser starts at ship position (xVW, yVW) and points toward rock center (0, 0)
+                          const laserLengthVW = Math.sqrt(xVW * xVW + yVW * yVW);
+                          // Base angle from ship to rock center: atan2(-yVW, -xVW) in degrees
+                          const baseAngle = Math.atan2(-yVW, -xVW) * (180 / Math.PI);
 
-                          // Apply position-specific adjustments from config
-                          const positionOffsets = MULTI_SHIP_LASER_OFFSETS[shipInstance.ship.id]?.[angle as PositionAngle];
-                          if (positionOffsets) {
-                            laserXOffset = positionOffsets.x;
-                            laserYOffset += positionOffsets.y;
+                          // MOLE: render multiple lasers with angle offsets
+                          if (isMole && numMannedLasers > 0) {
+                            const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
+                            return (
+                              <>
+                                {angleOffsets.map((angleOffset, laserIndex) => (
+                                  <div
+                                    key={laserIndex}
+                                    className="tablet-laser"
+                                    style={{
+                                      position: "absolute",
+                                      left: `calc(50% + ${xVW}vw)`,
+                                      top: `calc(50% + ${yVW}vw)`,
+                                      width: `${laserLengthVW}vw`,
+                                      height: "20px",
+                                      transform: `translate(0, -50%) rotate(${baseAngle + angleOffset}deg)`,
+                                      transformOrigin: "0 50%",
+                                      overflow: "hidden",
+                                      pointerEvents: "none",
+                                      zIndex: 10,
+                                    }}
+                                  >
+                                    <div style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      transform: "scaleX(-1)",
+                                      backgroundImage: `url(${laserGif})`,
+                                      backgroundRepeat: "repeat-x",
+                                      backgroundSize: "auto 100%",
+                                      imageRendering: "pixelated",
+                                      filter: "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+                                    }} />
+                                  </div>
+                                ))}
+                              </>
+                            );
                           }
 
-                          // Mobile adjustments for MOLE: move laser left 10, up 5
-                          if (isMobile && isMole) {
-                            laserXOffset -= 10;
-                            laserYOffset -= 5;
-                          }
-
-                          laserStartX = center + x + laserXOffset;
-                          laserStartY = center + y + laserYOffset;
-                          rockCenterEndX = center;
+                          // Single laser for non-MOLE ships
+                          return (
+                            <div
+                              className="tablet-laser"
+                              style={{
+                                position: "absolute",
+                                left: `calc(50% + ${xVW}vw)`,
+                                top: `calc(50% + ${yVW}vw)`,
+                                width: `${laserLengthVW}vw`,
+                                height: "20px",
+                                transform: `translate(0, -50%) rotate(${baseAngle}deg)`,
+                                transformOrigin: "0 50%",
+                                overflow: "hidden",
+                                pointerEvents: "none",
+                                zIndex: 10,
+                              }}
+                            >
+                              <div style={{
+                                width: "100%",
+                                height: "100%",
+                                transform: "scaleX(-1)",
+                                backgroundImage: `url(${laserGif})`,
+                                backgroundRepeat: "repeat-x",
+                                backgroundSize: "auto 100%",
+                                imageRendering: "pixelated",
+                                filter: "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+                              }} />
+                            </div>
+                          );
                         }
 
-                        // For MOLE, render multiple lasers with slight angle variations
+                        // Ships-on-left mode only below this point
                         if (isMole) {
                           const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
 
@@ -1372,15 +1444,17 @@ export default function ResultDisplay({
                       className={`ship-icon ${
                         isActive ? "active" : "inactive"
                       } clickable ship-${shipInstance.ship.id} ${isMobile ? 'mobile-tappable' : ''}`}
-                      style={isPortraitMultiShip ? {
+                      style={useShipsOnLeft ? {
+                        // Ships-on-left: phones + portrait tablets + vintage iPad landscape
                         position: "absolute",
                         top: `${portraitYPercent}%`,
                         left: "0",
                         transform: "translateY(-50%)",
                       } : {
+                        // Polar layout: larger tablets in landscape - using vw for responsive scaling
                         position: "absolute",
-                        top: `calc(50% + ${y}px)`,
-                        left: `calc(50% + ${x}px)`,
+                        top: `calc(50% + ${yVW}vw)`,
+                        left: `calc(50% + ${xVW}vw)`,
                         transform: "translate(-50%, -50%)",
                       }}
                       onClick={(e) => {
@@ -1396,11 +1470,11 @@ export default function ResultDisplay({
                         // Calculate ship transform based on position
                         let shipTransform: string;
 
-                        // Portrait mode: all ships on left, facing right
-                        if (isPortraitMultiShip) {
+                        // Ships-on-left mode: all ships facing right
+                        if (useShipsOnLeft) {
                           shipTransform = "scaleX(-1)";
                         } else {
-                          // Landscape mode: complex positioning
+                          // Polar mode: complex positioning around rock
                           // Left side ships: mirror horizontally to face right
                           const isLeftSide = x < 0;
                           shipTransform = isLeftSide ? "scaleX(-1)" : "none";
@@ -1777,12 +1851,17 @@ export default function ResultDisplay({
             style={{
               marginTop:
                 rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined,
-              // Portrait multi-ship mode: fixed offset for all rock sizes
-              ...(miningGroup && isMobile && window.matchMedia('(orientation: portrait)').matches ? {
+              // Ships-on-left multi-ship mode: rock offset for phones + portrait tablets + vintage iPad landscape
+              // Larger tablets in landscape use polar layout (rock stays centered)
+              ...(miningGroup && isMobile && (window.matchMedia('(orientation: portrait)').matches || window.innerWidth < 1024) ? {
+                transform: `translateX(25vw)`,
+              } : {}),
+              // Phone single-ship: rock right of center
+              ...(!miningGroup && isMobile && window.innerWidth < 768 ? {
                 transform: `translateX(25vw)`,
               } : {}),
               // Tablet landscape single-ship: rock position (guided)
-              ...(!miningGroup && isMobile && window.matchMedia('(orientation: landscape) and (min-width: 768px) and (min-height: 600px)').matches ? {
+              ...(!miningGroup && isMobile && window.innerWidth >= 768 && window.matchMedia('(orientation: landscape) and (min-height: 600px)').matches ? {
                 transform: `translateX(23vw)`,
               } : {}),
             }}

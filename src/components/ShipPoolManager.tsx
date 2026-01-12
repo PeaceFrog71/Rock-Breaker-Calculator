@@ -120,17 +120,19 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
               <div
                 key={ship.id}
                 className={`ship-card ${ship.isActive === false ? 'inactive' : 'active'}`}
-                onClick={() => handleToggleActive(ship.id)}
-                title={ship.isActive === false ? 'Click to activate ship' : 'Click to deactivate ship'}
               >
                 <div className="ship-card-header">
                   <div className="ship-info">
                     <h3>{ship.name}</h3>
                     <p className="ship-type">{ship.ship.name}</p>
                   </div>
-                  <span className={`status-indicator ${ship.isActive === false ? 'off' : 'on'}`}>
+                  <button
+                    className={`status-indicator ${ship.isActive === false ? 'off' : 'on'}`}
+                    onClick={() => handleToggleActive(ship.id)}
+                    title={ship.isActive === false ? 'Click to activate ship' : 'Click to deactivate ship'}
+                  >
                     {ship.isActive === false ? 'OFF' : 'ON'}
-                  </span>
+                  </button>
                 </div>
                 <div className="ship-card-body">
                   <div className="config-details">
@@ -177,7 +179,7 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     onClick={() => handleRemoveShip(ship.id)}
                     title="Remove ship from group"
                   >
-                    ×
+                    🗑️
                   </button>
                 </div>
               </div>

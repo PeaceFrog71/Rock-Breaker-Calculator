@@ -131,12 +131,12 @@ Add tablet media query:
 ## Progress
 
 - [ ] 1. Ship Library bottom tab image
-- [ ] 2. Remove configured laser count
-- [ ] 3. Bump mode toggle font size
-- [ ] 4. Bottom padding for tab clearance
+- [x] 2. Remove configured laser count
+- [x] 3. Bump mode toggle font size
+- [x] 4. Bottom padding for tab clearance
 - [ ] 5. Ship names word wrap
-- [ ] 6. Spread & enlarge action icons
-- [ ] 7. Narrower library side tabs
+- [x] 6. Spread & enlarge action icons
+- [x] 7. Narrower library side tabs
 - [ ] 8. ON button width on tablets
 - [ ] 9. Ship section 75% width + larger side tabs
 - [ ] 10. Group library image (awaiting user asset)

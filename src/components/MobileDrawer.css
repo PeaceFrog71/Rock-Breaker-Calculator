@@ -663,3 +663,11 @@
 }
 
 /* Note: Visibility is controlled by React (isMobile state) not CSS media queries */
+
+/* Phone landscape - narrower tabs (portrait already has 3rem at line 404) */
+@media (max-width: 767px) and (pointer: coarse) and (orientation: landscape) {
+  .mobile-drawer-tab.left,
+  .mobile-drawer-tab.right {
+    width: 4.5rem;
+  }
+}

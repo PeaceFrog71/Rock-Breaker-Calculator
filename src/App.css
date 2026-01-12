@@ -960,8 +960,9 @@ button, .btn-primary, .btn-secondary {
   }
 }
 
-/* Portrait mode on mobile - force single column centered layout */
-@media (orientation: portrait) and (pointer: coarse),
+/* Portrait mode on phones - force single column centered layout */
+/* Note: max-width: 767px excludes tablets like iPad Air (820px portrait) */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 767px),
        (orientation: portrait) and (max-width: 480px) {
   /* Ensure full viewport coverage */
   html, body {
@@ -1078,6 +1079,25 @@ button, .btn-primary, .btn-secondary {
   }
 }
 
+/* Phone-only overrides (max-width: 767px) - keep iPad unchanged */
+@media (max-width: 767px) and (pointer: coarse) {
+  /* Item 3: Larger mode toggle font for phones */
+  .mode-button {
+    font-size: 0.85rem !important;
+  }
+
+  /* Item 4: Bottom padding for tab clearance */
+  .mining-config-tab {
+    padding-bottom: 6rem !important;
+  }
+
+  /* Bottom padding for overview tab to clear bottom drawer tab */
+  .overview-tab,
+  .overview-tab.mobile-single-column {
+    padding-bottom: 3rem !important;
+  }
+}
+
 /* Mobile Ko-fi inline link - hidden on desktop */
 .kofi-mobile-inline {
   display: none;
@@ -1090,7 +1110,8 @@ button, .btn-primary, .btn-secondary {
     justify-content: center;
     gap: 0.4rem;
     padding: 0.5rem 0.6rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
     background: linear-gradient(135deg, #0d1229 0%, #1a1f3c 100%);
     color: #00d9ff;
     font-family: var(--font-heading);
@@ -1238,8 +1259,29 @@ button, .btn-primary, .btn-secondary {
   .compact-form-group label,
   .resistance-input-group label,
   .gadget-label-row label {
-    font-size: 1rem !important;
+    font-size: 1.1rem !important;
     font-family: inherit !important;
+  }
+
+  /* Tablet font sizes - match classic iPad */
+  .mode-button {
+    font-size: 1rem !important;
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .panel h2 {
+    font-size: 1.3rem !important;
+  }
+
+  .ship-selector select {
+    font-size: 1.1rem !important;
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .compact-form-group input,
+  .compact-form-group select {
+    font-size: 1.1rem !important;
+    padding: 0.5rem 0.6rem !important;
   }
 
   /* Center BASE/MODIFIED button text */

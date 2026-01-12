@@ -86,7 +86,6 @@
   border-radius: 6px;
   padding: 1rem;
   transition: all 0.2s ease;
-  cursor: pointer;
   position: relative;
 }
 
@@ -118,6 +117,9 @@
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
 }
 
 .ship-card .status-indicator.on {
@@ -273,5 +275,46 @@
   .add-ship-button:hover::after,
   .add-ship-button:active::after {
     color: var(--bg-dark);
+  }
+}
+
+/* Tablets - font for ship names */
+@media (pointer: coarse) and (min-width: 768px) {
+  .ship-info h3 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Phones - ship names font size */
+@media (pointer: coarse) and (max-width: 767px) {
+  .ship-info h3 {
+    font-size: 1.1rem;
+  }
+}
+
+/* Phone-only overrides (max-width: 767px) - keep iPad unchanged */
+@media (max-width: 767px) and (pointer: coarse) {
+  /* Move ON/OFF button down closer to divider, size reduced 10% from base */
+  .ship-card .status-indicator {
+    top: 2.7rem !important;
+    font-size: 0.72rem !important;
+    padding: 0.31rem 0.55rem !important;
+  }
+
+  /* Item 6: Spread & enlarge action icons (50% larger) */
+  .ship-actions {
+    justify-content: space-between;
+  }
+
+  .edit-button {
+    font-size: 1.65rem;
+  }
+
+  .save-library-button {
+    font-size: 1.3rem;
+  }
+
+  .remove-button {
+    font-size: 1.4rem;
   }
 }
