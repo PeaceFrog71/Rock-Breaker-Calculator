@@ -123,9 +123,6 @@
   min-height: 450px;
   z-index: 1;
   transition: padding-top 0.3s ease;
-  /* Container query support for responsive ship positioning (inline-size = width only) */
-  container-type: inline-size;
-  container-name: rock-container;
 }
 
 /* Landscape mode - keep same frame size, no shifting needed */

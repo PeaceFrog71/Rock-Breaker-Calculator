@@ -1117,8 +1117,10 @@ export default function ResultDisplay({
                 // Desktop: fixed pixel positioning (relative to container center)
                 const radius = 179;
                 const yOffset = 50;
+                // Upper ships (index 0 and 3) get extra upward adjustment
+                const yAdjustments = [-100, 0, 0, -100];
                 const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
+                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset + (yAdjustments[index] || 0);
                 const isActive = shipInstance.isActive !== false;
 
                 // Portrait mode: evenly distributed from 17% to 92% of container height
