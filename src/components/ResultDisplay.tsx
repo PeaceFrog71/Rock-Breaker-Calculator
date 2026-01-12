@@ -1111,19 +1111,14 @@ export default function ResultDisplay({
                 const angle = positions[index] || 60;
                 const asteroidSize = getAsteroidSize();
                 const asteroidRadius = asteroidSize.width / 2;
-                // Ship position radius in vw units for responsive scaling
-                // ~18vw gives good spacing on tablets (iPad Air to Surface Pro)
-                const radiusVW = 18;
-                const yOffsetVW = 4; // Slight downward shift
                 // Subtract 90° to make 0° point to top instead of right
                 const adjustedAngle = angle - 90;
-                // Calculate x, y in vw units for relative positioning
-                const xVW = Math.cos((adjustedAngle * Math.PI) / 180) * radiusVW;
-                const yVW = Math.sin((adjustedAngle * Math.PI) / 180) * radiusVW + yOffsetVW;
-                // Keep pixel values for legacy code paths
-                const viewportWidth = window.innerWidth;
-                const x = (xVW / 100) * viewportWidth;
-                const y = (yVW / 100) * viewportWidth;
+
+                // Desktop: fixed pixel positioning (relative to container center)
+                const radius = 179;
+                const yOffset = 50;
+                const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
+                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset;
                 const isActive = shipInstance.isActive !== false;
 
                 // Portrait mode: evenly distributed from 17% to 92% of container height
@@ -1290,11 +1285,11 @@ export default function ResultDisplay({
                           const rockCenterCSS = containerWidth / 2 + rockOffsetPx;
                           rockCenterEndX = rockCenterCSS - containerWidth / 2 + 400;
                         } else {
-                          // Tablet polar layout: use vw units for responsive scaling
-                          // Laser starts at ship position (xVW, yVW) and points toward rock center (0, 0)
-                          const laserLengthVW = Math.sqrt(xVW * xVW + yVW * yVW);
-                          // Base angle from ship to rock center: atan2(-yVW, -xVW) in degrees
-                          const baseAngle = Math.atan2(-yVW, -xVW) * (180 / Math.PI);
+                          // Desktop/large tablet polar layout: use fixed pixel positioning
+                          // Laser starts at ship position (x, y) and points toward rock center (0, 0)
+                          const laserLength = Math.sqrt(x * x + y * y);
+                          // Base angle from ship to rock center: atan2(-y, -x) in degrees
+                          const baseAngle = Math.atan2(-y, -x) * (180 / Math.PI);
 
                           // MOLE: render multiple lasers with angle offsets
                           if (isMole && numMannedLasers > 0) {
@@ -1307,9 +1302,9 @@ export default function ResultDisplay({
                                     className="tablet-laser"
                                     style={{
                                       position: "absolute",
-                                      left: `calc(50% + ${xVW}vw)`,
-                                      top: `calc(50% + ${yVW}vw)`,
-                                      width: `${laserLengthVW}vw`,
+                                      left: `calc(50% + ${x}px)`,
+                                      top: `calc(50% + ${y}px)`,
+                                      width: `${laserLength}px`,
                                       height: "20px",
                                       transform: `translate(0, -50%) rotate(${baseAngle + angleOffset}deg)`,
                                       transformOrigin: "0 50%",
@@ -1340,9 +1335,9 @@ export default function ResultDisplay({
                               className="tablet-laser"
                               style={{
                                 position: "absolute",
-                                left: `calc(50% + ${xVW}vw)`,
-                                top: `calc(50% + ${yVW}vw)`,
-                                width: `${laserLengthVW}vw`,
+                                left: `calc(50% + ${x}px)`,
+                                top: `calc(50% + ${y}px)`,
+                                width: `${laserLength}px`,
                                 height: "20px",
                                 transform: `translate(0, -50%) rotate(${baseAngle}deg)`,
                                 transformOrigin: "0 50%",
@@ -1452,10 +1447,10 @@ export default function ResultDisplay({
                         left: "0",
                         transform: "translateY(-50%)",
                       } : {
-                        // Polar layout: larger tablets in landscape - using vw for responsive scaling
+                        // Polar layout: desktop & larger tablets - fixed pixel positioning
                         position: "absolute",
-                        top: `calc(50% + ${yVW}vw)`,
-                        left: `calc(50% + ${xVW}vw)`,
+                        top: `calc(50% + ${y}px)`,
+                        left: `calc(50% + ${x}px)`,
                         transform: "translate(-50%, -50%)",
                       }}
                       onClick={(e) => {
