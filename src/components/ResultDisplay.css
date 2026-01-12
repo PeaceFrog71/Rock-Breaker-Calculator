@@ -1140,13 +1140,12 @@
 }
 
 /* ====================================
-   MOBILE STYLES
+   MOBILE/TABLET STYLES
    Hide desktop controls and show tap indicators
-   Works for both portrait AND landscape on touch devices
+   Matches useMobileDetection() - any touch device
    ==================================== */
 
-@media (pointer: coarse) and (max-width: 768px),
-       (pointer: coarse) and (max-height: 768px) {
+@media (pointer: coarse) {
   /* Hide entire laser controls container on mobile */
   .laser-controls {
     display: none !important;
@@ -1299,10 +1298,8 @@
     min-height: clamp(150px, 30vh, 250px) !important;
   }
 
-  /* Single ship mode: shift rock left to make room for ship on left */
-  .rock-container:has(.ships-around-rock):not(:has(.multi-ship-mode)) .rock-icon {
-    transform: translateX(-15vw);
-  }
+  /* Single ship mode: rock positioning handled by JS inline style */
+  /* Ship on left (~30% from left), rock on right (~70% from left) - consistent for all mobile */
 
   /* Single ship portrait: slightly smaller ships */
   .ships-around-rock:not(.multi-ship-mode) .ship-image {
@@ -1325,14 +1322,25 @@
     top: 100% !important;
     left: 50% !important;
     transform: translateX(-50%) !important;
-    margin-top: 0.1rem !important;
-    font-size: 0.55rem !important;
-    padding: 0.1rem 0.2rem !important;
-    max-width: clamp(50px, 22vw, 90px) !important;
+    margin-top: 0.2rem !important;
+    font-size: 1.1rem !important;
+    padding: 0.2rem 0.4rem !important;
+    max-width: clamp(80px, 30vw, 150px) !important;
     white-space: nowrap !important;
     background: transparent !important;
   }
+}
 
+/* Phone-only: smaller multi-ship labels */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
+  .ships-around-rock.multi-ship-mode .ship-label {
+    font-size: 0.75rem !important;
+    padding: 0.15rem 0.3rem !important;
+  }
+}
+
+/* Portrait mode continued */
+@media (orientation: portrait) and (pointer: coarse) {
   /* Non-positioned status indicator - center with margin */
   .status-indicator {
     padding: 0.6rem 1rem !important;
@@ -1419,6 +1427,13 @@
     text-align: center !important;
   }
 
+  .power-bar-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 0 0.5rem 0 !important;
+    box-sizing: border-box !important;
+  }
+
   /* Thicker power bar with larger font */
   .power-bar {
     height: 40px !important;
@@ -1432,5 +1447,128 @@
   .power-margin-overlay {
     font-size: 1.3rem !important;
     font-weight: 700 !important;
+  }
+
+  /* Landscape single ship: constrain ship image size */
+  .ships-around-rock:not(.multi-ship-mode) .ship-image {
+    max-width: clamp(60px, 15vw, 100px) !important;
+    max-height: clamp(40px, 10vw, 70px) !important;
+  }
+
+  /* Landscape multi-ship: ships on left, rock on right */
+  .ships-around-rock.multi-ship-mode {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .ships-around-rock.multi-ship-mode .ship-icon {
+    margin-top: -1vw !important;
+  }
+
+  .ships-around-rock.multi-ship-mode .ship-image {
+    max-width: clamp(40px, 10vw, 70px) !important;
+    max-height: clamp(26px, 6.5vw, 46px) !important;
+  }
+
+  .ships-around-rock.multi-ship-mode .ship-label {
+    position: absolute !important;
+    top: 100% !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    margin-top: 0.2rem !important;
+    font-size: 1.3rem !important;
+    padding: 0.3rem 0.5rem !important;
+    max-width: clamp(100px, 25vw, 180px) !important;
+    white-space: nowrap !important;
+    background: transparent !important;
+  }
+}
+
+/* Tablet landscape - larger fonts to match classic iPad */
+@media (orientation: landscape) and (pointer: coarse) and (min-width: 768px) {
+  .status-indicator h2 {
+    font-size: 1.5rem !important;
+    letter-spacing: 1.5px !important;
+  }
+
+  .power-margin-overlay {
+    font-size: 1.5rem !important;
+  }
+
+  .power-labels {
+    font-size: 1.2rem !important;
+  }
+
+  .stat-card .stat-value {
+    font-size: 1.4rem !important;
+  }
+
+  .stat-card .stat-label {
+    font-size: 0.9rem !important;
+  }
+
+  .calculation-details h3 {
+    font-size: 1.2rem !important;
+  }
+
+  .detail-row {
+    font-size: 1rem !important;
+  }
+}
+
+/* Large tablets (iPad Air 1180px+, Surface Pro 1368px+) - scale ships and rock with viewport */
+@media (orientation: landscape) and (pointer: coarse) and (min-width: 1024px) {
+  /* Rock display fills more vertical space */
+  .rock-display {
+    min-height: 50vh !important;
+  }
+
+  /* Ship images scale with viewport - polar layout around rock */
+  .ships-around-rock .ship-image {
+    max-width: clamp(80px, 12vw, 150px) !important;
+    max-height: clamp(52px, 8vw, 100px) !important;
+  }
+
+  /* Rock/asteroid scales with viewport */
+  .rock-symbol {
+    font-size: clamp(12rem, 25vw, 20rem) !important;
+  }
+
+  .rock-symbol > .asteroid-image {
+    max-width: clamp(200px, 30vw, 400px) !important;
+    max-height: clamp(200px, 35vh, 400px) !important;
+  }
+
+  /* Ship labels scale up - single ship mode */
+  .ship-label {
+    font-size: clamp(0.9rem, 1.5vw, 1.2rem) !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+}
+
+/* Extra large tablets (Surface Pro 1368px+) - even larger scaling */
+@media (orientation: landscape) and (pointer: coarse) and (min-width: 1280px) {
+  .rock-display {
+    min-height: 55vh !important;
+  }
+
+  .ships-around-rock .ship-image {
+    max-width: clamp(100px, 10vw, 180px) !important;
+    max-height: clamp(65px, 6.5vw, 120px) !important;
+  }
+
+  .rock-symbol > .asteroid-image {
+    max-width: clamp(250px, 28vw, 450px) !important;
+    max-height: clamp(250px, 40vh, 450px) !important;
+  }
+
+  /* Ship labels - single ship mode on extra large tablets */
+  .ship-label {
+    font-size: clamp(0.9rem, 1.2vw, 1.1rem) !important;
+    padding: 0.4rem 0.6rem !important;
   }
 }

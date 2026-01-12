@@ -67,7 +67,7 @@
   }
 
   .tab-button {
-    font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+    font-size: 1rem;
     padding: 0.5rem 0.75rem;
     min-height: clamp(2.25rem, 5vh, 2.5rem);
     letter-spacing: 0;

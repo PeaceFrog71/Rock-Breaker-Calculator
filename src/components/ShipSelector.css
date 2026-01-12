@@ -112,3 +112,31 @@
     width: 100%;
   }
 }
+
+/* Tablets - consistent sizing with mode-toggle buttons */
+@media (pointer: coarse) and (min-width: 768px) {
+  .ship-selector.mobile {
+    width: calc(100vw - 16rem);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .ship-selector.mobile .ship-grid {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .ship-selector.mobile .ship-button {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .ship-selector.mobile .ship-name {
+    font-size: 1.2rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .ship-selector.mobile .ship-lasers {
+    font-size: 1rem;
+  }
+}

@@ -27,9 +27,11 @@ export default function ShipSelector({ selectedShip, onShipChange, configName }:
         setIsExpanded(!isExpanded);
       }
     } else {
-      // Clicking different ship selects it and collapses
+      // Clicking different ship selects it and auto-collapses
       onShipChange(ship);
-      setIsExpanded(false);
+      if (isMobile) {
+        setIsExpanded(false);
+      }
     }
   };
 

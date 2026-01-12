@@ -14,15 +14,23 @@
 }
 
 .manned-status-button {
-  font-size: 0.65rem;
+  font-size: 0.9rem;
   font-weight: 700;
-  padding: 0.15rem 0.4rem;
-  border-radius: 3px;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+}
+
+/* Tablet: larger manned button */
+@media (pointer: coarse) and (min-width: 768px) {
+  .manned-status-button {
+    font-size: 1.1rem;
+    padding: 0.5rem 1rem;
+  }
 }
 
 .manned-status-button.manned {
@@ -153,4 +161,13 @@
   color: var(--accent-cyan);
   font-size: 0.65rem;
   opacity: 0.5;
+}
+
+/* Make entire laser panel clickable on mobile when collapsed */
+.laser-panel.clickable {
+  cursor: pointer;
+}
+
+.laser-panel.clickable:active {
+  background: rgba(0, 255, 255, 0.05);
 }

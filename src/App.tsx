@@ -33,6 +33,7 @@ import pfLogo from "./assets/PFlogo.png";
 import gadgetLabelVertical from "./assets/gadget label vertical.png";
 import rockLabelVertical from "./assets/rocks_tray_label_small.png";
 import shipLibraryLabelVertical from "./assets/ship_library_small.png";
+import shipLibraryLabelHorz from "./assets/ship_library_small_horz.png";
 import groupLibraryLabelVertical from "./assets/group_library_small.png";
 import { version } from "../package.json";
 
@@ -765,19 +766,19 @@ function App() {
                           <h2>Rock Properties</h2>
                           {rockPropertiesContent}
                         </div>
-
-                        {/* Mobile Ko-fi link - only visible on mobile */}
-                        <a
-                          href="https://ko-fi.com/peacefroggaming"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="kofi-mobile-inline"
-                        >
-                          <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
-                          <span>Buy me a Rieger-C3<br />on KO-FI</span>
-                        </a>
                       </div>
                     )}
+
+                    {/* Mobile Ko-fi link - CSS controls visibility (shows only on mobile) */}
+                    <a
+                      href="https://ko-fi.com/peacefroggaming"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="kofi-mobile-inline"
+                    >
+                      <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
+                      <span>Buy me a Rieger-C3<br />on KO-FI</span>
+                    </a>
 
                     {/* Center - Mining Graphic */}
                     <div className="overview-center">
@@ -828,6 +829,7 @@ function App() {
                   side="bottom"
                   title="Ship Library"
                   tabLabel="Library"
+                  tabImage={shipLibraryLabelHorz}
                 >
                   <ConfigManager
                     currentShip={selectedShip}

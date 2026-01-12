@@ -6,18 +6,17 @@ import { useState, useEffect, useCallback } from 'react';
  */
 export function useMobileDetection(): boolean {
   const checkIsMobile = useCallback(() => {
-    // Check for mobile device via user agent (most reliable for iOS/Android)
+    // Check for mobile device via user agent
+    // Note: iPadOS 13+ reports as "Macintosh" so this may not catch iPads
     const userAgent = navigator.userAgent || '';
     const isMobileDevice = /iPhone|iPad|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
 
-    // Also check screen size as fallback (for devices not caught by UA)
-    const isSmallViewport = window.innerWidth <= 768 || window.innerHeight <= 500;
-
-    // Check touch capability
+    // Check touch capability - this catches iPads that report as Macintosh
     const hasTouchScreen = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
 
-    // Mobile if: user agent says mobile, OR (small viewport AND touch screen)
-    return isMobileDevice || (isSmallViewport && hasTouchScreen);
+    // Mobile/tablet if: user agent says mobile, OR has touch screen
+    // Using classic iPad (768px) as baseline - any touch device gets mobile layout
+    return isMobileDevice || hasTouchScreen;
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => {

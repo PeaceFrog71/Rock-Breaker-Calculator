@@ -59,6 +59,29 @@ export const SHIP_IMAGE_CONFIG_SMALL: Record<string, ShipImageConfig> = {
 };
 
 /**
+ * Ship image configurations for phone single-ship mode.
+ * Uses vw units for viewport-relative scaling on phones.
+ * Larger than multi-ship since there's only one ship.
+ */
+export const SHIP_IMAGE_CONFIG_PHONE: Record<string, ShipImageConfig> = {
+  golem: {
+    width: "18vw",
+    height: "11.7vw",
+    alt: "GOLEM",
+  },
+  mole: {
+    width: "28vw",
+    height: "18.2vw",
+    alt: "MOLE",
+  },
+  prospector: {
+    width: "22vw",
+    height: "14.3vw",
+    alt: "Prospector",
+  },
+};
+
+/**
  * Ship image configurations for portrait mobile multi-ship mode.
  * Uses vw units for viewport-relative scaling.
  * Aspect ratio maintained at 1.538:1 (120:78 base).
@@ -85,12 +108,15 @@ export const SHIP_IMAGE_CONFIG_PORTRAIT: Record<string, ShipImageConfig> = {
  * Get image configuration for a ship by ID.
  * @param shipId - The ship ID
  * @param small - If true, returns smaller dimensions for multi-ship mode
- * @param portrait - If true, returns vw-based dimensions for portrait mobile
+ * @param portrait - If true, returns vw-based dimensions for portrait mobile multi-ship
+ * @param phone - If true, returns vw-based dimensions for phone single-ship mode
  * Returns null if ship ID is not found (fallback to symbol rendering).
  */
-export function getShipImageConfig(shipId: string, small = false, portrait = false): ShipImageConfig | null {
+export function getShipImageConfig(shipId: string, small = false, portrait = false, phone = false): ShipImageConfig | null {
   let config: Record<string, ShipImageConfig>;
-  if (portrait) {
+  if (phone) {
+    config = SHIP_IMAGE_CONFIG_PHONE;
+  } else if (portrait) {
     config = SHIP_IMAGE_CONFIG_PORTRAIT;
   } else if (small) {
     config = SHIP_IMAGE_CONFIG_SMALL;

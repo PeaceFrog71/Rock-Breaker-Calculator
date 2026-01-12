@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import type { LaserConfiguration, Ship, LaserHead, Module } from '../types';
 import { LASER_HEADS, MODULES } from '../types';
 import { calculateLaserPower } from '../utils/calculator';
@@ -123,37 +123,15 @@ interface LaserPanelProps {
 
 export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, showMannedToggle }: LaserPanelProps) {
   const isMobile = useMobileDetection();
-  // Start collapsed if laser setup is already complete (has both laser and module)
+  // Start collapsed if laser is selected (modules showing "No Module Selected" counts as set)
   const hasLaserOnInit = laser.laserHead && laser.laserHead.id !== 'none';
-  const hasModuleOnInit = laser.modules.some(m => m && m.id !== 'none');
-  const [isEditing, setIsEditing] = useState(!hasLaserOnInit || !hasModuleOnInit);
+  const [isEditing, setIsEditing] = useState(!hasLaserOnInit);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Collapse dropdowns when clicking outside the panel (mobile only)
-  useEffect(() => {
-    if (!isMobile || !isEditing) return;
-
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
-        setIsEditing(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
-    };
-  }, [isMobile, isEditing]);
-
-  // Setup complete when BOTH laser AND module are selected
-  // This ensures dropdowns stay open until user has made both selections
+  // Setup complete when laser is selected (null modules showing "No Module Selected" count as set)
   const hasLaser = laser.laserHead && laser.laserHead.id !== 'none';
-  const hasModule = laser.modules.some(m => m && m.id !== 'none');
   const isGolem = selectedShip.id === 'golem';
-  const setupComplete = hasLaser && hasModule;
+  const setupComplete = hasLaser;
 
   // Show selectors if: not mobile, OR editing, OR setup not complete
   const showSelectors = !isMobile || isEditing || !setupComplete;
@@ -208,8 +186,17 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
     onChange({ ...laser, isManned: !currentState });
   };
 
+  // Handle click on the panel area to toggle editing on mobile
+  const handlePanelClick = (e: React.MouseEvent) => {
+    if (!isMobile) return;
+    // Don't trigger if clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'SELECT' || target.tagName === 'BUTTON' || target.tagName === 'INPUT') return;
+    setIsEditing(!isEditing);
+  };
+
   return (
-    <div className="laser-panel panel" ref={panelRef}>
+    <div className={`laser-panel panel ${isMobile ? 'clickable' : ''}`} ref={panelRef} onClick={handlePanelClick}>
       <div className="laser-panel-header">
         <h3>Laser {laserIndex + 1}</h3>
         {showMannedToggle && (
