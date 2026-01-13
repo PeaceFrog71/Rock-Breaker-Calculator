@@ -340,6 +340,15 @@
   transform: translate(-50%, -50%) !important;
 }
 
+/* Desktop single ship mode: laser behind ship */
+.rock-icon.desktop-single-ship ~ .ships-around-rock .laser-beam {
+  z-index: 5;
+}
+
+.rock-icon.desktop-single-ship ~ .ships-around-rock .ship-icon {
+  z-index: 20;
+}
+
 .rock-stats-sidebar {
   display: flex;
   flex-direction: column;
@@ -1339,6 +1348,17 @@
     bottom: 100% !important;
     margin-top: 0 !important;
     margin-bottom: 0.2rem !important;
+  }
+}
+
+/* Phone-only: single-ship laser behind ship */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
+  .ships-around-rock:not(.multi-ship-mode) .laser-beam {
+    z-index: 5 !important;
+  }
+
+  .ships-around-rock:not(.multi-ship-mode) .ship-icon {
+    z-index: 20 !important;
   }
 }
 

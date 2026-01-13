@@ -52,7 +52,7 @@ interface ShipOffsets {
 
 const SHIP_OFFSETS: Record<string, ShipOffsets> = {
   golem: {
-    laser: { x: 0, y: -18 },
+    laser: { x: 10, y: -18 },  // Adjusted: right 10
     scanIcon: { x: -62 },
     moduleButtons: { x: -55 },
   },
@@ -62,7 +62,7 @@ const SHIP_OFFSETS: Record<string, ShipOffsets> = {
     moduleButtons: { x: -25 },
   },
   prospector: {
-    laser: { x: 0, y: -10 },
+    laser: { x: 55, y: -3 },  // Adjusted: left 4, down 3
     scanIcon: { x: -72 },
     moduleButtons: { x: -33 },
   },
