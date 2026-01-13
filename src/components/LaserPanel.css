@@ -10,7 +10,26 @@
 }
 
 .laser-panel-header h3 {
-  margin: 0;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.laser-panel-header .header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.laser-panel-header .expand-indicator {
+  position: static !important;
+  transform: none !important;
+  right: auto !important;
+  top: auto !important;
+  color: var(--accent-cyan);
+  font-size: 0.9rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .manned-status-button {

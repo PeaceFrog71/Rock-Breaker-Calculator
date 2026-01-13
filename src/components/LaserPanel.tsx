@@ -199,15 +199,20 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
     <div className={`laser-panel panel ${isMobile ? 'clickable' : ''}`} ref={panelRef} onClick={handlePanelClick}>
       <div className="laser-panel-header">
         <h3>Laser {laserIndex + 1}</h3>
-        {showMannedToggle && (
-          <button
-            className={`manned-status-button ${laser.isManned !== false ? 'manned' : 'unmanned'}`}
-            onClick={handleMannedToggle}
-            title={laser.isManned !== false ? 'Click to mark as unmanned' : 'Click to mark as manned'}
-          >
-            {laser.isManned !== false ? 'MANNED' : 'UNMANNED'}
-          </button>
-        )}
+        <div className="header-right">
+          {showMannedToggle && (
+            <button
+              className={`manned-status-button ${laser.isManned !== false ? 'manned' : 'unmanned'}`}
+              onClick={handleMannedToggle}
+              title={laser.isManned !== false ? 'Click to mark as unmanned' : 'Click to mark as manned'}
+            >
+              {laser.isManned !== false ? 'MANNED' : 'UNMANNED'}
+            </button>
+          )}
+          {isMobile && (
+            <span className="expand-indicator">{showSelectors ? '▲' : '▼'}</span>
+          )}
+        </div>
       </div>
 
       {/* Laser head selector - hidden on mobile when setup complete and not editing */}

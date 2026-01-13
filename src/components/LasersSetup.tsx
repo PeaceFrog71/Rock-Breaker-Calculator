@@ -28,7 +28,7 @@ export default function LasersSetup({ config, selectedShip, onLaserChange }: Las
   return (
     <div className={`lasers-setup panel ${isMobile ? 'mobile' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <div className="lasers-header" onClick={handleHeaderClick}>
-        <h2>Lasers Setup</h2>
+        <h2>Laser Setup</h2>
         {isMobile && (
           <span className="expand-indicator">{isExpanded ? '▲' : '▼'}</span>
         )}
