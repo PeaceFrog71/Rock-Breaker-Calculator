@@ -7,22 +7,26 @@
 
 .lasers-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   width: 100%;
 }
 
 .lasers-setup h2 {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
   margin: 0;
 }
 
 .lasers-setup .expand-indicator {
+  position: static !important;
+  transform: none !important;
+  right: auto !important;
+  top: auto !important;
   color: var(--accent-cyan);
-  font-size: 0.7rem;
-  opacity: 0.8;
+  font-size: 1rem;
+  opacity: 0.9;
+  flex-shrink: 0;
+  line-height: 1;
 }
 
 .lasers-setup .laser-summary {
