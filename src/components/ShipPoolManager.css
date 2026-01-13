@@ -278,10 +278,31 @@
   }
 }
 
-/* Tablets - font for ship names */
+/* Tablets - font for ship names and action icons */
 @media (pointer: coarse) and (min-width: 768px) {
   .ship-info h3 {
     font-size: 1.2rem;
+  }
+
+  /* Spread and enlarge action icons for tablet touch targets */
+  .ship-actions {
+    justify-content: space-between;
+    padding: 0.75rem 1rem 0;
+  }
+
+  .edit-button {
+    font-size: 1.4rem;
+    padding: 0.5rem 0.8rem;
+  }
+
+  .save-library-button {
+    font-size: 1.1rem;
+    padding: 0.4rem 0.8rem;
+  }
+
+  .remove-button {
+    font-size: 1.5rem;
+    padding: 0.4rem 0.8rem;
   }
 }
 

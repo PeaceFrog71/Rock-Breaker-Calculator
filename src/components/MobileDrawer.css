@@ -687,3 +687,25 @@
     height: 50vh;
   }
 }
+
+/* Tablet - smaller Save Group/Import buttons in Group Library */
+@media (pointer: coarse) and (min-width: 768px) {
+  .mining-group-manager .config-actions .btn-primary,
+  .mining-group-manager .config-actions .btn-secondary {
+    font-size: 0.95rem;
+  }
+
+  .mining-group-manager .config-actions .btn-label {
+    font-size: 0.95rem;
+  }
+
+  /* Single ship Library bottom tab - taller with larger icon */
+  .mobile-drawer-tab.bottom {
+    height: 4.125rem !important;  /* 50% increase from 2.75rem */
+  }
+
+  .mobile-drawer-tab.bottom .mobile-drawer-tab-image {
+    width: 90%;
+    max-width: 90%;
+  }
+}

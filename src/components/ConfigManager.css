@@ -255,24 +255,15 @@
   background: var(--accent-cyan);
 }
 
-/* Mobile: consistent Save/Import button sizes */
-@media (pointer: coarse) {
-  .btn-primary,
-  .btn-secondary {
-    font-size: 0.85rem;
-    padding: 0.5rem 0.85rem;
-  }
-
-  .btn-icon {
-    font-size: 0.95rem;
-  }
-}
-
-/* Phone-only: slightly smaller */
+/* Phone: smaller Save/Import button sizes */
 @media (max-width: 767px) and (pointer: coarse) {
   .btn-primary,
   .btn-secondary {
     font-size: 0.8rem;
     padding: 0.5rem 0.75rem;
+  }
+
+  .btn-icon {
+    font-size: 0.9rem;
   }
 }

@@ -110,7 +110,7 @@ export default function MiningGroupManager({
   };
 
   return (
-    <div className="config-manager panel">
+    <div className="config-manager mining-group-manager panel">
       <h2>Mining Group Library</h2>
 
       <div className="config-actions">
