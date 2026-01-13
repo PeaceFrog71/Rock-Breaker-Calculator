@@ -28,6 +28,7 @@ import prospectorShipImage from "../assets/mining_ship_prospector_pixel_120x78.p
 import asteroidImage from "../assets/asteroid_pixel_1024x1024_true_transparent.png";
 import laserGif from "../assets/mining_laser_wave_tileable.gif";
 import dataLabelHorizontal from "../assets/Data_tray_label_small.png";
+import communityLogo from "../assets/MadeByTheCommunity_Black.png";
 
 // Map ship IDs to their imported image assets
 const SHIP_IMAGES: Record<string, string> = {
@@ -281,8 +282,16 @@ export default function ResultDisplay({
 }: ResultDisplayProps & SingleShipDisplayProps) {
   // Mobile detection via shared hook
   const isMobile = useMobileDetection();
+  // Phone vs tablet detection (phones < 768px)
+  const [isPhone, setIsPhone] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
   const [mobileModalShip, setMobileModalShip] = useState<ShipInstance | null>(null);
   const [showMobileModal, setShowMobileModal] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsPhone(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Flying ship easter egg - appears every 5-10 minutes
   const [showFlyingShip, setShowFlyingShip] = useState(false);
@@ -2193,6 +2202,13 @@ export default function ResultDisplay({
               <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
             </div>
           </div>
+
+          {/* Community Logo - phones only */}
+          {isPhone && (
+            <div className="community-logo-phone">
+              <img src={communityLogo} alt="Made by the Community" />
+            </div>
+          )}
         </MobileDrawer>
       ) : (
         <div className="stats-grid">

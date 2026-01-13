@@ -1590,3 +1590,18 @@
     padding: 0.4rem 0.6rem !important;
   }
 }
+
+/* Community Logo - Phone Data Drawer (relative sizing) */
+.community-logo-phone {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0 0.5rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.community-logo-phone img {
+  width: clamp(60px, 20vw, 100px);
+  height: auto;
+  opacity: 0.6;
+}

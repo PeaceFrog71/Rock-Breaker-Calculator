@@ -655,6 +655,7 @@ button, .btn-primary, .btn-secondary {
 
 .mode-toggle {
   display: flex;
+  justify-content: center;
   gap: 0.5rem;
   background: var(--bg-medium);
   padding: 0.5rem;
@@ -1081,9 +1082,14 @@ button, .btn-primary, .btn-secondary {
 
 /* Phone-only overrides (max-width: 767px) - keep iPad unchanged */
 @media (max-width: 767px) and (pointer: coarse) {
-  /* Item 3: Larger mode toggle font for phones */
+  /* Mode toggle - smaller font and centered */
+  .mode-toggle {
+    justify-content: center !important;
+  }
+
   .mode-button {
-    font-size: 1rem !important;
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.6rem !important;
   }
 
   /* Item 4: Bottom padding for tab clearance */
@@ -1095,6 +1101,30 @@ button, .btn-primary, .btn-secondary {
   .overview-tab,
   .overview-tab.mobile-single-column {
     padding-bottom: 3rem !important;
+  }
+
+  /* Rock Properties labels - reduced to match gadget font theme */
+  .compact-form-group label,
+  .resistance-input-group label {
+    font-size: 0.95rem !important;
+  }
+
+  .compact-form-group input,
+  .compact-form-group select {
+    font-size: 1rem !important;
+  }
+
+  /* Rock save slots (1 2 3) and Reset button - compact for phones */
+  .rock-slot-button {
+    font-size: 0.75rem !important;
+    width: 24px !important;
+    height: 24px !important;
+    padding: 0 !important;
+  }
+
+  .clear-rock-button {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
   }
 }
 
@@ -1350,4 +1380,24 @@ button, .btn-primary, .btn-secondary {
   .mobile-drawer-tab.right .mobile-drawer-tab-text {
     transform: none;
   }
+}
+
+/* Community Logo - Desktop: lower right, Tablet: lower left */
+.community-logo {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: clamp(80px, 8vw, 120px);
+  height: auto;
+  opacity: 0.6;
+  z-index: 50;  /* Below drawers (1000+) and data tab */
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+/* Tablet: move to lower left */
+.community-logo.tablet {
+  right: auto;
+  left: 1rem;
+  width: clamp(64px, 10vw, 100px);
 }

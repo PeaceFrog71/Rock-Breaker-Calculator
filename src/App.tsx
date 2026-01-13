@@ -30,6 +30,7 @@ import ResistanceModeSelector from "./components/ResistanceModeSelector";
 import MobileDrawer from "./components/MobileDrawer";
 import { useMobileDetection } from "./hooks/useMobileDetection";
 import pfLogo from "./assets/PFlogo.png";
+import communityLogo from "./assets/MadeByTheCommunity_Black.png";
 import gadgetLabelVertical from "./assets/gadget label vertical.png";
 import rockLabelVertical from "./assets/rocks_tray_label_small.png";
 import shipLibraryLabelVertical from "./assets/ship_library_small.png";
@@ -138,6 +139,14 @@ function App() {
 
   // Mobile detection via shared hook
   const isMobile = useMobileDetection();
+  // Phone vs tablet detection (phones < 768px)
+  const [isPhone, setIsPhone] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsPhone(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Rock save slots (3 slots for quick save/load, pre-filled with defaults)
   const [rockSlots, setRockSlots] = useState<Rock[]>(() => {
@@ -958,6 +967,15 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+
+      {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
+      {!(isMobile && isPhone) && (
+        <img
+          src={communityLogo}
+          alt="Made by the Community"
+          className={`community-logo ${isMobile ? 'tablet' : ''}`}
+        />
+      )}
     </div>
   );
 }
