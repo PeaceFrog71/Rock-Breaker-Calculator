@@ -1289,9 +1289,29 @@ export default function ResultDisplay({
                         } else {
                           // Desktop/large tablet polar layout: use fixed pixel positioning
                           // Laser starts at ship position (x, y) and points toward rock center (0, 0)
-                          const laserLength = Math.sqrt(x * x + y * y);
-                          // Base angle from ship to rock center: atan2(-y, -x) in degrees
-                          const baseAngle = Math.atan2(-y, -x) * (180 / Math.PI);
+                          // Per-ship-type laser start offsets: [Ship1, Ship2, Ship3, Ship4]
+                          // Positions: Ship1=upper-right, Ship2=lower-right, Ship3=lower-left, Ship4=upper-left
+                          const laserOffsets: Record<string, { x: number[]; y: number[] }> = {
+                            golem: {
+                              x: [-15, -10, 15, 17],  // Ship 1: left 15, Ship 2: left 10, Ship 3: right 15, Ship 4: right 17
+                              y: [0, -25, -28, 3],    // Ship 1: center, Ship 2: up 25, Ship 3: up 28, Ship 4: down 3
+                            },
+                            prospector: {
+                              x: [-15, -30, 33, 17],  // Ship 1: left 15, Ship 2: left 30, Ship 3: right 33, Ship 4: right 17
+                              y: [0, -15, -21, 3],    // Ship 1: center, Ship 2: up 15, Ship 3: up 21, Ship 4: down 3
+                            },
+                            mole: {
+                              x: [-42, -49, 48, 40],  // Ship 1: left 42, Ship 2: left 49, Ship 3: right 48, Ship 4: right 40
+                              y: [25, -18, -17, 25],  // Ship 1: down 25, Ship 2: up 18, Ship 3: up 17, Ship 4: down 25
+                            },
+                          };
+                          const shipType = shipInstance.ship.id;
+                          const offsets = laserOffsets[shipType] || laserOffsets.prospector;
+                          const laserX = x + (offsets.x[index] || 0);
+                          const laserY = y + (offsets.y[index] || 0);
+                          const laserLength = Math.sqrt(laserX * laserX + laserY * laserY);
+                          // Base angle from laser start to rock center: atan2(-y, -x) in degrees
+                          const baseAngle = Math.atan2(-laserY, -laserX) * (180 / Math.PI);
 
                           // MOLE: render multiple lasers with angle offsets
                           if (isMole && numMannedLasers > 0) {
@@ -1304,8 +1324,8 @@ export default function ResultDisplay({
                                     className="tablet-laser"
                                     style={{
                                       position: "absolute",
-                                      left: `calc(50% + ${x}px)`,
-                                      top: `calc(50% + ${y}px)`,
+                                      left: `calc(50% + ${laserX}px)`,
+                                      top: `calc(50% + ${laserY}px)`,
                                       width: `${laserLength}px`,
                                       height: "20px",
                                       transform: `translate(0, -50%) rotate(${baseAngle + angleOffset}deg)`,
@@ -1337,8 +1357,8 @@ export default function ResultDisplay({
                               className="tablet-laser"
                               style={{
                                 position: "absolute",
-                                left: `calc(50% + ${x}px)`,
-                                top: `calc(50% + ${y}px)`,
+                                left: `calc(50% + ${laserX}px)`,
+                                top: `calc(50% + ${laserY}px)`,
                                 width: `${laserLength}px`,
                                 height: "20px",
                                 transform: `translate(0, -50%) rotate(${baseAngle}deg)`,
@@ -1448,12 +1468,14 @@ export default function ResultDisplay({
                         top: `${portraitYPercent}%`,
                         left: "0",
                         transform: "translateY(-50%)",
+                        zIndex: shipInstance.ship.id === 'golem' ? 5 : 15, // GOLEMs behind lasers (10), others in front
                       } : {
                         // Polar layout: desktop & larger tablets - fixed pixel positioning
                         position: "absolute",
                         top: `calc(50% + ${y}px)`,
                         left: `calc(50% + ${x}px)`,
                         transform: "translate(-50%, -50%)",
+                        zIndex: shipInstance.ship.id === 'golem' ? 5 : 15, // GOLEMs behind lasers (10), others in front
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -1535,7 +1557,7 @@ export default function ResultDisplay({
                           );
                         }
                       })()}
-                      <div className="ship-label">{shipInstance.name}</div>
+                      <div className={`ship-label ${index === 0 || index === 3 ? 'top-position' : ''}`}>{shipInstance.name}</div>
                     </div>
 
                     {/* Scanning sensor for Prospector/GOLEM in multi-ship mode */}

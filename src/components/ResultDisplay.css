@@ -139,19 +139,9 @@
 
 .ship-icon {
   text-align: center;
-  z-index: 10;
+  z-index: 15; /* Above lasers (z-index: 10) */
   transition: all 0.3s ease;
   pointer-events: auto; /* Re-enable clicks for ship icons */
-}
-
-/* Ship-type z-index: GOLEM behind lasers, Prospector/MOLE in front */
-.ship-icon.ship-golem {
-  z-index: 10; /* Below laser z-index: 20 */
-}
-
-.ship-icon.ship-prospector,
-.ship-icon.ship-mole {
-  z-index: 25; /* Above laser z-index: 20 */
 }
 
 .ship-icon.clickable {
@@ -204,7 +194,19 @@
   display: inline-block;
   max-width: min(35vw, 150px);
   overflow: hidden;
+}
+
+/* Top ships (index 0 and 3): label above image - desktop polar layout */
+.ships-around-rock.multi-ship-mode .ship-label.top-position {
+  position: absolute;
+  bottom: 100%;
+  top: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.25rem;
+  margin-top: 0;
   text-overflow: ellipsis;
+  background: transparent;
 }
 
 /* Active modules display */
@@ -1329,6 +1331,14 @@
     white-space: nowrap !important;
     background: transparent !important;
   }
+
+  /* Top ships: label above image in portrait mode */
+  .ships-around-rock.multi-ship-mode .ship-label.top-position {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.2rem !important;
+  }
 }
 
 /* Phone-only: smaller multi-ship labels */
@@ -1485,6 +1495,14 @@
     max-width: clamp(100px, 25vw, 180px) !important;
     white-space: nowrap !important;
     background: transparent !important;
+  }
+
+  /* Top ships: label above image in landscape tablet */
+  .ships-around-rock.multi-ship-mode .ship-label.top-position {
+    top: auto !important;
+    bottom: 100% !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.2rem !important;
   }
 }
 
