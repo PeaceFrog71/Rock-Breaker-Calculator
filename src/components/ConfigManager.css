@@ -254,3 +254,16 @@
 .configs-list::-webkit-scrollbar-thumb:hover {
   background: var(--accent-cyan);
 }
+
+/* Phone-only: reduce Save Current and Import button fonts */
+@media (max-width: 767px) and (pointer: coarse) {
+  .btn-primary,
+  .btn-secondary {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .btn-icon {
+    font-size: 0.95rem;
+  }
+}
