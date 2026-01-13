@@ -1298,6 +1298,7 @@
   /* Smaller rock container for multi-ship visibility */
   .rock-container {
     min-height: clamp(150px, 30vh, 250px) !important;
+    width: 100% !important;  /* Prevent content-based sizing - fixes ship movement with rock size */
   }
 
   /* Single ship mode: rock positioning handled by JS inline style */
@@ -1341,11 +1342,22 @@
   }
 }
 
-/* Phone-only: smaller multi-ship labels */
+/* Phone-only: smaller multi-ship labels + all labels below ship, left-justified */
 @media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
   .ships-around-rock.multi-ship-mode .ship-label {
     font-size: 0.75rem !important;
     padding: 0.15rem 0.3rem !important;
+    left: 0 !important;
+    transform: none !important;
+    text-align: left !important;
+  }
+
+  /* Override top-position: all labels below ship on phones */
+  .ships-around-rock.multi-ship-mode .ship-label.top-position {
+    top: 100% !important;
+    bottom: auto !important;
+    margin-top: 0.2rem !important;
+    margin-bottom: 0 !important;
   }
 }
 

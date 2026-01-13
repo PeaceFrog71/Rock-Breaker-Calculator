@@ -140,6 +140,92 @@
   overflow-y: auto;
 }
 
+/* Phone: compact config-items in side drawers (Group Library) */
+@media (max-width: 480px) {
+  /* Smaller Save Group / Import buttons */
+  .mobile-drawer.left .config-actions,
+  .mobile-drawer.right .config-actions {
+    gap: 0.5rem;
+  }
+
+  .mobile-drawer.left .config-actions .btn-primary,
+  .mobile-drawer.right .config-actions .btn-primary,
+  .mobile-drawer.left .config-actions .btn-secondary,
+  .mobile-drawer.right .config-actions .btn-secondary {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+    min-height: unset;
+  }
+
+  .mobile-drawer.left .config-actions .btn-icon,
+  .mobile-drawer.right .config-actions .btn-icon {
+    font-size: 1rem;
+  }
+
+  .mobile-drawer.left .config-actions .btn-label,
+  .mobile-drawer.right .config-actions .btn-label {
+    font-size: 0.9rem;
+  }
+
+  /* Compact config items */
+  .mobile-drawer.left .config-item,
+  .mobile-drawer.right .config-item {
+    padding: 0.5rem;
+    gap: 0.25rem;
+  }
+
+  .mobile-drawer.left .config-info,
+  .mobile-drawer.right .config-info {
+    min-width: 0;
+  }
+
+  .mobile-drawer.left .config-name,
+  .mobile-drawer.right .config-name {
+    font-size: 0.95rem;
+  }
+
+  .mobile-drawer.left .config-meta,
+  .mobile-drawer.right .config-meta {
+    font-size: 0.8rem;
+  }
+
+  .mobile-drawer.left .config-details,
+  .mobile-drawer.right .config-details {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  .mobile-drawer.left .config-box,
+  .mobile-drawer.right .config-box {
+    font-size: 0.75rem;
+    padding: 0.1rem 0.2rem;
+  }
+
+  .mobile-drawer.left .config-date,
+  .mobile-drawer.right .config-date {
+    font-size: 0.7rem;
+  }
+
+  /* Action buttons - keep vertical, compact but tappable */
+  .mobile-drawer.left .config-buttons,
+  .mobile-drawer.right .config-buttons {
+    gap: 0.7rem;
+    margin-left: 0.25rem;
+  }
+
+  .mobile-drawer.left .btn-load,
+  .mobile-drawer.right .btn-load,
+  .mobile-drawer.left .btn-export,
+  .mobile-drawer.right .btn-export,
+  .mobile-drawer.left .btn-delete,
+  .mobile-drawer.right .btn-delete {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+    min-width: 2rem;
+    min-height: 1.8rem;
+  }
+}
+
 /* Ship Library buttons - fill drawer width */
 .mobile-drawer.bottom .config-actions {
   display: flex;
