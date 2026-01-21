@@ -140,6 +140,10 @@ function App() {
   const [shipLibraryDrawerOpen, setShipLibraryDrawerOpen] = useState(false);
   const [groupLibraryDrawerOpen, setGroupLibraryDrawerOpen] = useState(false);
 
+  // Desktop accordion state - only one panel open at a time
+  // Values: null, 'lasers', 'shipLibrary', 'miningGroup', 'groupLibrary'
+  const [openPanel, setOpenPanel] = useState<string | null>('lasers');
+
   // Mobile detection via shared hook
   const isMobile = useMobileDetection();
   // Phone vs tablet detection (phones < 768px)
@@ -918,20 +922,42 @@ function App() {
 
               {useMiningGroup ? (
                 <>
-                  <ShipPoolManager
-                    miningGroup={miningGroup}
-                    onChange={setMiningGroup}
-                  />
+                  {/* Mining Group - mobile: always visible, desktop: collapsible accordion */}
+                  {isMobile ? (
+                    <ShipPoolManager
+                      miningGroup={miningGroup}
+                      onChange={setMiningGroup}
+                    />
+                  ) : (
+                    <CollapsiblePanel
+                      title="Mining Group"
+                      isOpen={openPanel === 'miningGroup'}
+                      onToggle={() => setOpenPanel(openPanel === 'miningGroup' ? null : 'miningGroup')}
+                    >
+                      <ShipPoolManager
+                        miningGroup={miningGroup}
+                        onChange={setMiningGroup}
+                      />
+                    </CollapsiblePanel>
+                  )}
                   {/* Group Library and Ship Library for Mining Group - desktop only (mobile uses drawers) */}
                   {!isMobile && (
                     <>
-                      <CollapsiblePanel title="Group Library">
+                      <CollapsiblePanel
+                        title="Group Library"
+                        isOpen={openPanel === 'groupLibrary'}
+                        onToggle={() => setOpenPanel(openPanel === 'groupLibrary' ? null : 'groupLibrary')}
+                      >
                         <MiningGroupManager
                           currentMiningGroup={miningGroup}
                           onLoad={setMiningGroup}
                         />
                       </CollapsiblePanel>
-                      <CollapsiblePanel title="Ship Library">
+                      <CollapsiblePanel
+                        title="Ship Library"
+                        isOpen={openPanel === 'shipLibrary'}
+                        onToggle={() => setOpenPanel(openPanel === 'shipLibrary' ? null : 'shipLibrary')}
+                      >
                         <ConfigManager
                           onAddToGroup={(shipInstance) => {
                             if (miningGroup.ships.length >= 4) {
@@ -954,19 +980,42 @@ function App() {
                     configName={currentConfigName}
                   />
 
-                  <LasersSetup
-                    config={config}
-                    selectedShip={selectedShip}
-                    onLaserChange={(index, updatedLaser) => {
-                      const newLasers = [...config.lasers];
-                      newLasers[index] = updatedLaser;
-                      setConfig({ ...config, lasers: newLasers });
-                    }}
-                  />
+                  {/* Laser Setup - mobile: always visible, desktop: collapsible accordion */}
+                  {isMobile ? (
+                    <LasersSetup
+                      config={config}
+                      selectedShip={selectedShip}
+                      onLaserChange={(index, updatedLaser) => {
+                        const newLasers = [...config.lasers];
+                        newLasers[index] = updatedLaser;
+                        setConfig({ ...config, lasers: newLasers });
+                      }}
+                    />
+                  ) : (
+                    <CollapsiblePanel
+                      title="Laser Setup"
+                      isOpen={openPanel === 'lasers'}
+                      onToggle={() => setOpenPanel(openPanel === 'lasers' ? null : 'lasers')}
+                    >
+                      <LasersSetup
+                        config={config}
+                        selectedShip={selectedShip}
+                        onLaserChange={(index, updatedLaser) => {
+                          const newLasers = [...config.lasers];
+                          newLasers[index] = updatedLaser;
+                          setConfig({ ...config, lasers: newLasers });
+                        }}
+                      />
+                    </CollapsiblePanel>
+                  )}
 
                   {/* Ship Library - only show inline on desktop (mobile uses drawer) */}
                   {!isMobile && (
-                    <CollapsiblePanel title="Ship Library">
+                    <CollapsiblePanel
+                      title="Ship Library"
+                      isOpen={openPanel === 'shipLibrary'}
+                      onToggle={() => setOpenPanel(openPanel === 'shipLibrary' ? null : 'shipLibrary')}
+                    >
                       <ConfigManager
                         currentShip={selectedShip}
                         currentConfig={config}

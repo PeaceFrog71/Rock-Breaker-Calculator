@@ -29,10 +29,11 @@
 
 .collapsible-title {
   font-family: var(--font-heading);
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-weight: 600;
   color: var(--accent-cyan);
-  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .collapsible-arrow {
@@ -52,15 +53,19 @@
   transition: max-height 0.5s ease-in;
 }
 
-/* Hide the h2 inside ConfigManager/MiningGroupManager when wrapped */
+/* Hide headers inside wrapped components */
 .collapsible-content .config-manager > h2,
-.collapsible-content .mining-group-manager > h2 {
+.collapsible-content .mining-group-manager > h2,
+.collapsible-content .lasers-setup .lasers-header,
+.collapsible-content .ship-pool-manager .ship-pool-header h2 {
   display: none;
 }
 
 /* Adjust padding inside collapsed content */
 .collapsible-content .config-manager,
-.collapsible-content .mining-group-manager {
+.collapsible-content .mining-group-manager,
+.collapsible-content .lasers-setup,
+.collapsible-content .ship-pool-manager {
   padding: 1rem;
 }
 
