@@ -1,0 +1,73 @@
+.collapsible-panel {
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapsible-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.collapsible-panel.collapsed .collapsible-header {
+  border-bottom: none;
+}
+
+.collapsible-header:hover {
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-light) 100%);
+}
+
+.collapsible-title {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  letter-spacing: 0.05em;
+}
+
+.collapsible-arrow {
+  color: var(--accent-blue);
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsible-panel.open .collapsible-content {
+  max-height: 1000px;
+  transition: max-height 0.5s ease-in;
+}
+
+/* Hide the h2 inside ConfigManager/MiningGroupManager when wrapped */
+.collapsible-content .config-manager > h2,
+.collapsible-content .mining-group-manager > h2 {
+  display: none;
+}
+
+/* Adjust padding inside collapsed content */
+.collapsible-content .config-manager,
+.collapsible-content .mining-group-manager {
+  padding: 1rem;
+}
+
+/* Remove panel styling from nested components */
+.collapsible-content .panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}

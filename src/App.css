@@ -32,6 +32,10 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  background: var(--bg-dark);
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   letter-spacing: 0.02em;
@@ -45,6 +49,52 @@ button, .btn-primary, .btn-secondary {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Animated page background */
+.app::before {
+  content: '';
+  position: fixed;
+  top: -10%;
+  left: -10%;
+  right: -10%;
+  bottom: -10%;
+  background-image: var(--page-background);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  animation: slowPan 60s ease-in-out infinite alternate;
+  z-index: 0;
+}
+
+/* Dark overlay for readability */
+.app::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(10, 14, 39, 0.7), rgba(10, 14, 39, 0.75));
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Ensure content is above background layers */
+.app > * {
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes slowPan {
+  0% {
+    transform: scale(1.02) translate(0, 0);
+  }
+  100% {
+    transform: scale(1.05) translate(-1%, -1%);
+  }
 }
 
 .app-header {

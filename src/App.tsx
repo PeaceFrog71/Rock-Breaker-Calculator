@@ -28,6 +28,7 @@ import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
 import ResistanceModeSelector from "./components/ResistanceModeSelector";
 import MobileDrawer from "./components/MobileDrawer";
+import CollapsiblePanel from "./components/CollapsiblePanel";
 import { useMobileDetection } from "./hooks/useMobileDetection";
 import pfLogo from "./assets/PFlogo.png";
 import communityLogo from "./assets/MadeByTheCommunity_Black.png";
@@ -36,6 +37,8 @@ import rockLabelVertical from "./assets/rocks_tray_label_small.png";
 import shipLibraryLabelVertical from "./assets/ship_library_small.png";
 import shipLibraryLabelHorz from "./assets/ship_library_small_horz.png";
 import groupLibraryLabelVertical from "./assets/group_library_small.png";
+import resultsBackground from "./assets/Results Background.jpg";
+import shipSetupBackground from "./assets/Ship Setup Background.jpg";
 import { version } from "../package.json";
 
 // Default rock values for reset functionality
@@ -531,8 +534,15 @@ function App() {
     setMiningGroup({ ...miningGroup, ships: updatedShips });
   };
 
+  // Determine page background based on active tab
+  const pageBackgroundClass = activeTab === "overview" ? "bg-results" : "bg-ship-setup";
+  const pageBackgroundImage = activeTab === "overview" ? resultsBackground : shipSetupBackground;
+
   return (
-    <div className="app">
+    <div
+      className={`app ${pageBackgroundClass}`}
+      style={{ '--page-background': `url(${pageBackgroundImage})` } as React.CSSProperties}
+    >
       <header className="app-header">
         <a href="https://peacefroggaming.com" target="_blank" rel="noopener noreferrer" title="Peacefrog Gaming">
           <img src={pfLogo} alt="Peacefrog Gaming" className="header-logo" />
@@ -915,20 +925,24 @@ function App() {
                   {/* Group Library and Ship Library for Mining Group - desktop only (mobile uses drawers) */}
                   {!isMobile && (
                     <>
-                      <MiningGroupManager
-                        currentMiningGroup={miningGroup}
-                        onLoad={setMiningGroup}
-                      />
-                      <ConfigManager
-                        onAddToGroup={(shipInstance) => {
-                          if (miningGroup.ships.length >= 4) {
-                            alert('Maximum of 4 ships allowed in mining group');
-                            return;
-                          }
-                          shipInstance.isActive = true;
-                          setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
-                        }}
-                      />
+                      <CollapsiblePanel title="Group Library">
+                        <MiningGroupManager
+                          currentMiningGroup={miningGroup}
+                          onLoad={setMiningGroup}
+                        />
+                      </CollapsiblePanel>
+                      <CollapsiblePanel title="Ship Library">
+                        <ConfigManager
+                          onAddToGroup={(shipInstance) => {
+                            if (miningGroup.ships.length >= 4) {
+                              alert('Maximum of 4 ships allowed in mining group');
+                              return;
+                            }
+                            shipInstance.isActive = true;
+                            setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
+                          }}
+                        />
+                      </CollapsiblePanel>
                     </>
                   )}
                 </>
@@ -952,12 +966,14 @@ function App() {
 
                   {/* Ship Library - only show inline on desktop (mobile uses drawer) */}
                   {!isMobile && (
-                    <ConfigManager
-                      currentShip={selectedShip}
-                      currentConfig={config}
-                      currentConfigName={currentConfigName}
-                      onLoad={handleLoadConfiguration}
-                    />
+                    <CollapsiblePanel title="Ship Library">
+                      <ConfigManager
+                        currentShip={selectedShip}
+                        currentConfig={config}
+                        currentConfigName={currentConfigName}
+                        onLoad={handleLoadConfiguration}
+                      />
+                    </CollapsiblePanel>
                   )}
                 </>
               )}
