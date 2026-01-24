@@ -1,12 +1,34 @@
+/* Desktop: header with label left, name centered */
+.ship-selector h2 {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.ship-selector h2 .select-label {
+  flex-shrink: 0;
+}
+
 .ship-selector h2 .config-name {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   color: var(--accent-gold);
   font-weight: normal;
   text-transform: none;
   letter-spacing: normal;
 }
 
-/* Mobile: config name on separate line */
+/* Mobile: config name on separate line, centered */
+.ship-selector.mobile h2 {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 .ship-selector.mobile h2 .config-name {
+  position: static;
+  transform: none;
   display: block;
   font-size: 0.9rem;
   margin-top: 0.25rem;

@@ -930,7 +930,7 @@ function App() {
                     />
                   ) : (
                     <CollapsiblePanel
-                      title="Mining Group"
+                      title={<><span className="panel-label">Mining Group ({miningGroup.ships.length} {miningGroup.ships.length === 1 ? 'ship' : 'ships'})</span><span className="panel-name">{miningGroup.name || 'Group 1'}</span></>}
                       isOpen={openPanel === 'miningGroup'}
                       onToggle={() => setOpenPanel(openPanel === 'miningGroup' ? null : 'miningGroup')}
                     >

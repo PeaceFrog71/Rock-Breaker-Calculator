@@ -6,6 +6,10 @@
   transition: all 0.3s ease;
 }
 
+.collapsible-panel.open {
+  overflow: visible;
+}
+
 .collapsible-header {
   width: 100%;
   display: flex;
@@ -17,6 +21,9 @@
   border-bottom: 1px solid var(--border);
   cursor: pointer;
   transition: all 0.2s ease;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .collapsible-panel.collapsed .collapsible-header {
@@ -34,6 +41,24 @@
   color: var(--accent-cyan);
   text-transform: uppercase;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.collapsible-title .panel-label {
+  flex-shrink: 0;
+}
+
+.collapsible-title .panel-name {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--accent-gold);
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .collapsible-arrow {
@@ -49,7 +74,8 @@
 }
 
 .collapsible-panel.open .collapsible-content {
-  max-height: 1000px;
+  max-height: 5000px;
+  overflow: visible;
   transition: max-height 0.5s ease-in;
 }
 
