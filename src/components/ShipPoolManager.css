@@ -55,6 +55,66 @@
   box-shadow: 0 4px 12px rgba(0, 255, 204, 0.4);
 }
 
+.header-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.left-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.save-group-button {
+  background: var(--bg-secondary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 6rem;
+  height: 3rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.save-group-button:hover,
+.save-group-button:active {
+  background: var(--accent-gold);
+  color: var(--bg-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
+}
+
+.clear-group-button {
+  background: var(--bg-secondary);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 3rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.clear-group-button:hover,
+.clear-group-button:active {
+  background: var(--danger);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
+}
+
 .ship-pool-content {
   min-height: 100px;
 }
@@ -275,6 +335,48 @@
   .add-ship-button:hover::after,
   .add-ship-button:active::after {
     color: var(--bg-dark);
+  }
+
+  .save-group-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+  }
+
+  .save-group-button::after {
+    content: '💾';
+    font-size: 1.3rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-group-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .clear-group-button::after {
+    content: '×';
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--danger);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-group-button:hover::after,
+  .clear-group-button:active::after {
+    color: white;
   }
 }
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './CollapsiblePanel.css';
 
 interface CollapsiblePanelProps {
-  title: string;
+  title: React.ReactNode;
   children: React.ReactNode;
   defaultOpen?: boolean;
   // Controlled mode props

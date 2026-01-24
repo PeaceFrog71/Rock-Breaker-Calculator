@@ -38,8 +38,8 @@ export default function ShipSelector({ selectedShip, onShipChange, configName }:
   return (
     <div className={`ship-selector panel ${isMobile ? 'mobile' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
       <h2>
-        Select Ship
-        {configName && <span className="config-name">{isMobile ? '' : ': '}{configName}</span>}
+        <span className="select-label">Select Ship</span>
+        {configName && <span className="config-name">{configName}</span>}
       </h2>
       <div className="ship-grid">
         {shipsToShow.map((ship) => (
