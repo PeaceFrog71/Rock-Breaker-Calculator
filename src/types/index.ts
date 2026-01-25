@@ -88,6 +88,9 @@ export interface CalculationResult {
     derivedBaseValue: number; // The derived base resistance (for modified mode)
     appliedModifier: number; // The total modifier applied
   };
+  // Instability calculation results
+  totalInstabilityModifier?: number; // Combined equipment instability modifier
+  adjustedInstability?: number; // Rock instability after applying equipment modifiers
 }
 
 // Mining Group types for multi-ship operations

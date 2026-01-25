@@ -148,6 +148,51 @@ export function calculateLaserResistModifier(laser: LaserConfiguration, passiveO
 }
 
 /**
+ * Calculate instability modifier for a single laser with its modules
+ *
+ * Stacking logic (same as resistance):
+ * - Module instability percentages ADD together (e.g., two -10% = -20%)
+ * - The combined module modifier is then MULTIPLIED by the laser head modifier
+ *
+ * Example: Laser (0.65x = -35%) + Module (0.9x = -10%) + Module (0.9x = -10%)
+ *   Module sum: -0.10 + -0.10 = -0.20 → 0.80 multiplier
+ *   Combined: 0.65 × 0.80 = 0.52x total modifier (48% reduction)
+ *
+ * @param passiveOnly - If true, only include passive modules (for back-calculating base values from scans)
+ */
+export function calculateLaserInstabilityModifier(laser: LaserConfiguration, passiveOnly: boolean = false): number {
+  if (!laser.laserHead) return 1;
+
+  // Start with the laser head's instability modifier (default to 1 if not defined)
+  const laserInstabilityMod = laser.laserHead.instabilityModifier ?? 1;
+
+  // Sum module instability percentages (convert from multiplier to percentage first)
+  // instabilityModifier of 0.8 = -20% = -0.20, instabilityModifier of 1.1 = +10% = 0.10
+  let modulePercentageSum = 0;
+  laser.modules.forEach((module, index) => {
+    if (module && module.instabilityModifier !== undefined) {
+      // Skip active modules if passiveOnly is true
+      if (passiveOnly && module.category === 'active') {
+        return;
+      }
+      // Passive modules are always active; active modules need explicit activation
+      const isActive = module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
+      if (isActive) {
+        // Convert multiplier to percentage and add
+        modulePercentageSum += (module.instabilityModifier - 1);
+      }
+    }
+  });
+
+  // Convert summed percentages back to multiplier
+  const combinedModuleModifier = 1 + modulePercentageSum;
+
+  // Multiply laser modifier by combined module modifier
+  return laserInstabilityMod * combinedModuleModifier;
+}
+
+/**
  * Main calculation function based on Excel formulas
  *
  * @param scanGadgets - Optional array of gadgets marked "In Scan" for reverse calculation.
@@ -234,6 +279,9 @@ export function calculateBreakability(
   const adjustedResistance = Math.min(effectiveResistance, MAX_ADJUSTED_RESISTANCE);
   const totalCombinedModifier = totalResistModifier * gadgetModifier;
 
+  // Calculate instability using the dedicated calculator
+  const instabilityResult = calculateInstability(config, rock, gadgets, shipId);
+
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
   const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
 
@@ -258,6 +306,9 @@ export function calculateBreakability(
     canBreak,
     powerMargin,
     powerMarginPercent,
+    // Instability results from dedicated calculator
+    totalInstabilityModifier: instabilityResult.totalModifier,
+    adjustedInstability: instabilityResult.adjustedInstability,
   };
 
   // Add resistance context if in modified mode
@@ -283,6 +334,70 @@ export function formatPower(power: number): string {
  */
 export function formatPercent(percent: number): string {
   return percent >= 0 ? `+${percent.toFixed(1)}%` : `${percent.toFixed(1)}%`;
+}
+
+/**
+ * Instability calculation result
+ */
+export interface InstabilityResult {
+  totalModifier: number; // Combined equipment + gadget instability modifier
+  adjustedInstability: number | undefined; // Rock instability after applying modifiers
+  equipmentModifier: number; // Just equipment (lasers + modules)
+  gadgetModifier: number; // Just gadgets
+}
+
+/**
+ * Calculate instability for a mining configuration
+ * Separate from breakability as instability is a distinct mining concern
+ *
+ * @param config - Mining configuration (lasers + modules)
+ * @param rock - Rock being mined (with optional instability value)
+ * @param gadgets - Active gadgets
+ * @param shipId - Ship type (for MOLE manned laser handling)
+ */
+export function calculateInstability(
+  config: MiningConfiguration,
+  rock: Rock,
+  gadgets: (Gadget | null)[] = [],
+  shipId?: string
+): InstabilityResult {
+  // Calculate total instability modifier from lasers
+  let equipmentModifier = 1;
+  config.lasers.forEach((laser) => {
+    if (laser.laserHead) {
+      // For MOLE in single ship mode, only count manned lasers
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          equipmentModifier *= calculateLaserInstabilityModifier(laser);
+        }
+      } else {
+        equipmentModifier *= calculateLaserInstabilityModifier(laser);
+      }
+    }
+  });
+
+  // Calculate gadget instability modifier
+  let gadgetModifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      gadgetModifier *= gadget.instabilityModifier;
+    }
+  });
+
+  // Combined modifier
+  const totalModifier = equipmentModifier * gadgetModifier;
+
+  // Calculate adjusted instability if rock has instability value
+  const adjustedInstability = rock.instability !== undefined
+    ? rock.instability * totalModifier
+    : undefined;
+
+  return {
+    totalModifier,
+    adjustedInstability,
+    equipmentModifier,
+    gadgetModifier,
+  };
 }
 
 /**
