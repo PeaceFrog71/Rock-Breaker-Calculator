@@ -437,6 +437,9 @@ export function calculateGroupBreakability(
   // Collect all resistance modifiers from all active ships
   let allResistModifiers: number[] = [];
 
+  // Collect all instability modifiers from all active ships
+  let allInstabilityModifiers: number[] = [];
+
   activeShips.forEach((shipInstance) => {
     const config = shipInstance.config;
 
@@ -470,11 +473,30 @@ export function calculateGroupBreakability(
     });
 
     allResistModifiers.push(shipResistMod);
+
+    // Calculate this ship's instability modifier from lasers
+    let shipInstabilityMod = 1;
+    config.lasers.forEach((laser) => {
+      if (laser.laserHead) {
+        // For MOLE, only count manned lasers
+        if (shipInstance.ship.id === 'mole') {
+          if (laser.isManned !== false) {
+            shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
+          }
+        } else {
+          shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
+        }
+      }
+    });
+    allInstabilityModifiers.push(shipInstabilityMod);
   });
 
   // Multi-ship mining uses multiplicative stacking: all ship resistance modifiers multiply together
   // Verified in-game: resistance modifiers from multiple ships are multiplied
   const equipmentModifier = allResistModifiers.reduce((acc, mod) => acc * mod, 1);
+
+  // Multi-ship instability also uses multiplicative stacking
+  const equipmentInstabilityModifier = allInstabilityModifiers.reduce((acc, mod) => acc * mod, 1);
 
   // For modified resistance mode, calculate the scanning laser's modifier separately
   // This is used to reverse the modified resistance to derive the base value
@@ -497,6 +519,20 @@ export function calculateGroupBreakability(
       gadgetModifier *= gadget.resistModifier;
     }
   });
+
+  // Apply gadget instability modifiers
+  let gadgetInstabilityModifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      gadgetInstabilityModifier *= gadget.instabilityModifier;
+    }
+  });
+
+  // Calculate total instability modifier
+  const totalInstabilityModifier = equipmentInstabilityModifier * gadgetInstabilityModifier;
+  const adjustedInstability = rock.instability !== undefined
+    ? rock.instability * totalInstabilityModifier
+    : undefined;
 
   // Calculate scan gadget modifier (for reverse calculation - gadgets marked "In Scan")
   let scanGadgetModifier = 1;
@@ -546,6 +582,9 @@ export function calculateGroupBreakability(
     canBreak,
     powerMargin,
     powerMarginPercent,
+    // Instability results for multi-ship
+    totalInstabilityModifier,
+    adjustedInstability,
   };
 
   // Add resistance context if in modified mode

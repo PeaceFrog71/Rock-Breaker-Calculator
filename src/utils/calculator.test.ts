@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBreakability, calculateGroupBreakability, calculateLaserPower } from './calculator';
+import { calculateBreakability, calculateGroupBreakability, calculateLaserPower, calculateLaserInstabilityModifier, calculateInstability } from './calculator';
 import { LASER_HEADS, MODULES, GADGETS, SHIPS } from '../types';
 import type { MiningConfiguration, Rock, MiningGroup, ShipInstance, LaserConfiguration } from '../types';
 
@@ -1464,6 +1464,318 @@ describe('Gadgets in Scan - Issue #40', () => {
 
       // Forward: 20 * 1.25 * 0.5 = 12.5
       expect(result.adjustedResistance).toBeCloseTo(12.5, 1);
+    });
+  });
+});
+
+describe('Instability Calculations - Issue #11', () => {
+  describe('calculateLaserInstabilityModifier', () => {
+    it('should return 1 when laser has no instability modifier', () => {
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!; // instabilityModifier = undefined
+
+      const laser: LaserConfiguration = {
+        laserHead: helixI,
+        modules: [null, null],
+      };
+
+      const result = calculateLaserInstabilityModifier(laser);
+      expect(result).toBe(1);
+    });
+
+    it('should return laser head instability modifier when no modules', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // instabilityModifier = 0.65
+
+      const laser: LaserConfiguration = {
+        laserHead: arborMH1,
+        modules: [null],
+      };
+
+      const result = calculateLaserInstabilityModifier(laser);
+      expect(result).toBeCloseTo(0.65, 2);
+    });
+
+    it('should ADD module instability percentages then MULTIPLY by laser modifier', () => {
+      // Arbor MH1: 0.65 (-35%)
+      // Lifeline: 0.8 (-20%)
+      // Optimum: 0.9 (-10%)
+      // Module sum: -20% + -10% = -30% → 0.70 module modifier
+      // Combined: 0.65 × 0.70 = 0.455
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+      const lifeline = MODULES.find(m => m.id === 'lifeline')!; // instabilityModifier = 0.8
+      const optimum = MODULES.find(m => m.id === 'optimum')!; // instabilityModifier = 0.9
+
+      const laser: LaserConfiguration = {
+        laserHead: arborMH1,
+        modules: [lifeline, optimum],
+        moduleActive: [true, true], // Both are active modules
+      };
+
+      const result = calculateLaserInstabilityModifier(laser);
+      expect(result).toBeCloseTo(0.455, 3);
+    });
+
+    it('should handle instability-increasing modules (Surge)', () => {
+      // Arbor MH1: 0.65 (-35%)
+      // Surge: 1.1 (+10%)
+      // Combined: 0.65 × 1.10 = 0.715
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+      const surge = MODULES.find(m => m.id === 'surge')!; // instabilityModifier = 1.1
+
+      const laser: LaserConfiguration = {
+        laserHead: arborMH1,
+        modules: [surge],
+        moduleActive: [true],
+      };
+
+      const result = calculateLaserInstabilityModifier(laser);
+      expect(result).toBeCloseTo(0.715, 3);
+    });
+
+    it('should only include passive modules when passiveOnly=true', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+      const surge = MODULES.find(m => m.id === 'surge')!; // active module
+
+      const laser: LaserConfiguration = {
+        laserHead: arborMH1,
+        modules: [surge],
+        moduleActive: [true],
+      };
+
+      // With passiveOnly=true, Surge should be ignored
+      const result = calculateLaserInstabilityModifier(laser, true);
+      expect(result).toBeCloseTo(0.65, 2); // Just laser head modifier
+    });
+  });
+
+  describe('calculateInstability - single ship', () => {
+    it('should return undefined adjustedInstability when rock has no instability', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: arborMH1, modules: [null] }],
+      };
+      const rock: Rock = { mass: 1000, resistance: 20 }; // No instability
+      const gadgets = [null, null, null];
+
+      const result = calculateInstability(config, rock, gadgets);
+
+      expect(result.adjustedInstability).toBeUndefined();
+      expect(result.totalModifier).toBeCloseTo(0.65, 2);
+    });
+
+    it('should calculate adjusted instability when rock has instability', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 0.65
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: arborMH1, modules: [null] }],
+      };
+      const rock: Rock = { mass: 1000, resistance: 20, instability: 50 };
+      const gadgets = [null, null, null];
+
+      const result = calculateInstability(config, rock, gadgets);
+
+      // Adjusted = 50 × 0.65 = 32.5
+      expect(result.adjustedInstability).toBeCloseTo(32.5, 1);
+      expect(result.equipmentModifier).toBeCloseTo(0.65, 2);
+      expect(result.gadgetModifier).toBe(1);
+    });
+
+    it('should apply gadget instability modifiers', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 0.65
+      const boremax = GADGETS.find(g => g.id === 'boremax')!; // instabilityModifier = 0.3
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: arborMH1, modules: [null] }],
+      };
+      const rock: Rock = { mass: 1000, resistance: 20, instability: 50 };
+      const gadgets = [boremax, null, null];
+
+      const result = calculateInstability(config, rock, gadgets);
+
+      // Equipment: 0.65, Gadget: 0.3, Total: 0.65 × 0.3 = 0.195
+      // Adjusted = 50 × 0.195 = 9.75
+      expect(result.totalModifier).toBeCloseTo(0.195, 3);
+      expect(result.adjustedInstability).toBeCloseTo(9.75, 2);
+    });
+
+    it('should multiply instability modifiers from multiple lasers (MOLE)', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!; // instabilityModifier = 0.9
+
+      // MOLE with 3 Lancet MH2 lasers
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: lancetMH2, modules: [null, null] },
+          { laserHead: lancetMH2, modules: [null, null] },
+          { laserHead: lancetMH2, modules: [null, null] },
+        ],
+      };
+      const rock: Rock = { mass: 10000, resistance: 30, instability: 40 };
+      const gadgets = [null, null, null];
+
+      const result = calculateInstability(config, rock, gadgets, 'mole');
+
+      // 0.9^3 = 0.729 (27% reduction)
+      // Adjusted = 40 × 0.729 = 29.16
+      expect(result.equipmentModifier).toBeCloseTo(0.729, 3);
+      expect(result.adjustedInstability).toBeCloseTo(29.16, 1);
+    });
+
+    it('should only count manned lasers for MOLE', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!; // 0.9
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: lancetMH2, modules: [null, null], isManned: true },
+          { laserHead: lancetMH2, modules: [null, null], isManned: true },
+          { laserHead: lancetMH2, modules: [null, null], isManned: false }, // Unmanned
+        ],
+      };
+      const rock: Rock = { mass: 10000, resistance: 30, instability: 40 };
+      const gadgets = [null, null, null];
+
+      const result = calculateInstability(config, rock, gadgets, 'mole');
+
+      // Only 2 manned: 0.9^2 = 0.81
+      expect(result.equipmentModifier).toBeCloseTo(0.81, 2);
+    });
+  });
+
+  describe('calculateBreakability - instability integration', () => {
+    it('should include instability in breakability result', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: arborMH1, modules: [null] }],
+      };
+      const rock: Rock = { mass: 1000, resistance: 20, instability: 50 };
+      const gadgets = [null, null, null];
+
+      const result = calculateBreakability(config, rock, gadgets);
+
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.65, 2);
+      expect(result.adjustedInstability).toBeCloseTo(32.5, 1);
+    });
+
+    it('should include instability with gadget effects', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+      const stalwart = GADGETS.find(g => g.id === 'stalwart')!; // instabilityModifier = 0.65
+
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: arborMH1, modules: [null] }],
+      };
+      const rock: Rock = { mass: 1000, resistance: 20, instability: 50 };
+      const gadgets = [stalwart, null, null];
+
+      const result = calculateBreakability(config, rock, gadgets);
+
+      // Equipment: 0.65, Gadget: 0.65, Total: 0.4225
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.4225, 3);
+      // Adjusted = 50 × 0.4225 = 21.125
+      expect(result.adjustedInstability).toBeCloseTo(21.125, 2);
+    });
+  });
+
+  describe('calculateGroupBreakability - multi-ship instability', () => {
+    it('should calculate instability for multi-ship mining group', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 0.65
+      const lancetMH1 = LASER_HEADS.find(l => l.id === 'lancet-mh1')!; // 0.9
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: arborMH1, modules: [null] }],
+        },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: {
+          lasers: [{ laserHead: lancetMH1, modules: [null] }],
+        },
+        isActive: true,
+      };
+
+      const group: MiningGroup = {
+        ships: [ship1, ship2],
+      };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 50 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Multi-ship: 0.65 × 0.9 = 0.585
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.585, 3);
+      // Adjusted = 50 × 0.585 = 29.25
+      expect(result.adjustedInstability).toBeCloseTo(29.25, 1);
+    });
+
+    it('should only include active ships in instability calculation', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: arborMH1, modules: [null] }],
+        },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: {
+          lasers: [{ laserHead: arborMH1, modules: [null] }],
+        },
+        isActive: false, // Inactive
+      };
+
+      const group: MiningGroup = {
+        ships: [ship1, ship2],
+      };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 50 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Only ship1 counts: 0.65
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.65, 2);
+    });
+
+    it('should apply group gadgets to instability', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+      const boremax = GADGETS.find(g => g.id === 'boremax')!; // 0.3
+
+      const ship: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: arborMH1, modules: [null] }],
+        },
+        isActive: true,
+      };
+
+      const group: MiningGroup = {
+        ships: [ship],
+      };
+      const gadgets = [boremax, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 50 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Equipment: 0.65, Gadget: 0.3, Total: 0.195
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.195, 3);
     });
   });
 });

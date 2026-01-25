@@ -89,8 +89,8 @@ export interface CalculationResult {
     appliedModifier: number; // The total modifier applied
   };
   // Instability calculation results
-  totalInstabilityModifier?: number; // Combined equipment instability modifier
-  adjustedInstability?: number; // Rock instability after applying equipment modifiers
+  totalInstabilityModifier?: number; // Combined instability modifier from equipment and gadgets
+  adjustedInstability?: number; // Rock instability after applying all instability modifiers (equipment + gadgets)
 }
 
 // Mining Group types for multi-ship operations
