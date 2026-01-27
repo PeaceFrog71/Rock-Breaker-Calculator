@@ -61,11 +61,13 @@ RANDOM_SHOTS = REF_DATA / "Random Shots"
 OUTPUT_CSV = SCRIPT_DIR / "instability-rock-data.csv"
 SCRAPED_DIR = SCRIPT_DIR / "scraped_images"
 
-# Known elements in Star Citizen mining
+# Known elements in Star Citizen mining (all 25)
 KNOWN_ELEMENTS = [
     'agricium', 'aluminum', 'beryl', 'bexalite', 'borase', 'copper',
-    'corundum', 'gold', 'hephaestanite', 'iron', 'laranite', 'quartz',
-    'quantanium', 'taranite', 'titanium', 'tungsten', 'diamond'
+    'corundum', 'diamond', 'gold', 'hephaestanite', 'ice', 'iron',
+    'laranite', 'lindinium', 'quantanium', 'quartz', 'riccite',
+    'savrilium', 'silicon', 'stileron', 'taranite', 'tin',
+    'titanium', 'torite', 'tungsten'
 ]
 
 # Known asteroid types
@@ -244,6 +246,15 @@ def fuzzy_element_match(name: str) -> Optional[str]:
         'tltanium': 'titanium', 'titanlum': 'titanium',
         'tungsien': 'tungsten', 'tungsten': 'tungsten',
         'dlamond': 'diamond',
+        # New elements added for expanded recognition
+        'rlccite': 'riccite', 'ricctte': 'riccite', 'rlcctte': 'riccite',
+        'tln': 'tin', 't1n': 'tin',
+        '1ce': 'ice', 'lce': 'ice',
+        'llndinium': 'lindinium', 'lindlnium': 'lindinium',
+        'savrlllum': 'savrilium', 'savrlium': 'savrilium',
+        'sllicon': 'silicon', 'silcon': 'silicon',
+        'stlleron': 'stileron', 'stlieron': 'stileron',
+        'torlte': 'torite', 'tortte': 'torite',
     }
     if name in OCR_FIXES:
         return OCR_FIXES[name]

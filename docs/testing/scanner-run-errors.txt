@@ -1,0 +1,3 @@
+usage: scan_scanner.py [-h] [--local LOCAL] [--local-all] [--reddit] [--all]
+                       [--dry-run]
+scan_scanner.py: error: unrecognized arguments: ref data/Instability Shots --csv

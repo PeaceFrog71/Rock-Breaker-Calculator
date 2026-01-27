@@ -32,11 +32,13 @@ DATA_FILE = os.path.join(SCRIPT_DIR, "instability-rock-data.csv")
 OUTPUT_DIR = os.path.join(SCRIPT_DIR, "analysis_output")
 MIN_SAMPLES_PER_ELEMENT = 10  # Target for unsupervised learning
 
-# Element columns in the CSV
+# Element columns in the CSV (25 elements, excludes jaclium)
 ELEMENT_COLS = [
     'agricium', 'aluminum', 'beryl', 'bexalite', 'borase', 'copper',
-    'corundum', 'gold', 'hephaestanite', 'iron', 'laranite', 'quartz',
-    'taranite', 'titanium', 'tungsten'
+    'corundum', 'diamond', 'gold', 'hephaestanite', 'ice', 'iron',
+    'laranite', 'lindinium', 'quantanium', 'quartz', 'riccite',
+    'savrilium', 'silicon', 'stileron', 'taranite', 'tin',
+    'titanium', 'torite', 'tungsten'
 ]
 
 DIFFICULTY_ORDER = ['EASY', 'MEDIUM', 'CHALLENGING', 'HARD', 'IMPOSSIBLE']
@@ -410,7 +412,8 @@ def main():
     print("=" * 60)
     total_needed = sum(max(0, MIN_SAMPLES_PER_ELEMENT - (df[col] > 0).sum()) for col in ELEMENT_COLS)
     print(f"Total rocks: {len(df)}")
-    print(f"Unique asteroid types: {df['asteroid_type'].nunique()} ({', '.join(sorted(df['asteroid_type'].unique()))})")
+    types = sorted([t for t in df['asteroid_type'].unique() if pd.notna(t)])
+    print(f"Unique asteroid types: {len(types)} ({', '.join(types)})")
     print(f"Elements found: {sum(1 for col in ELEMENT_COLS if (df[col] > 0).any())}/{len(ELEMENT_COLS)}")
     print(f"Total additional samples needed (across all elements): ~{total_needed}")
     print(f"\nInstability range: {df['instability'].min():.2f} - {df['instability'].max():.2f}")

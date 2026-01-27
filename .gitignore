@@ -45,6 +45,8 @@ ref data/
 # Research & analysis artifacts
 docs/testing/scraped_images/
 docs/testing/analysis_output/
+__pycache__/
 
-# Claude session planning (local context only)
+# Planning docs (local working documents for Claude + Drew)
+docs/plans/
 .claude/plans/
