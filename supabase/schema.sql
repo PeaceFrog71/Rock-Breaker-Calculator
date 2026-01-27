@@ -60,8 +60,8 @@ CREATE TRIGGER saved_configs_updated_at
 CREATE TABLE IF NOT EXISTS rock_submissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,  -- Nullable: allow anonymous
-  mass INTEGER NOT NULL,
-  resistance_pct INTEGER NOT NULL,
+  mass NUMERIC NOT NULL,
+  resistance_pct NUMERIC NOT NULL,
   instability NUMERIC,
   elements JSONB NOT NULL,           -- { "taranite": 12.5, "corundum": 8.3, ... }
   screenshot_url TEXT,               -- Future: stored screenshot reference
