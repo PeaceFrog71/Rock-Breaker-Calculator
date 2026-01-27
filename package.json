@@ -6,6 +6,9 @@
   "author": "Your Name",
   "main": "dist-electron/main.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

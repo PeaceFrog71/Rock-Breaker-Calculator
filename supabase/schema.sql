@@ -1,4 +1,4 @@
--- BreakIt Calculator - Supabase Schema
+-- Rock Breaker Calculator - Supabase Schema
 -- Run this in the Supabase SQL Editor to set up tables and RLS policies.
 -- Dashboard: https://supabase.com/dashboard/project/<project-id>/sql/new
 
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS saved_configs (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
   name TEXT NOT NULL,
-  ship_type TEXT NOT NULL,          -- 'prospector', 'mole', 'golem', or 'multi-ship'
+  ship_type TEXT NOT NULL CHECK (ship_type IN ('prospector', 'mole', 'golem', 'multi-ship')),
   config JSONB NOT NULL,            -- Full MiningConfiguration or MiningGroup JSON
   created_at TIMESTAMPTZ DEFAULT now() NOT NULL,
   updated_at TIMESTAMPTZ DEFAULT now() NOT NULL
@@ -60,8 +60,8 @@ CREATE TRIGGER saved_configs_updated_at
 CREATE TABLE IF NOT EXISTS rock_submissions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,  -- Nullable: allow anonymous
-  mass NUMERIC NOT NULL,
-  resistance_pct NUMERIC NOT NULL,
+  mass NUMERIC NOT NULL,             -- Whole numbers in-game, NUMERIC for flexibility
+  resistance_pct NUMERIC NOT NULL,  -- Whole percentage (0-100) in-game
   instability NUMERIC,
   elements JSONB NOT NULL,           -- { "taranite": 12.5, "corundum": 8.3, ... }
   screenshot_url TEXT,               -- Future: stored screenshot reference
@@ -83,13 +83,18 @@ CREATE POLICY "Anyone can read rock submissions"
 
 CREATE POLICY "Authenticated users can submit rocks"
   ON rock_submissions FOR INSERT
-  WITH CHECK (auth.uid() IS NOT NULL);
+  WITH CHECK (
+    auth.uid() IS NOT NULL
+    AND (user_id IS NULL OR user_id = auth.uid())
+  );
 
+-- Anonymous submissions (user_id IS NULL) are intentionally immutable —
+-- they cannot be updated or deleted since auth.uid() can never equal NULL.
 CREATE POLICY "Users can update own submissions"
   ON rock_submissions FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING (user_id IS NOT NULL AND auth.uid() = user_id)
+  WITH CHECK (user_id IS NOT NULL AND auth.uid() = user_id);
 
 CREATE POLICY "Users can delete own submissions"
   ON rock_submissions FOR DELETE
-  USING (auth.uid() = user_id);
+  USING (user_id IS NOT NULL AND auth.uid() = user_id);
