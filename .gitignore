@@ -38,3 +38,15 @@ release
 .env.production
 rock-breaker-app/
 tmpclaude-*
+
+# Reference data & screenshots (large binary files, local research)
+ref data/
+
+# Research & analysis artifacts
+docs/testing/scraped_images/
+docs/testing/analysis_output/
+__pycache__/
+
+# Planning docs (local working documents for Claude + Drew)
+docs/plans/
+.claude/plans/

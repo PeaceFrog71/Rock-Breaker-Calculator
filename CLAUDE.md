@@ -125,6 +125,8 @@ This is a learning exercise - the goal is git fluency, not speed.
 ### Plan File Location
 - **Active plans**: `docs/plans/` with format `<issue#>-<description>.md`
 - Example: `98-ipad-tablet-layout.md`
+- `docs/plans/` is **local only** (gitignored) - persists on disk for Claude + Drew to reference
+- **NEVER** use `.claude/plans/` - that directory is ephemeral (cleared between sessions)
 
 ### At Session Start / After Compaction
 1. **Check for active plans** in `docs/plans/`
