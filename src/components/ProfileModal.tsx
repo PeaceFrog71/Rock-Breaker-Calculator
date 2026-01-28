@@ -76,15 +76,6 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     }
   }, [isOpen, user]);
 
-  // Close on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen || !user) return null;
 
@@ -204,8 +195,8 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   };
 
   return (
-    <div className="profile-modal-overlay" onClick={onClose}>
-      <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="profile-modal-overlay">
+      <div className="profile-modal">
         <button className="close-button" onClick={onClose}>×</button>
 
         <h2>Profile</h2>

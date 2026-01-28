@@ -34,15 +34,6 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   }, [isOpen]);
 
-  // Close on Escape key
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -122,8 +113,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   return (
-    <div className="auth-modal-overlay" onClick={onClose}>
-      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
+    <div className="auth-modal-overlay">
+      <div className="auth-modal">
         <button className="close-button" onClick={onClose}>×</button>
 
         {success ? (
@@ -206,7 +197,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
             {error && <p className="auth-error">{error}</p>}
 
-            <form className="auth-form" onSubmit={handleSignUp}>
+            <form className="auth-form" onSubmit={handleSignUp} autoComplete="off">
+              {/* Hidden decoy fields to absorb Google Password Manager autofill */}
+              <input type="text" name="decoy-user" autoComplete="username" aria-hidden="true" tabIndex={-1} style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', pointerEvents: 'none' }} />
+              <input type="password" name="decoy-pass" autoComplete="current-password" aria-hidden="true" tabIndex={-1} style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', pointerEvents: 'none' }} />
               <div className="auth-field">
                 <label htmlFor="auth-signup-name">Display Name</label>
                 <input
@@ -216,7 +210,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onChange={(e) => { setDisplayName(e.target.value); clearError(); }}
                   placeholder="Your display name"
                   required
-                  autoComplete="name"
+                  autoComplete="off"
                 />
               </div>
 
@@ -229,7 +223,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onChange={(e) => { setEmail(e.target.value); clearError(); }}
                   placeholder="you@example.com"
                   required
-                  autoComplete="email"
+                  autoComplete="off"
                 />
               </div>
 
@@ -243,7 +237,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="At least 8 characters"
                   required
                   minLength={8}
-                  autoComplete="new-password"
+                  autoComplete="off"
                 />
                 <p className="password-hint">Minimum 8 characters</p>
               </div>
@@ -258,7 +252,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   placeholder="Confirm your password"
                   required
                   minLength={8}
-                  autoComplete="new-password"
+                  autoComplete="off"
                 />
               </div>
 
