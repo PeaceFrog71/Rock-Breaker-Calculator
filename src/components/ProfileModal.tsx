@@ -23,6 +23,7 @@ function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
+      URL.revokeObjectURL(img.src);
       const canvas = document.createElement('canvas');
       canvas.width = AVATAR_SIZE;
       canvas.height = AVATAR_SIZE;
@@ -42,7 +43,7 @@ function resizeImage(file: File): Promise<string> {
       ctx.drawImage(img, x, y, w, h);
       resolve(canvas.toDataURL('image/jpeg', 0.8));
     };
-    img.onerror = () => reject(new Error('Failed to load image'));
+    img.onerror = () => { URL.revokeObjectURL(img.src); reject(new Error('Failed to load image')); };
     img.src = URL.createObjectURL(file);
   });
 }
@@ -55,6 +56,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
   const [newEmail, setNewEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -69,6 +71,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       setSelectedAvatar(getAvatarId(user));
       setUploadedPreview(getCustomAvatarUrl(user));
       setNewEmail(user.email ?? '');
+      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setError('');
@@ -76,6 +79,15 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     }
   }, [isOpen, user]);
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen || !user) return null;
 
@@ -141,7 +153,27 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       return;
     }
 
+    // Require current password to change email or password
+    const emailChanged = newEmail.trim() !== user.email;
+    if ((emailChanged || newPassword) && !currentPassword) {
+      setError('Current password is required to change email or password.');
+      return;
+    }
+
     setSaving(true);
+
+    // Verify current password before allowing email/password changes
+    if ((emailChanged || newPassword) && currentPassword) {
+      const { error: verifyError } = await supabase.auth.signInWithPassword({
+        email: user.email!,
+        password: currentPassword,
+      });
+      if (verifyError) {
+        setError('Current password is incorrect.');
+        setSaving(false);
+        return;
+      }
+    }
 
     // Save avatar and display name together (both are user metadata)
     const currentAvatarId = getAvatarId(user);
@@ -195,11 +227,11 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   };
 
   return (
-    <div className="profile-modal-overlay">
+    <div className="profile-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
       <div className="profile-modal">
         <button className="close-button" onClick={onClose}>×</button>
 
-        <h2>Profile</h2>
+        <h2 id="profile-modal-title">Profile</h2>
 
         {/* Avatar Display */}
         <div className="profile-avatar-display">
@@ -287,6 +319,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               value={displayName}
               onChange={(e) => { setDisplayName(e.target.value); setError(''); setSuccess(''); }}
               required
+              maxLength={50}
               disabled={saving}
             />
           </div>
@@ -309,6 +342,18 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
         {/* Password */}
         <div className="profile-section">
+          <div className="profile-field">
+            <label htmlFor="profile-current-password">Current Password</label>
+            <input
+              id="profile-current-password"
+              type="password"
+              value={currentPassword}
+              onChange={(e) => { setCurrentPassword(e.target.value); setError(''); setSuccess(''); }}
+              placeholder="Required to change email or password"
+              autoComplete="current-password"
+              disabled={saving}
+            />
+          </div>
           <div className="profile-field">
             <label htmlFor="profile-new-password">New Password</label>
             <input

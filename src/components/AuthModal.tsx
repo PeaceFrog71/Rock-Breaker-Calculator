@@ -34,6 +34,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     }
   }, [isOpen]);
 
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -113,13 +122,13 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   };
 
   return (
-    <div className="auth-modal-overlay">
+    <div className="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
       <div className="auth-modal">
         <button className="close-button" onClick={onClose}>×</button>
 
         {success ? (
           <>
-            <h2>Check Your Email</h2>
+            <h2 id="auth-modal-title">Check Your Email</h2>
             <p className="auth-success">{success}</p>
             <div className="auth-toggle" style={{ marginTop: '1.5rem' }}>
               <span>Already confirmed?</span>
@@ -128,7 +137,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </>
         ) : view === 'signIn' ? (
           <>
-            <h2>Sign In</h2>
+            <h2 id="auth-modal-title">Sign In</h2>
             <p className="auth-subtitle">Sign in to save your setups to the cloud</p>
 
             {error && <p className="auth-error">{error}</p>}
@@ -192,7 +201,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </>
         ) : (
           <>
-            <h2>Create Account</h2>
+            <h2 id="auth-modal-title">Create Account</h2>
             <p className="auth-subtitle">Sign up to save your setups to the cloud</p>
 
             {error && <p className="auth-error">{error}</p>}
@@ -210,6 +219,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   onChange={(e) => { setDisplayName(e.target.value); clearError(); }}
                   placeholder="Your display name"
                   required
+                  maxLength={50}
                   autoComplete="off"
                 />
               </div>
