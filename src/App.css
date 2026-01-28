@@ -103,6 +103,7 @@ button, .btn-primary, .btn-secondary {
   border-bottom: 2px solid var(--accent-blue);
   box-shadow: 0 4px 20px rgba(0, 217, 255, 0.1);
   position: relative;
+  z-index: 10; /* Above content so user dropdown renders on top */
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -172,16 +173,46 @@ button, .btn-primary, .btn-secondary {
   right: 0;
 }
 
+.header-links {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
 .feedback-link {
   font-size: 0.75rem;
   color: var(--accent-cyan);
   text-decoration: none;
   opacity: 0.8;
-  margin-top: 1rem;
   transition: opacity 0.2s ease;
 }
 
 .feedback-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
+.header-link-sep {
+  color: var(--accent-cyan);
+  opacity: 0.4;
+  font-size: 0.75rem;
+}
+
+.help-link {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--accent-cyan);
+  opacity: 0.8;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity 0.2s ease;
+  letter-spacing: 0.05em;
+}
+
+.help-link:hover {
   opacity: 1;
   text-decoration: underline;
 }
@@ -193,63 +224,13 @@ button, .btn-primary, .btn-secondary {
   letter-spacing: 2px;
 }
 
-.help-button {
-  background: rgba(0, 217, 255, 0.1);
-  border: 2px solid var(--accent-cyan);
-  color: var(--accent-cyan);
-  padding: 0;
-  width: 44px !important;
-  height: 44px !important;
-  min-width: 44px;
-  max-width: 44px;
-  min-height: 44px;
-  max-height: 44px;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  font-size: 1.5rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 20px rgba(0, 217, 255, 0.5), 0 0 30px rgba(0, 217, 255, 0.3);
-  animation: helpButtonAttention 8s ease-in-out infinite;
+.header-controls {
   grid-column: 3;
   justify-self: start;
   align-self: center;
-  flex-shrink: 0;
-}
-
-.help-button:hover {
-  background: var(--accent-cyan);
-  color: var(--bg-dark);
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(0, 217, 255, 0.6);
-  animation: none;
-}
-
-@keyframes helpButtonAttention {
-  0%, 90%, 100% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
-  }
-  92% {
-    transform: scale(1.15);
-    box-shadow: 0 0 25px rgba(0, 217, 255, 0.6);
-  }
-  94% {
-    transform: scale(1.05);
-    box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
-  }
-  96% {
-    transform: scale(1.1);
-    box-shadow: 0 0 20px rgba(0, 217, 255, 0.5);
-  }
-  98% {
-    transform: scale(1);
-    box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
-  }
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .content-wrapper {
@@ -768,7 +749,7 @@ button, .btn-primary, .btn-secondary {
 @media (max-width: 768px) {
   .app-header {
     padding: 1.5rem 1rem;
-    grid-template-columns: 80px 1fr 38px;
+    grid-template-columns: 80px 1fr auto;
     gap: 0.25rem;
   }
 
@@ -784,22 +765,11 @@ button, .btn-primary, .btn-secondary {
     width: 80px;
     height: 80px;
   }
-
-  .help-button {
-    width: 38px;
-    height: 38px;
-    min-width: 38px;
-    max-width: 38px;
-    min-height: 38px;
-    max-height: 38px;
-    aspect-ratio: 1;
-    font-size: 1.3rem;
-  }
 }
 
 @media (max-width: 480px) {
   .app-header {
-    grid-template-columns: 60px 1fr 38px;
+    grid-template-columns: 60px 1fr auto;
     gap: 0.25rem;
   }
 
@@ -1028,7 +998,7 @@ button, .btn-primary, .btn-secondary {
     max-width: 100vw !important;
     padding: 0.5rem 1.8rem !important; /* Space for tabs */
     box-sizing: border-box !important;
-    grid-template-columns: 52px 1fr 28px !important; /* Smaller columns */
+    grid-template-columns: 52px 1fr auto !important; /* Smaller columns */
     gap: 0.3rem !important;
   }
 
@@ -1310,7 +1280,7 @@ button, .btn-primary, .btn-secondary {
   /* Header - tablet-appropriate sizing (not desktop huge, not phone tiny) */
   .app-header {
     padding: 0.75rem 2.5rem !important;
-    grid-template-columns: 60px 1fr 38px !important;
+    grid-template-columns: 60px 1fr auto !important;
     gap: 0.5rem !important;
   }
 

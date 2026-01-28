@@ -26,10 +26,13 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import MiningGroupManager from "./components/MiningGroupManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import AuthModal from "./components/AuthModal";
+import UserMenu from "./components/UserMenu";
 import ResistanceModeSelector from "./components/ResistanceModeSelector";
 import MobileDrawer from "./components/MobileDrawer";
 import CollapsiblePanel from "./components/CollapsiblePanel";
 import { useMobileDetection } from "./hooks/useMobileDetection";
+import { useAuth } from "./contexts/AuthContext";
 import pfLogo from "./assets/PFlogo.png";
 import communityLogo from "./assets/MadeByTheCommunity_Black.png";
 import gadgetLabelVertical from "./assets/gadget label vertical.png";
@@ -132,6 +135,8 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const { isConfigured: isAuthConfigured } = useAuth();
 
   // Mobile drawer state
   const [rockDrawerOpen, setRockDrawerOpen] = useState(false);
@@ -556,23 +561,30 @@ function App() {
             <span className="title-line">PEACEFROG'S</span>
             <span className="title-line">ROCK BREAKER</span>
           </h1>
-          <a
-            href="https://forms.gle/GziNwLBcwaWpZVNy5"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="feedback-link"
-          >
-            FEEDBACK LINK
-          </a>
+          <div className="header-links">
+            <a
+              href="https://forms.gle/GziNwLBcwaWpZVNy5"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="feedback-link"
+            >
+              FEEDBACK
+            </a>
+            <span className="header-link-sep">|</span>
+            <button
+              className="help-link"
+              onClick={() => setShowHelpModal(true)}
+            >
+              HELP
+            </button>
+          </div>
           <span className="version-tag">v{version}</span>
         </div>
-        <button
-          className="help-button"
-          onClick={() => setShowHelpModal(true)}
-          title="Help & User Guides"
-        >
-          ?
-        </button>
+        <div className="header-controls">
+          {isAuthConfigured && (
+            <UserMenu onSignInClick={() => setShowAuthModal(true)} />
+          )}
+        </div>
       </header>
 
       <div className="content-wrapper">
@@ -1032,6 +1044,7 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (

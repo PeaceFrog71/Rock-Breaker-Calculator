@@ -1,11 +1,14 @@
 {
   "name": "rock-breaker-app",
   "private": true,
-  "version": "2.2.0",
+  "version": "2.6.0",
   "description": "Star Citizen Rock Breaker Mining Calculator",
   "author": "Your Name",
   "main": "dist-electron/main.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -37,6 +40,7 @@
     }
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.93.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

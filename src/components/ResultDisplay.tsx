@@ -2554,6 +2554,20 @@ export default function ResultDisplay({
               </div>
             </div>
 
+            {/* Instability card - only show if rock has instability value */}
+            {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+              <div className="stat-card">
+                <div className="stat-label">Adjusted Instability</div>
+                <div className="stat-value">
+                  {result.adjustedInstability.toFixed(2)}
+                </div>
+                <div className="stat-subtitle">
+                  Base × modifier = {rock.instability} ×{" "}
+                  {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+                </div>
+              </div>
+            )}
+
             <div className="stat-card">
               <div className="stat-label">Laser Power Required</div>
               <div className="stat-value">
@@ -2593,6 +2607,18 @@ export default function ResultDisplay({
               <span>Total Resist Modifier:</span>
               <span>{result.totalResistModifier.toFixed(3)}x</span>
             </div>
+            {rock.instability !== undefined && (
+              <>
+                <div className="detail-row">
+                  <span>Base Instability:</span>
+                  <span>{rock.instability.toFixed(1)}</span>
+                </div>
+                <div className="detail-row">
+                  <span>Total Instability Modifier:</span>
+                  <span>{(result.totalInstabilityModifier ?? 1).toFixed(3)}x</span>
+                </div>
+              </>
+            )}
             <div className="detail-row">
               <span>Formula:</span>
               <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
@@ -2636,6 +2662,20 @@ export default function ResultDisplay({
             </div>
           </div>
 
+          {/* Instability card - only show if rock has instability value */}
+          {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+            <div className="stat-card">
+              <div className="stat-label">Adjusted Instability</div>
+              <div className="stat-value">
+                {result.adjustedInstability.toFixed(2)}
+              </div>
+              <div className="stat-subtitle">
+                Base × modifier = {rock.instability} ×{" "}
+                {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+              </div>
+            </div>
+          )}
+
           <div className="stat-card">
             <div className="stat-label">Laser Power Required</div>
             <div className="stat-value">
@@ -2678,6 +2718,18 @@ export default function ResultDisplay({
             <span>Total Resist Modifier:</span>
             <span>{result.totalResistModifier.toFixed(3)}x</span>
           </div>
+          {rock.instability !== undefined && (
+            <>
+              <div className="detail-row">
+                <span>Base Instability:</span>
+                <span>{rock.instability.toFixed(1)}</span>
+              </div>
+              <div className="detail-row">
+                <span>Total Instability Modifier:</span>
+                <span>{(result.totalInstabilityModifier ?? 1).toFixed(3)}x</span>
+              </div>
+            </>
+          )}
           <div className="detail-row">
             <span>Formula:</span>
             <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
