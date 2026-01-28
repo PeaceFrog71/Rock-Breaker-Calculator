@@ -136,7 +136,16 @@ function App() {
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { isConfigured: isAuthConfigured } = useAuth();
+  const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
+  const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
+
+  // Auto-open auth modal when user clicks password reset link from email
+  useEffect(() => {
+    if (passwordRecovery) {
+      setAuthModalView('resetPassword');
+      setShowAuthModal(true);
+    }
+  }, [passwordRecovery]);
 
   // Mobile drawer state
   const [rockDrawerOpen, setRockDrawerOpen] = useState(false);
@@ -1044,7 +1053,7 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
-      <AuthModal isOpen={showAuthModal} onClose={() => setShowAuthModal(false)} />
+      <AuthModal isOpen={showAuthModal} onClose={() => { setShowAuthModal(false); setAuthModalView(undefined); clearPasswordRecovery(); }} initialView={authModalView} />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (
