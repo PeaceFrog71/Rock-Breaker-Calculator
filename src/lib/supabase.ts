@@ -68,6 +68,12 @@ export async function initSessionSync(): Promise<void> {
   const { data: { session } } = await supabase.auth.getSession()
   const token = getSharedRefreshToken()
 
+  // If we have a session but no cookie, sync the cookie
+  // This handles OAuth callback where SIGNED_IN fires before our listener is ready
+  if (session && !token) {
+    setSharedRefreshToken(session.refresh_token || null)
+  }
+
   // If no local session but shared cookie exists, restore from refresh token
   if (!session && token) {
     await supabase.auth.refreshSession({ refresh_token: token })
