@@ -350,7 +350,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               value={currentPassword}
               onChange={(e) => { setCurrentPassword(e.target.value); setError(''); setSuccess(''); }}
               placeholder="Required to change email or password"
-              autoComplete="current-password"
+              autoComplete="off"
               disabled={saving}
             />
           </div>

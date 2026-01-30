@@ -155,6 +155,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
+  width: 100%;
 }
 
 .auth-google-btn:hover:not(:disabled) {
@@ -198,6 +199,12 @@
 
 .auth-toggle button:hover {
   color: var(--accent-gold);
+}
+
+/* Forgot password link - left aligned under password field */
+.auth-forgot-link {
+  text-align: left;
+  margin-top: 0.25rem;
 }
 
 /* Messages */
