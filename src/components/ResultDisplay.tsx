@@ -999,24 +999,25 @@ export default function ResultDisplay({
                         <div
                           className="laser-controls"
                           style={
-                            isMobile
+                            (isMobile || isTabletPortrait)
                               ? {
-                                  // Mobile: original layout (hidden by CSS anyway)
+                                  // Mobile/tablet: position above the ship
                                   position: "absolute",
-                                  top: "calc(50% - 15px)",
-                                  left: "calc(50% - 220px - 30px)",
-                                  transform: "translate(-100%, -50%)",
+                                  top: "calc(50% - 12vh)",
+                                  left: "5vw",
+                                  transform: "translateY(-100%)",
                                   display: "flex",
                                   flexDirection: "row",
-                                  gap: "0.25rem",
+                                  gap: "0.5rem",
                                   pointerEvents: "auto",
                                   alignItems: "center",
+                                  zIndex: 20,
                                 }
                               : {
-                                  // Desktop: left of ship (moved left 150px)
+                                  // Desktop: left of ship, aligned with ship center
                                   position: "absolute",
-                                  top: "calc(50% - 15px)",
-                                  left: "calc(50% - 460px)",
+                                  top: "calc(50% - 25px)",
+                                  left: "calc(15% - 185px)",
                                   transform: "translate(-100%, -50%)",
                                   display: "flex",
                                   flexDirection: "row",
