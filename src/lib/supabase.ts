@@ -5,6 +5,33 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 /**
+ * Cookie-based storage for cross-subdomain session sharing.
+ * Sessions are stored on .peacefroggaming.com so Band Hopper and Rockbreaker
+ * share the same authenticated session.
+ */
+const cookieStorage = {
+  getItem: (key: string): string | null => {
+    if (typeof document === 'undefined') return null
+    const match = document.cookie.match(new RegExp(`(^| )${key}=([^;]+)`))
+    return match ? decodeURIComponent(match[2]) : null
+  },
+  setItem: (key: string, value: string): void => {
+    if (typeof document === 'undefined') return
+    const domain = window.location.hostname.includes('peacefroggaming.com')
+      ? '; domain=.peacefroggaming.com'
+      : ''
+    document.cookie = `${key}=${encodeURIComponent(value)}${domain}; path=/; max-age=31536000; secure; samesite=lax`
+  },
+  removeItem: (key: string): void => {
+    if (typeof document === 'undefined') return
+    const domain = window.location.hostname.includes('peacefroggaming.com')
+      ? '; domain=.peacefroggaming.com'
+      : ''
+    document.cookie = `${key}=${domain}; path=/; max-age=0`
+  },
+}
+
+/**
  * Whether Supabase credentials are configured.
  * When false, the calculator still works — Supabase features (auth, saved configs)
  * are additive and gracefully degrade. Check this before making Supabase calls.
@@ -21,5 +48,12 @@ if (!isSupabaseConfigured) {
 
 export const supabase = createClient<Database>(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-anon-key'
+  supabaseAnonKey || 'placeholder-anon-key',
+  {
+    auth: {
+      persistSession: true,
+      storageKey: 'pfg-auth',  // MUST match Band Hopper for cross-subdomain SSO
+      storage: cookieStorage,
+    },
+  }
 )
