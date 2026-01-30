@@ -7,6 +7,7 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   isConfigured: boolean;
+  passwordRecovery: boolean;
 }
 
 interface AuthActions {
@@ -14,6 +15,9 @@ interface AuthActions {
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signInWithGoogle: () => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<{ error: AuthError | null }>;
+  resetPassword: (email: string) => Promise<{ error: AuthError | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  clearPasswordRecovery: () => void;
 }
 
 type AuthContextType = AuthState & AuthActions;
@@ -75,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
@@ -88,10 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Listen for auth state changes (login, logout, token refresh, OAuth callback)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, newSession) => {
+      (event, newSession) => {
         setSession(newSession);
         setUser(newSession?.user ?? null);
         setLoading(false);
+
+        // Detect password recovery flow (user clicked reset link in email)
+        if (event === 'PASSWORD_RECOVERY') {
+          setPasswordRecovery(true);
+        }
       }
     );
 
@@ -129,6 +139,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error };
   }, []);
 
+  const resetPasswordFn = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin,
+    });
+    return { error };
+  }, []);
+
+  const updatePasswordFn = useCallback(async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (!error) {
+      setPasswordRecovery(false);
+    }
+    return { error };
+  }, []);
+
+  const clearPasswordRecovery = useCallback(() => {
+    setPasswordRecovery(false);
+  }, []);
+
   // Graceful degradation: when Supabase isn't configured, return inert state
   if (!isSupabaseConfigured) {
     return (
@@ -137,10 +166,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session: null,
         loading: false,
         isConfigured: false,
+        passwordRecovery: false,
         signUp: noopAsync,
         signIn: noopAsync,
         signInWithGoogle: noopAsync,
         signOut: noopAsync,
+        resetPassword: noopAsync,
+        updatePassword: noopAsync,
+        clearPasswordRecovery: () => {},
       }}>
         {children}
       </AuthContext.Provider>
@@ -153,10 +186,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       loading,
       isConfigured: true,
+      passwordRecovery,
       signUp,
       signIn,
       signInWithGoogle,
       signOut: signOutFn,
+      resetPassword: resetPasswordFn,
+      updatePassword: updatePasswordFn,
+      clearPasswordRecovery,
     }}>
       {children}
     </AuthContext.Provider>

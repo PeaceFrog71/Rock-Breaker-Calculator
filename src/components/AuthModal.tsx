@@ -5,14 +5,15 @@ import './AuthModal.css';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialView?: AuthView;
 }
 
-type AuthView = 'signIn' | 'signUp';
+type AuthView = 'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword';
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { signUp, signIn, signInWithGoogle } = useAuth();
+export default function AuthModal({ isOpen, onClose, initialView }: AuthModalProps) {
+  const { signUp, signIn, signInWithGoogle, resetPassword, updatePassword } = useAuth();
 
-  const [view, setView] = useState<AuthView>('signIn');
+  const [view, setView] = useState<AuthView>(initialView ?? 'signIn');
   const [email, setEmail] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +22,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Reset form when modal opens/closes or view changes
+  // Reset form when modal closes; set initialView when opening
   useEffect(() => {
     if (!isOpen) {
       setEmail('');
@@ -31,8 +32,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       setError('');
       setSuccess('');
       setView('signIn');
+    } else if (initialView) {
+      setView(initialView);
     }
-  }, [isOpen]);
+  }, [isOpen, initialView]);
 
   // Close on Escape key
   useEffect(() => {
@@ -121,6 +124,46 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     // Google OAuth redirects the page, so no need to close modal
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSubmitting(true);
+
+    const { error: authError } = await resetPassword(email);
+    setSubmitting(false);
+
+    if (authError) {
+      setError(authError.message);
+    } else {
+      setSuccess('Check your email for a password reset link.');
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setSubmitting(true);
+    const { error: authError } = await updatePassword(password);
+    setSubmitting(false);
+
+    if (authError) {
+      setError(authError.message);
+    } else {
+      setSuccess('Password updated successfully!');
+    }
+  };
+
   return (
     <div className="auth-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
       <div className="auth-modal">
@@ -128,12 +171,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {success ? (
           <>
-            <h2 id="auth-modal-title">Check Your Email</h2>
+            <h2 id="auth-modal-title">{view === 'resetPassword' ? 'Password Updated' : 'Check Your Email'}</h2>
             <p className="auth-success">{success}</p>
-            <div className="auth-toggle" style={{ marginTop: '1.5rem' }}>
-              <span>Already confirmed?</span>
-              <button onClick={() => switchView('signIn')}>Sign In</button>
-            </div>
+            {view !== 'resetPassword' && (
+              <div className="auth-toggle" style={{ marginTop: '1.5rem' }}>
+                <span>Already confirmed?</span>
+                <button onClick={() => switchView('signIn')}>Sign In</button>
+              </div>
+            )}
           </>
         ) : view === 'signIn' ? (
           <>
@@ -167,6 +212,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   required
                   autoComplete="current-password"
                 />
+                <div className="auth-toggle auth-forgot-link">
+                  <span>Forget your password?</span>
+                  <button type="button" onClick={() => switchView('forgotPassword')}>Reset Here</button>
+                </div>
               </div>
 
               <button
@@ -199,7 +248,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button onClick={() => switchView('signUp')}>Sign Up</button>
             </div>
           </>
-        ) : (
+        ) : view === 'signUp' ? (
           <>
             <h2 id="auth-modal-title">Create Account</h2>
             <p className="auth-subtitle">Sign up to save your setups to the cloud</p>
@@ -295,6 +344,87 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <span>Already have an account?</span>
               <button onClick={() => switchView('signIn')}>Sign In</button>
             </div>
+          </>
+        ) : view === 'forgotPassword' ? (
+          <>
+            <h2 id="auth-modal-title">Reset Password</h2>
+            <p className="auth-subtitle">Enter your email and we'll send you a reset link</p>
+
+            {error && <p className="auth-error">{error}</p>}
+
+            <form className="auth-form" onSubmit={handleForgotPassword}>
+              <div className="auth-field">
+                <label htmlFor="auth-reset-email">Email</label>
+                <input
+                  id="auth-reset-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); clearError(); }}
+                  placeholder="you@example.com"
+                  required
+                  autoComplete="email"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={submitting}
+              >
+                {submitting ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
+
+            <div className="auth-toggle">
+              <span>Remember your password?</span>
+              <button onClick={() => switchView('signIn')}>Sign In</button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 id="auth-modal-title">Set New Password</h2>
+            <p className="auth-subtitle">Choose a new password for your account</p>
+
+            {error && <p className="auth-error">{error}</p>}
+
+            <form className="auth-form" onSubmit={handleResetPassword}>
+              <div className="auth-field">
+                <label htmlFor="auth-new-password">New Password</label>
+                <input
+                  id="auth-new-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); clearError(); }}
+                  placeholder="At least 8 characters"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+                <p className="password-hint">Minimum 8 characters</p>
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="auth-new-password-confirm">Confirm Password</label>
+                <input
+                  id="auth-new-password-confirm"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); clearError(); }}
+                  placeholder="Confirm your password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="auth-submit-btn"
+                disabled={submitting}
+              >
+                {submitting ? 'Updating...' : 'Update Password'}
+              </button>
+            </form>
           </>
         )}
       </div>
