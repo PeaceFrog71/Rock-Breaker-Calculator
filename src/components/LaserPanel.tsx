@@ -110,9 +110,15 @@ const formatModuleOption = (module: Module): string => {
     else bad.push(`Cluster: ${formatPct(module.clusterModifier)}`);
   }
 
-  // Build: ACTIVE/PASSIVE: Name    [good]  [bad]
+  // Build: ACTIVE/PASSIVE: Name (duration/uses)    [good]  [bad]
   const prefix = module.category === 'active' ? 'ACTIVE: ' : 'PASSIVE: ';
   let result = prefix + module.name;
+
+  // Add duration and uses for active modules
+  if (module.category === 'active' && module.duration && module.uses) {
+    result += ` (${module.duration}/${module.uses}x)`;
+  }
+
   if (good.length > 0 || bad.length > 0) {
     result += ':';
     if (good.length > 0) result += `  ${good.join(', ')}`;
