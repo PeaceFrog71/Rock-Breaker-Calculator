@@ -106,7 +106,19 @@
 
 .component-info-box.module-box.active-module {
   border-color: var(--accent-gold);
-  background: rgba(255, 165, 0, 0.15);
+  position: relative;
+}
+
+.component-info-box.module-box.active-module::after {
+  content: 'ACTIVE';
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.35rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .component-header {
