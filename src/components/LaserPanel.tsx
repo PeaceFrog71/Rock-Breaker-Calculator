@@ -6,7 +6,7 @@ import { formatModuleTooltip, formatPct } from '../utils/formatters';
 import { useMobileDetection } from '../hooks/useMobileDetection';
 import './LaserPanel.css';
 
-// Helper to get the best modifier display for modules without power modifier
+// Helper to get the best modifier display for modules (mobile/compact view)
 const getBestModifierDisplay = (module: Module): string => {
   if (module.powerModifier !== 1) {
     return ` (${formatPct(module.powerModifier)} power)`;
@@ -45,6 +45,79 @@ const getBestModifierDisplay = (module: Module): string => {
   }
 
   return '';
+};
+
+// Helper to format module stats for dropdown options (desktop - show all modifiers)
+const formatModuleOption = (module: Module): string => {
+  if (!module || module.id === 'none') return 'No Module Selected';
+
+  const good: string[] = [];
+  const bad: string[] = [];
+
+  // Power: higher is better
+  if (module.powerModifier > 1) good.push(`Pwr: ${formatPct(module.powerModifier)}`);
+  else if (module.powerModifier < 1) bad.push(`Pwr: ${formatPct(module.powerModifier)}`);
+
+  // Resistance: lower is better
+  if (module.resistModifier < 1) good.push(`Res: ${formatPct(module.resistModifier)}`);
+  else if (module.resistModifier > 1) bad.push(`Res: ${formatPct(module.resistModifier)}`);
+
+  // Instability: lower is better
+  if (module.instabilityModifier !== undefined && module.instabilityModifier !== 1) {
+    if (module.instabilityModifier < 1) good.push(`Inst: ${formatPct(module.instabilityModifier)}`);
+    else bad.push(`Inst: ${formatPct(module.instabilityModifier)}`);
+  }
+
+  // Charge Window: higher is better
+  if (module.chargeWindowModifier !== undefined && module.chargeWindowModifier !== 1) {
+    if (module.chargeWindowModifier > 1) good.push(`Win: ${formatPct(module.chargeWindowModifier)}`);
+    else bad.push(`Win: ${formatPct(module.chargeWindowModifier)}`);
+  }
+
+  // Charge Rate: higher is better
+  if (module.chargeRateModifier !== undefined && module.chargeRateModifier !== 1) {
+    if (module.chargeRateModifier > 1) good.push(`Rate: ${formatPct(module.chargeRateModifier)}`);
+    else bad.push(`Rate: ${formatPct(module.chargeRateModifier)}`);
+  }
+
+  // Overcharge Rate: lower is better
+  if (module.overchargeRateModifier !== undefined && module.overchargeRateModifier !== 1) {
+    if (module.overchargeRateModifier < 1) good.push(`OC: ${formatPct(module.overchargeRateModifier)}`);
+    else bad.push(`OC: ${formatPct(module.overchargeRateModifier)}`);
+  }
+
+  // Shatter Damage: lower is better
+  if (module.shatterDamageModifier !== undefined && module.shatterDamageModifier !== 1) {
+    if (module.shatterDamageModifier < 1) good.push(`Shtr: ${formatPct(module.shatterDamageModifier)}`);
+    else bad.push(`Shtr: ${formatPct(module.shatterDamageModifier)}`);
+  }
+
+  // Extraction Power: higher is better
+  if (module.extractionPowerModifier !== undefined && module.extractionPowerModifier !== 1) {
+    if (module.extractionPowerModifier > 1) good.push(`Ext: ${formatPct(module.extractionPowerModifier)}`);
+    else bad.push(`Ext: ${formatPct(module.extractionPowerModifier)}`);
+  }
+
+  // Inert Materials: lower is better
+  if (module.inertMaterialsModifier !== undefined && module.inertMaterialsModifier !== 1) {
+    if (module.inertMaterialsModifier < 1) good.push(`Inrt: ${formatPct(module.inertMaterialsModifier)}`);
+    else bad.push(`Inrt: ${formatPct(module.inertMaterialsModifier)}`);
+  }
+
+  // Cluster: higher is better
+  if (module.clusterModifier !== undefined && module.clusterModifier !== 1) {
+    if (module.clusterModifier > 1) good.push(`Clst: ${formatPct(module.clusterModifier)}`);
+    else bad.push(`Clst: ${formatPct(module.clusterModifier)}`);
+  }
+
+  // Build: Name    [good]  [bad]
+  let result = module.name;
+  if (good.length > 0 || bad.length > 0) {
+    result += ':';
+    if (good.length > 0) result += `  ${good.join(', ')}`;
+    if (bad.length > 0) result += `  ${bad.join(', ')}`;
+  }
+  return result;
 };
 
 // Helper to format laser head stats for dropdown options
@@ -262,8 +335,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
               >
                 {MODULES.map((module) => (
                   <option key={module.id} value={module.id} title={formatModuleTooltip(module)}>
-                    {module.name}
-                    {getBestModifierDisplay(module)}
+                    {isMobile ? `${module.name}${getBestModifierDisplay(module)}` : formatModuleOption(module)}
                   </option>
                 ))}
               </select>
