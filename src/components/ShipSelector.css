@@ -16,6 +16,9 @@
   position: relative;
   flex: 1;
   margin: 0;
+  /* Override panel h2 border - we use header border instead */
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .ship-selector h2 .select-label {
