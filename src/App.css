@@ -229,8 +229,55 @@ button, .btn-primary, .btn-secondary {
   justify-self: start;
   align-self: center;
   display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.header-kofi-link {
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.75rem;
+  padding: 0.3rem 0.75rem;
+  background: transparent;
+  color: var(--success);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 24px;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.header-kofi-link:hover {
+  background: rgba(0, 255, 136, 0.1);
+  border-color: var(--success);
+  box-shadow: 0 0 12px rgba(0, 255, 136, 0.3);
+}
+
+.header-kofi-link .kofi-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-left: -0.2rem;
+  margin-right: 0.15rem;
+}
+
+.header-kofi-link span {
+  text-align: right;
+}
+
+/* Hide header Ko-fi on mobile/tablet - use bottom button instead */
+@media (max-width: 800px), (pointer: coarse) {
+  .header-kofi-link {
+    display: none;
+  }
 }
 
 .content-wrapper {

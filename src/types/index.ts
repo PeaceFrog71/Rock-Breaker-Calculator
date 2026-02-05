@@ -91,6 +91,7 @@ export interface CalculationResult {
   // Instability calculation results
   totalInstabilityModifier?: number; // Combined instability modifier from equipment and gadgets
   adjustedInstability?: number; // Rock instability after applying all instability modifiers (equipment + gadgets)
+  multiShipInstabilityPenalty?: number; // Penalty multiplier for multi-ship mining (2^(shipCount-1): 1, 2, 4, 8)
 }
 
 // Mining Group types for multi-ship operations

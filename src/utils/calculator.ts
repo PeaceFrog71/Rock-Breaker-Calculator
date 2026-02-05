@@ -434,6 +434,10 @@ export function calculateGroupBreakability(
   // Calculate total laser power (sum from all active ships)
   let totalLaserPower = 0;
 
+  // Track how many ships are actually contributing power (lasers on)
+  // This is used for the multi-ship instability penalty
+  let shipsWithLasersOn = 0;
+
   // Collect all resistance modifiers from all active ships
   let allResistModifiers: number[] = [];
 
@@ -444,16 +448,23 @@ export function calculateGroupBreakability(
     const config = shipInstance.config;
 
     // Add power from this ship's lasers (only manned lasers for MOLE)
+    let shipPower = 0;
     config.lasers.forEach((laser) => {
       // For MOLE, only count manned lasers
       if (shipInstance.ship.id === 'mole') {
         if (laser.isManned !== false) {
-          totalLaserPower += calculateLaserPower(laser);
+          shipPower += calculateLaserPower(laser);
         }
       } else {
-        totalLaserPower += calculateLaserPower(laser);
+        shipPower += calculateLaserPower(laser);
       }
     });
+    totalLaserPower += shipPower;
+
+    // Count this ship if it's contributing power (at least one laser on)
+    if (shipPower > 0) {
+      shipsWithLasersOn++;
+    }
 
     // Calculate this ship's resistance modifier from lasers only
     let shipResistMod = 1;
@@ -530,8 +541,16 @@ export function calculateGroupBreakability(
 
   // Calculate total instability modifier
   const totalInstabilityModifier = equipmentInstabilityModifier * gadgetInstabilityModifier;
+
+  // Multi-ship instability penalty: base instability doubles for each additional ship WITH LASERS ON
+  // Only ships actually contributing power count toward the penalty
+  // 1 ship = ×1, 2 ships = ×2, 3 ships = ×4, 4 ships = ×8
+  const multiShipInstabilityPenalty = shipsWithLasersOn > 0
+    ? Math.pow(2, shipsWithLasersOn - 1)
+    : 1;
+
   const adjustedInstability = rock.instability !== undefined
-    ? rock.instability * totalInstabilityModifier
+    ? rock.instability * multiShipInstabilityPenalty * totalInstabilityModifier
     : undefined;
 
   // Calculate scan gadget modifier (for reverse calculation - gadgets marked "In Scan")
@@ -585,6 +604,7 @@ export function calculateGroupBreakability(
     // Instability results for multi-ship
     totalInstabilityModifier,
     adjustedInstability,
+    multiShipInstabilityPenalty,
   };
 
   // Add resistance context if in modified mode

@@ -102,6 +102,36 @@
 
 .component-info-box.module-box {
   border-color: var(--accent-purple);
+  position: relative;
+}
+
+.component-info-box.module-box:not(.active-module)::after {
+  content: 'PASSIVE';
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.35rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.component-info-box.module-box.active-module {
+  border-color: var(--accent-gold);
+  position: relative;
+}
+
+.component-info-box.module-box.active-module::after {
+  content: 'ACTIVE';
+  position: absolute;
+  bottom: 0.25rem;
+  right: 0.35rem;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .component-header {

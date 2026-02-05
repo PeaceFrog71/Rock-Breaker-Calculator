@@ -1709,10 +1709,12 @@ describe('Instability Calculations - Issue #11', () => {
 
       const result = calculateGroupBreakability(group, rock, gadgets);
 
-      // Multi-ship: 0.65 × 0.9 = 0.585
+      // Multi-ship equipment modifier: 0.65 × 0.9 = 0.585
       expect(result.totalInstabilityModifier).toBeCloseTo(0.585, 3);
-      // Adjusted = 50 × 0.585 = 29.25
-      expect(result.adjustedInstability).toBeCloseTo(29.25, 1);
+      // 2 ships: penalty = 2^1 = 2
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+      // Adjusted = 50 × 2 (penalty) × 0.585 (equipment) = 58.5
+      expect(result.adjustedInstability).toBeCloseTo(58.5, 1);
     });
 
     it('should only include active ships in instability calculation', () => {
@@ -1776,6 +1778,250 @@ describe('Instability Calculations - Issue #11', () => {
 
       // Equipment: 0.65, Gadget: 0.3, Total: 0.195
       expect(result.totalInstabilityModifier).toBeCloseTo(0.195, 3);
+    });
+  });
+
+  describe('Multi-ship instability penalty - Issue #187', () => {
+    it('should NOT apply penalty for single ship (×1)', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 0.65 instability
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: {
+          lasers: [{ laserHead: arborMH1, modules: [null] }],
+        },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 1 ship: penalty = 2^0 = 1
+      expect(result.multiShipInstabilityPenalty).toBe(1);
+      // Adjusted = 40 × 0.65 × 1 = 26
+      expect(result.adjustedInstability).toBeCloseTo(26, 1);
+    });
+
+    it('should apply ×2 penalty for 2 active ships', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!; // No instability modifier (1.0)
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 2 ships: penalty = 2^1 = 2
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+      // Equipment modifier = 1 × 1 = 1 (Helix has no instability modifier)
+      // Adjusted = 40 × 2 × 1 = 80
+      expect(result.adjustedInstability).toBeCloseTo(80, 1);
+    });
+
+    it('should apply ×4 penalty for 3 active ships', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
+
+      const createShip = (id: string): ShipInstance => ({
+        id,
+        ship: prospector,
+        name: `Ship ${id}`,
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      });
+
+      const group: MiningGroup = { ships: [createShip('1'), createShip('2'), createShip('3')] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 3 ships: penalty = 2^2 = 4
+      expect(result.multiShipInstabilityPenalty).toBe(4);
+      // Adjusted = 40 × 4 × 1 = 160
+      expect(result.adjustedInstability).toBeCloseTo(160, 1);
+    });
+
+    it('should apply ×8 penalty for 4 active ships', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
+
+      const createShip = (id: string): ShipInstance => ({
+        id,
+        ship: prospector,
+        name: `Ship ${id}`,
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      });
+
+      const group: MiningGroup = {
+        ships: [createShip('1'), createShip('2'), createShip('3'), createShip('4')],
+      };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 4 ships: penalty = 2^3 = 8
+      expect(result.multiShipInstabilityPenalty).toBe(8);
+      // Adjusted = 40 × 8 × 1 = 320
+      expect(result.adjustedInstability).toBeCloseTo(320, 1);
+    });
+
+    it('should only count active ships for penalty calculation', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: false, // Inactive - should not count
+      };
+
+      const ship3: ShipInstance = {
+        id: '3',
+        ship: prospector,
+        name: 'Ship 3',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2, ship3] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // Only 2 active ships with lasers: penalty = 2^1 = 2 (not 4)
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+      expect(result.adjustedInstability).toBeCloseTo(80, 1);
+    });
+
+    it('should only count ships with lasers ON for penalty (not just active)', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
+
+      // Ship 1: active with laser
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      // Ship 2: active but NO laser selected (laser off)
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: { lasers: [{ laserHead: null, modules: [null] }] }, // No laser!
+        isActive: true,
+      };
+
+      // Ship 3: active with laser
+      const ship3: ShipInstance = {
+        id: '3',
+        ship: prospector,
+        name: 'Ship 3',
+        config: { lasers: [{ laserHead: helixI, modules: [null, null] }] },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2, ship3] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 3 active ships, but only 2 have lasers on
+      // Penalty = 2^1 = 2 (not 4)
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+      // Equipment modifier = 1 × 1 = 1 (only 2 ships contribute)
+      // Adjusted = 40 × 2 × 1 = 80
+      expect(result.adjustedInstability).toBeCloseTo(80, 1);
+    });
+
+    it('should combine penalty with equipment and gadget modifiers', () => {
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // 0.65 instability
+      const boremax = GADGETS.find(g => g.id === 'boremax')!; // 0.3 instability
+
+      const ship1: ShipInstance = {
+        id: '1',
+        ship: prospector,
+        name: 'Ship 1',
+        config: { lasers: [{ laserHead: arborMH1, modules: [null] }] },
+        isActive: true,
+      };
+
+      const ship2: ShipInstance = {
+        id: '2',
+        ship: prospector,
+        name: 'Ship 2',
+        config: { lasers: [{ laserHead: arborMH1, modules: [null] }] },
+        isActive: true,
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2] };
+      const gadgets = [boremax, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // 2 ships: penalty = 2
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+      // Equipment modifier: 0.65 × 0.65 = 0.4225
+      // Gadget modifier: 0.3
+      // Total modifier: 0.4225 × 0.3 = 0.12675
+      expect(result.totalInstabilityModifier).toBeCloseTo(0.12675, 4);
+      // Adjusted = 40 × 2 × 0.12675 = 10.14
+      expect(result.adjustedInstability).toBeCloseTo(10.14, 1);
+    });
+
+    it('should return undefined instability penalty when no active ships', () => {
+      const group: MiningGroup = { ships: [] };
+      const gadgets = [null, null, null];
+      const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
+
+      const result = calculateGroupBreakability(group, rock, gadgets);
+
+      // No ships = no penalty returned
+      expect(result.multiShipInstabilityPenalty).toBeUndefined();
+      expect(result.adjustedInstability).toBeUndefined();
     });
   });
 });

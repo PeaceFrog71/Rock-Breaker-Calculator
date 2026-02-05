@@ -64,6 +64,10 @@ function App() {
     loadedState?.config || initializeDefaultLasersForShip(SHIPS[0])
   );
   const [currentConfigName, setCurrentConfigName] = useState<string | undefined>(undefined);
+  // Cache ship configs per ship type during session (for #189 - retain config when swapping ships)
+  const [shipConfigs, setShipConfigs] = useState<Record<string, MiningConfiguration>>({});
+  // Save dialog state (controlled from ShipSelector header for #190)
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
   // Load rock from active slot in localStorage (or default if not found)
   const [rock, setRock] = useState<Rock>(() => {
     try {
@@ -430,9 +434,22 @@ function App() {
   };
 
   const handleShipChange = (ship: Ship) => {
+    // Cache current config before switching (for #189 - retain config when swapping ships)
+    setShipConfigs(prev => ({
+      ...prev,
+      [selectedShip.id]: config
+    }));
+
     setSelectedShip(ship);
-    const newConfig = initializeDefaultLasersForShip(ship);
-    setConfig(newConfig);
+
+    // Restore cached config if exists, otherwise initialize defaults
+    const cachedConfig = shipConfigs[ship.id];
+    if (cachedConfig) {
+      setConfig(cachedConfig);
+    } else {
+      setConfig(initializeDefaultLasersForShip(ship));
+    }
+
     setCurrentConfigName(undefined); // Clear config name when switching ships
   };
 
@@ -444,6 +461,17 @@ function App() {
     setSelectedShip(ship);
     setConfig(loadedConfig);
     setCurrentConfigName(name);
+  };
+
+  // Clear config to defaults (for #190 - Clear button in ShipSelector header)
+  const handleClearConfig = () => {
+    setConfig(initializeDefaultLasersForShip(selectedShip));
+    setCurrentConfigName(undefined);
+  };
+
+  // Open save dialog (for #190 - Save button in ShipSelector header)
+  const handleOpenSaveDialog = () => {
+    setShowSaveDialog(true);
   };
 
   const handleToggleShip = (shipId: string) => {
@@ -593,6 +621,16 @@ function App() {
           {isAuthConfigured && (
             <UserMenu onSignInClick={() => setShowAuthModal(true)} />
           )}
+          <a
+            href="https://ko-fi.com/peacefroggaming"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="header-kofi-link"
+            title="Support on Ko-fi"
+          >
+            <img src="/rieger-icon.png" alt="" className="kofi-icon" />
+            <span>Buy me a Rieger</span>
+          </a>
         </div>
       </header>
 
@@ -881,6 +919,9 @@ function App() {
                     currentConfigName={currentConfigName}
                     onLoad={handleLoadConfiguration}
                     onAfterLoad={() => setLibraryDrawerOpen(false)}
+                    showSaveDialog={showSaveDialog}
+                    onShowSaveDialogChange={setShowSaveDialog}
+                    hideSaveButton={true}
                   />
                 </MobileDrawer>
               )}
@@ -999,6 +1040,8 @@ function App() {
                     selectedShip={selectedShip}
                     onShipChange={handleShipChange}
                     configName={currentConfigName}
+                    onSave={handleOpenSaveDialog}
+                    onClear={handleClearConfig}
                   />
 
                   {/* Laser Setup - mobile: always visible, desktop: collapsible accordion */}
@@ -1042,6 +1085,9 @@ function App() {
                         currentConfig={config}
                         currentConfigName={currentConfigName}
                         onLoad={handleLoadConfiguration}
+                        showSaveDialog={showSaveDialog}
+                        onShowSaveDialogChange={setShowSaveDialog}
+                        hideSaveButton={true}
                       />
                     </CollapsiblePanel>
                   )}
