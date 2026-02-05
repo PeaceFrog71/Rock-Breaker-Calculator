@@ -104,6 +104,11 @@
   border-color: var(--accent-purple);
 }
 
+.component-info-box.module-box.active-module {
+  border-color: var(--accent-gold);
+  background: rgba(255, 165, 0, 0.15);
+}
+
 .component-header {
   display: flex;
   align-items: center;

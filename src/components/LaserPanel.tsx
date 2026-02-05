@@ -420,7 +420,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
             return (
               <div
                 key={idx}
-                className={`component-info-box module-box ${isMobile ? 'tappable' : ''}`}
+                className={`component-info-box module-box ${module.category === 'active' ? 'active-module' : ''} ${isMobile ? 'tappable' : ''}`}
                 onClick={() => isMobile && setIsEditing(!isEditing)}
               >
                 <div className="component-header">
