@@ -1,8 +1,19 @@
+/* Header wrapper: flex row with h2 and action buttons */
+.ship-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
 /* Desktop: header with label left, name centered */
 .ship-selector h2 {
   display: flex;
   align-items: center;
   position: relative;
+  flex: 1;
+  margin: 0;
 }
 
 .ship-selector h2 .select-label {
@@ -19,7 +30,43 @@
   letter-spacing: normal;
 }
 
+/* Action buttons (Save, Clear) */
+.ship-selector-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.ship-action-btn {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+
+.ship-action-btn:hover {
+  border-color: var(--accent-blue);
+  background: var(--bg-light);
+}
+
+.ship-action-btn.save-btn:hover {
+  border-color: var(--accent-cyan);
+}
+
+.ship-action-btn.clear-btn:hover {
+  border-color: var(--warning);
+}
+
 /* Mobile: config name on separate line, centered */
+.ship-selector.mobile .ship-selector-header {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .ship-selector.mobile h2 {
   flex-direction: column;
   align-items: center;
@@ -32,6 +79,10 @@
   display: block;
   font-size: 0.9rem;
   margin-top: 0.25rem;
+}
+
+.ship-selector.mobile .ship-selector-actions {
+  justify-content: center;
 }
 
 .ship-grid {

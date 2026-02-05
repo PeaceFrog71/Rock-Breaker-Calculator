@@ -8,9 +8,11 @@ interface ShipSelectorProps {
   selectedShip: Ship;
   onShipChange: (ship: Ship) => void;
   configName?: string;
+  onSave?: () => void;
+  onClear?: () => void;
 }
 
-export default function ShipSelector({ selectedShip, onShipChange, configName }: ShipSelectorProps) {
+export default function ShipSelector({ selectedShip, onShipChange, configName, onSave, onClear }: ShipSelectorProps) {
   const isMobile = useMobileDetection();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -37,10 +39,26 @@ export default function ShipSelector({ selectedShip, onShipChange, configName }:
 
   return (
     <div className={`ship-selector panel ${isMobile ? 'mobile' : ''} ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <h2>
-        <span className="select-label">Select Ship</span>
-        {configName && <span className="config-name">{configName}</span>}
-      </h2>
+      <div className="ship-selector-header">
+        <h2>
+          <span className="select-label">Select Ship</span>
+          {configName && <span className="config-name">{configName}</span>}
+        </h2>
+        {(onSave || onClear) && (
+          <div className="ship-selector-actions">
+            {onSave && (
+              <button className="ship-action-btn save-btn" onClick={onSave} title="Save configuration">
+                💾
+              </button>
+            )}
+            {onClear && (
+              <button className="ship-action-btn clear-btn" onClick={onClear} title="Clear to defaults">
+                🗑️
+              </button>
+            )}
+          </div>
+        )}
+      </div>
       <div className="ship-grid">
         {shipsToShow.map((ship) => (
           <button
