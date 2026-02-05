@@ -40,17 +40,21 @@ CREATE POLICY "Users can delete own configs"
   USING (auth.uid() = user_id);
 
 -- Auto-update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+-- SET search_path = public prevents SQL injection via mutable search_path
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER saved_configs_updated_at
   BEFORE UPDATE ON saved_configs
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 -- =============================================================================
