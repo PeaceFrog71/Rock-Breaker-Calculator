@@ -1,8 +1,24 @@
+/* Header wrapper: flex row with h2 and action buttons */
+.ship-selector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
 /* Desktop: header with label left, name centered */
 .ship-selector h2 {
   display: flex;
   align-items: center;
   position: relative;
+  flex: 1;
+  margin: 0;
+  /* Override panel h2 border - we use header border instead */
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .ship-selector h2 .select-label {
@@ -19,7 +35,65 @@
   letter-spacing: normal;
 }
 
+/* Action buttons (Save, Clear) */
+.ship-selector-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.save-ship-button {
+  background: var(--bg-secondary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 2.5rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.save-ship-button:hover,
+.save-ship-button:active {
+  background: var(--accent-gold);
+  color: var(--bg-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
+}
+
+.clear-ship-button {
+  background: var(--bg-secondary);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 2.5rem;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.clear-ship-button:hover,
+.clear-ship-button:active {
+  background: var(--danger);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
+}
+
 /* Mobile: config name on separate line, centered */
+.ship-selector.mobile .ship-selector-header {
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .ship-selector.mobile h2 {
   flex-direction: column;
   align-items: center;
@@ -32,6 +106,10 @@
   display: block;
   font-size: 0.9rem;
   margin-top: 0.25rem;
+}
+
+.ship-selector.mobile .ship-selector-actions {
+  justify-content: center;
 }
 
 .ship-grid {
@@ -188,5 +266,51 @@
 
   .ship-selector.mobile .ship-lasers {
     font-size: 1rem;
+  }
+}
+
+/* Mobile: Convert Save Ship / Clear buttons to icon-only */
+@media (pointer: coarse) {
+  .save-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .save-ship-button::after {
+    content: '💾';
+    font-size: 1.3rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .clear-ship-button::after {
+    content: '×';
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--danger);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-ship-button:hover::after,
+  .clear-ship-button:active::after {
+    color: white;
   }
 }

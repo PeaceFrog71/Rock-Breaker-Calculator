@@ -23,6 +23,11 @@ interface ConfigManagerProps {
   onAddToGroup?: (shipInstance: ShipInstance) => void;
   // Called after a successful load (for closing drawers, etc.)
   onAfterLoad?: () => void;
+  // External control for save dialog (for Save button in ShipSelector header)
+  showSaveDialog?: boolean;
+  onShowSaveDialogChange?: (show: boolean) => void;
+  // Hide the Save button (when moved to ShipSelector header)
+  hideSaveButton?: boolean;
 }
 
 export default function ConfigManager({
@@ -32,12 +37,24 @@ export default function ConfigManager({
   onLoad,
   onAddToGroup,
   onAfterLoad,
+  showSaveDialog: externalShowDialog,
+  onShowSaveDialogChange,
+  hideSaveButton,
 }: ConfigManagerProps) {
   const isGroupMode = !!onAddToGroup;
   const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
     getSavedShipConfigs()
   );
-  const [showDialog, setShowDialog] = useState(false);
+  // Use external dialog state if provided, otherwise use internal state
+  const [internalShowDialog, setInternalShowDialog] = useState(false);
+  const showDialog = externalShowDialog ?? internalShowDialog;
+  const setShowDialog = (show: boolean) => {
+    if (onShowSaveDialogChange) {
+      onShowSaveDialogChange(show);
+    } else {
+      setInternalShowDialog(show);
+    }
+  };
   const [configName, setConfigName] = useState('');
 
   const handleSave = () => {
@@ -121,8 +138,8 @@ export default function ConfigManager({
     <div className="config-manager panel">
       <h2>Ship Library</h2>
 
-      {/* Only show save/import actions in single ship mode */}
-      {!isGroupMode && currentShip && currentConfig && (
+      {/* Save button - only when not hidden (legacy location) */}
+      {!isGroupMode && currentShip && currentConfig && !hideSaveButton && (
         <div className="config-actions">
           <button className="btn-primary btn-icon-text" onClick={() => {
             setConfigName(currentConfigName || '');
@@ -131,16 +148,6 @@ export default function ConfigManager({
             <span className="btn-icon">💾</span>
             <span className="btn-label">Save Current</span>
           </button>
-          <label className="btn-secondary btn-icon-text">
-            <span className="btn-icon">📥</span>
-            <span className="btn-label">Import</span>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
-          </label>
         </div>
       )}
 
@@ -228,6 +235,22 @@ export default function ConfigManager({
           ))
         )}
       </div>
+
+      {/* Import button at the bottom */}
+      {!isGroupMode && (
+        <div className="import-action">
+          <label className="btn-secondary btn-icon-text">
+            <span className="btn-icon">📥</span>
+            <span className="btn-label">Import</span>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }
