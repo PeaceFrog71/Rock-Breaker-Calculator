@@ -4,7 +4,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
 }
 
 /* Desktop: header with label left, name centered */
@@ -37,28 +39,50 @@
   flex-shrink: 0;
 }
 
-.ship-action-btn {
-  background: var(--bg-dark);
-  border: 1px solid var(--border);
+.save-ship-button {
+  background: var(--bg-secondary);
+  color: var(--accent-gold);
+  border: 1px solid var(--accent-gold);
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  font-size: 1rem;
   transition: all 0.2s ease;
-  color: var(--text-primary);
+  height: 2.5rem;
+  line-height: 1.2;
+  text-align: center;
 }
 
-.ship-action-btn:hover {
-  border-color: var(--accent-blue);
-  background: var(--bg-light);
+.save-ship-button:hover,
+.save-ship-button:active {
+  background: var(--accent-gold);
+  color: var(--bg-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 165, 0, 0.4);
 }
 
-.ship-action-btn.save-btn:hover {
-  border-color: var(--accent-cyan);
+.clear-ship-button {
+  background: var(--bg-secondary);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 2.5rem;
+  line-height: 1.2;
+  text-align: center;
 }
 
-.ship-action-btn.clear-btn:hover {
-  border-color: var(--warning);
+.clear-ship-button:hover,
+.clear-ship-button:active {
+  background: var(--danger);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
 }
 
 /* Mobile: config name on separate line, centered */
@@ -239,5 +263,51 @@
 
   .ship-selector.mobile .ship-lasers {
     font-size: 1rem;
+  }
+}
+
+/* Mobile: Convert Save Ship / Clear buttons to icon-only */
+@media (pointer: coarse) {
+  .save-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .save-ship-button::after {
+    content: '💾';
+    font-size: 1.3rem;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-ship-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .clear-ship-button::after {
+    content: '×';
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--danger);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .clear-ship-button:hover::after,
+  .clear-ship-button:active::after {
+    color: white;
   }
 }

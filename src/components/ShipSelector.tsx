@@ -47,13 +47,13 @@ export default function ShipSelector({ selectedShip, onShipChange, configName, o
         {(onSave || onClear) && (
           <div className="ship-selector-actions">
             {onSave && (
-              <button className="ship-action-btn save-btn" onClick={onSave} title="Save configuration">
-                💾
+              <button className="save-ship-button" onClick={onSave} title="Save configuration">
+                Save Ship
               </button>
             )}
             {onClear && (
-              <button className="ship-action-btn clear-btn" onClick={onClear} title="Clear to defaults">
-                🗑️
+              <button className="clear-ship-button" onClick={onClear} title="Clear to defaults">
+                Clear
               </button>
             )}
           </div>
