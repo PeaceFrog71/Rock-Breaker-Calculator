@@ -110,8 +110,9 @@ const formatModuleOption = (module: Module): string => {
     else bad.push(`Cluster: ${formatPct(module.clusterModifier)}`);
   }
 
-  // Build: Name    [good]  [bad]
-  let result = module.name;
+  // Build: ACTIVE/PASSIVE: Name    [good]  [bad]
+  const prefix = module.category === 'active' ? 'ACTIVE: ' : 'PASSIVE: ';
+  let result = prefix + module.name;
   if (good.length > 0 || bad.length > 0) {
     result += ':';
     if (good.length > 0) result += `  ${good.join(', ')}`;
