@@ -621,6 +621,16 @@ function App() {
           {isAuthConfigured && (
             <UserMenu onSignInClick={() => setShowAuthModal(true)} />
           )}
+          <a
+            href="https://ko-fi.com/peacefroggaming"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="header-kofi-link"
+            title="Support on Ko-fi"
+          >
+            <img src="/rieger-icon.png" alt="" className="kofi-icon" />
+            <span>Buy me a Rieger</span>
+          </a>
         </div>
       </header>
 
