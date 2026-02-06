@@ -411,6 +411,14 @@ function App() {
     gadgetInScan[index] ? gadget : null
   );
 
+  // Check if "Gadgets in Scan" is checked but no gadgets are actually marked "In Scan"
+  // This means we're missing scan info and shouldn't show a break assessment
+  const needsGadgetScanInfo = !!(
+    rock.resistanceMode === 'modified' &&
+    rock.includeGadgetsInScan &&
+    !gadgetInScan.some((inScan, i) => inScan && gadgets[i] && gadgets[i]!.id !== 'none')
+  );
+
   // Calculate result based on mode (single ship or mining group)
   const result = useMiningGroup
     ? calculateGroupBreakability(miningGroup, rock, enabledGadgets, scanGadgets)
@@ -732,6 +740,7 @@ function App() {
                   gadgets={gadgets}
                   gadgetEnabled={gadgetEnabled}
                   onToggleGadget={handleToggleGadget}
+                  needsGadgetScanInfo={needsGadgetScanInfo}
                   miningGroup={useMiningGroup ? miningGroup : undefined}
                   selectedShip={!useMiningGroup ? selectedShip : undefined}
                   config={!useMiningGroup ? config : undefined}

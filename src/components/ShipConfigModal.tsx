@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { Ship, ShipInstance, MiningConfiguration, LaserConfiguration } from '../types';
 import { SHIPS } from '../types';
 import { initializeDefaultLasersForShip } from '../utils/shipDefaults';
@@ -75,7 +76,7 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
     onClose();
   };
 
-  return (
+  return createPortal(
     <div className="modal-overlay">
       <div className="modal-content">
         <div className="modal-header">
@@ -137,6 +138,7 @@ export default function ShipConfigModal({ isOpen, onClose, onSave, editingShip }
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
