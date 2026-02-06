@@ -119,11 +119,14 @@ export default function GadgetsPanel({
       })}
       {/* Guidance message when "Gadgets in Scan" is checked but none marked */}
       {includeGadgetsInScan &&
-       gadgets.some(g => g && g.id !== 'none') &&
        !gadgetInScan.some((inScan, i) => inScan && gadgets[i] && gadgets[i]!.id !== 'none') && (
         <div className="gadgets-scan-hint">
           <span className="hint-icon">💡</span>
-          <span>Mark which gadgets were on the rock when you scanned</span>
+          <span>
+            {gadgets.some(g => g && g.id !== 'none')
+              ? 'Mark which gadgets were on the rock when you scanned'
+              : 'Add gadgets that were on the rock when you scanned'}
+          </span>
         </div>
       )}
     </>

@@ -250,6 +250,7 @@ interface ResultDisplayProps {
   gadgets: (Gadget | null)[];
   gadgetEnabled?: boolean[];
   onToggleGadget?: (index: number) => void;
+  needsGadgetScanInfo?: boolean;
   miningGroup?: MiningGroup;
   onToggleShip?: (shipId: string) => void;
   onToggleLaser?: (shipId: string, laserIndex: number) => void;
@@ -277,6 +278,7 @@ export default function ResultDisplay({
   gadgets,
   gadgetEnabled,
   onToggleGadget,
+  needsGadgetScanInfo,
   miningGroup,
   selectedShip,
   config,
@@ -433,23 +435,30 @@ export default function ResultDisplay({
     result.totalLaserPower > 0 &&
     result.powerMarginPercent >= -15;
 
-  // Check if MOLE needs scan info before showing break result
-  // In Modified mode, MOLE needs to know which laser scanned to reverse-calculate base resistance
-  const moleNeedsScanInfo = (() => {
+  // Check if we need more scan info before showing break result
+  // In Modified mode, we need to know which ship/laser scanned to reverse-calculate base resistance
+  // Also, if "Gadgets in Scan" is checked, at least one gadget must be marked "In Scan"
+  const needsLaserScanInfo = (() => {
     if (rock.resistanceMode !== "modified") return false;
 
-    // Single ship mode - check if MOLE without scanning laser selected
+    // Single ship mode - MOLE needs scanning laser selected
     if (!miningGroup && selectedShip?.id === "mole") {
       return rock.scannedByLaserIndex === undefined;
     }
 
-    // Multi-ship mode - check if scanned by a MOLE without laser index
-    if (miningGroup && rock.scannedByShipId) {
+    // Multi-ship mode - need scanning ship selected
+    if (miningGroup) {
+      if (!rock.scannedByShipId) return true;
+
+      // Verify scanning ship still exists in the group (may have been removed)
       const scannedShip = miningGroup.ships.find(
         (s) => s.id === rock.scannedByShipId
       );
+      if (!scannedShip) return true;
+
+      // If scanning ship is a MOLE, also need the specific laser index
       if (
-        scannedShip?.ship.id === "mole" &&
+        scannedShip.ship.id === "mole" &&
         rock.scannedByLaserIndex === undefined
       ) {
         return true;
@@ -458,6 +467,9 @@ export default function ResultDisplay({
 
     return false;
   })();
+
+  // Combined: block break assessment when any scan info is missing
+  const needsScanInfo = needsLaserScanInfo || !!needsGadgetScanInfo;
 
   const powerPercentage =
     result.adjustedLPNeeded > 0
@@ -548,11 +560,15 @@ export default function ResultDisplay({
 
   return (
     <div className="result-display">
-      {moleNeedsScanInfo ? (
+      {needsScanInfo ? (
         <div className="status-indicator need-scan-info">
           <h2>NEED SCAN INFO</h2>
           <span className="need-scan-subtext">
-            Tap ship to select scanning laser
+            {needsLaserScanInfo && needsGadgetScanInfo
+              ? 'Select scanning ship/laser & mark gadgets "In Scan"'
+              : needsLaserScanInfo
+                ? "Select which ship/laser scanned this rock"
+                : 'Mark gadgets "In Scan" in Gadgets panel'}
           </span>
         </div>
       ) : (
@@ -2338,11 +2354,11 @@ export default function ResultDisplay({
         </div>
       </div>
 
-      {/* Scanning ship selection message - hide when MOLE needs specific laser selection */}
+      {/* Scanning ship selection message - hide when broader scan info is still needed */}
       {onSetScanningShip &&
         rock.resistanceMode === "modified" &&
         !rock.scannedByShipId &&
-        !moleNeedsScanInfo && (
+        !needsScanInfo && (
           <div className="scanning-ship-message">
             <span className="message-icon">📡</span>
             <span className="message-text">
@@ -2359,8 +2375,8 @@ export default function ResultDisplay({
           </div>
         )}
 
-      {/* Hide power bar when MOLE needs scan info */}
-      {!moleNeedsScanInfo && (
+      {/* Hide power bar whenever scan info is needed (MOLE, gadgets, or missing scanning ship) */}
+      {!needsScanInfo && (
         <div
           className="power-bar-container"
           onClick={(e) => e.stopPropagation()}>
