@@ -170,29 +170,31 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Rock save slots (3 slots for quick save/load, pre-filled with defaults)
+  // Rock save slots (4 slots for quick save/load, pre-filled with defaults)
+  const ROCK_SLOT_COUNT = 4;
   const [rockSlots, setRockSlots] = useState<Rock[]>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-rock-slots');
       if (saved) {
-        const parsed = JSON.parse(saved);
-        // Migrate old null slots to defaults
-        return parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
+        const parsed: (Rock | null)[] = JSON.parse(saved);
+        // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
+        const slots = parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
+        while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
+        return slots.slice(0, ROCK_SLOT_COUNT);
       }
-      return [{ ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }];
+      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
     } catch {
-      return [{ ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }, { ...DEFAULT_ROCK }];
+      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
     }
   });
 
-  // Track which rock slot is currently active (0, 1, or 2)
+  // Track which rock slot is currently active
   const [activeRockSlot, setActiveRockSlot] = useState<number>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-active-rock-slot');
       if (!saved) return 0;
       const parsed = parseInt(saved, 10);
-      // Validate slot is in valid range (0-2)
-      return parsed >= 0 && parsed <= 2 ? parsed : 0;
+      return parsed >= 0 && parsed < ROCK_SLOT_COUNT ? parsed : 0;
     } catch {
       return 0;
     }
@@ -839,7 +841,6 @@ function App() {
                     tabImage={groupLibraryLabelVertical}
                   >
                     <MiningGroupManager
-                      currentMiningGroup={miningGroup}
                       onLoad={setMiningGroup}
                       onAfterLoad={() => setGroupLibraryDrawerOpen(false)}
                     />
@@ -890,7 +891,6 @@ function App() {
                         onToggle={() => setOpenPanel(openPanel === 'groupLibrary' ? null : 'groupLibrary')}
                       >
                         <MiningGroupManager
-                          currentMiningGroup={miningGroup}
                           onLoad={setMiningGroup}
                         />
                       </CollapsiblePanel>

@@ -214,21 +214,24 @@ export default function ConfigManager({
                   className="btn-load"
                   title={isGroupMode ? "Add to Mining Group" : "Load"}
                 >
-                  ▲
+                  <span className="btn-text">{isGroupMode ? "Add" : "Load"}</span>
+                  <span className="btn-emoji">▲</span>
                 </button>
                 <button
                   onClick={() => handleExport(config)}
                   className="btn-export"
                   title="Export"
                 >
-                  📤
+                  <span className="btn-text">Export</span>
+                  <span className="btn-emoji">📤</span>
                 </button>
                 <button
                   onClick={() => handleDelete(config.id, config.name)}
                   className="btn-delete"
                   title="Delete"
                 >
-                  🗑️
+                  <span className="btn-text">Delete</span>
+                  <span className="btn-emoji">🗑️</span>
                 </button>
               </div>
             </div>
@@ -239,9 +242,9 @@ export default function ConfigManager({
       {/* Import button at the bottom */}
       {!isGroupMode && (
         <div className="import-action">
-          <label className="btn-secondary btn-icon-text">
-            <span className="btn-icon">📥</span>
-            <span className="btn-label">Import</span>
+          <label className="btn-import">
+            <span className="btn-text">Import</span>
+            <span className="btn-emoji">📥</span>
             <input
               type="file"
               accept=".json"

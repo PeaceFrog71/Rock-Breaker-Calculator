@@ -312,6 +312,15 @@ export default function ResultDisplay({
     null
   );
   const [showMobileModal, setShowMobileModal] = useState(false);
+  // Mobile hint: show "Tap ship for controls" until user taps a ship
+  const [showShipHint, setShowShipHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !window.localStorage.getItem("ship-hint-dismissed");
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const updateViewportState = () => {
@@ -537,6 +546,11 @@ export default function ResultDisplay({
     if (isMobile) {
       setMobileModalShip(shipInstance);
       setShowMobileModal(true);
+      // Dismiss the "tap ship" hint permanently
+      if (showShipHint) {
+        setShowShipHint(false);
+        localStorage.setItem("ship-hint-dismissed", "true");
+      }
     }
   };
 
@@ -586,6 +600,10 @@ export default function ResultDisplay({
         }`}
         onClick={onToggleBackground}
         title="Click to change background">
+        {/* Mobile hint: "Tap ship for controls" - inside rock-display for proper positioning */}
+        {showShipHint && (
+          <div className="ship-tap-hint">Tap ship for controls</div>
+        )}
         {/* Flying ship easter egg */}
         {showFlyingShip && (
           <div
@@ -2820,6 +2838,7 @@ export default function ResultDisplay({
         }}
         onSetScanningShip={onSetScanningShip}
       />
+
     </div>
   );
 }
