@@ -215,21 +215,24 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     onClick={() => handleEditShip(ship)}
                     title="Edit ship configuration"
                   >
-                    ✏️
+                    <span className="btn-text">Edit</span>
+                    <span className="btn-emoji">✏️</span>
                   </button>
                   <button
                     className="save-library-button"
                     onClick={() => handleSaveShipToLibrary(ship)}
                     title="Save to Ship Library"
                   >
-                    💾
+                    <span className="btn-text">Save</span>
+                    <span className="btn-emoji">💾</span>
                   </button>
                   <button
                     className="remove-button"
                     onClick={() => handleRemoveShip(ship.id)}
                     title="Remove ship from group"
                   >
-                    🗑️
+                    <span className="btn-text">Remove</span>
+                    <span className="btn-emoji">🗑️</span>
                   </button>
                 </div>
               </div>

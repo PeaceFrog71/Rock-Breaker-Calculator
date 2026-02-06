@@ -244,38 +244,41 @@
   padding: 0.4rem 0.8rem;
   border-radius: 4px;
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
+/* Desktop: show text labels, hide emoji */
+.ship-actions .btn-emoji {
+  display: none;
+}
+
 .edit-button {
-  font-size: 1.1rem;
-  padding: 0.3rem 0.6rem;
-  line-height: 1;
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
 }
 
 .edit-button:hover {
-  background: var(--accent);
-  color: var(--text-primary);
-  border-color: var(--accent);
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  border-color: var(--accent-cyan);
 }
 
 .save-library-button {
-  padding: 0.2rem 0.6rem;
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
 }
 
 .save-library-button:hover {
-  background: var(--accent-cyan);
-  color: var(--text-primary);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 8px rgba(0, 255, 204, 0.4);
+  background: var(--accent-gold);
+  color: var(--bg-dark);
+  border-color: var(--accent-gold);
 }
 
 .remove-button {
-  font-size: 1.2rem;
-  font-weight: 700;
-  padding: 0.2rem 0.6rem;
-  line-height: 1;
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .remove-button:hover {
@@ -311,8 +314,16 @@
   font-size: 0.9rem;
 }
 
-/* Mobile: Make Add Ship button a large plus sign */
+/* Mobile: show emoji icons, hide text labels */
 @media (pointer: coarse) {
+  .ship-actions .btn-text {
+    display: none;
+  }
+
+  .ship-actions .btn-emoji {
+    display: inline;
+  }
+
   .add-ship-button {
     width: 3rem;
     height: 3rem;
@@ -392,19 +403,16 @@
     padding: 0.75rem 1rem 0;
   }
 
-  .edit-button {
+  .edit-button .btn-emoji {
     font-size: 1.4rem;
-    padding: 0.5rem 0.8rem;
   }
 
-  .save-library-button {
+  .save-library-button .btn-emoji {
     font-size: 1.1rem;
-    padding: 0.4rem 0.8rem;
   }
 
-  .remove-button {
+  .remove-button .btn-emoji {
     font-size: 1.5rem;
-    padding: 0.4rem 0.8rem;
   }
 }
 
@@ -429,15 +437,15 @@
     justify-content: space-between;
   }
 
-  .edit-button {
+  .edit-button .btn-emoji {
     font-size: 1.65rem;
   }
 
-  .save-library-button {
+  .save-library-button .btn-emoji {
     font-size: 1.3rem;
   }
 
-  .remove-button {
+  .remove-button .btn-emoji {
     font-size: 1.4rem;
   }
 }
