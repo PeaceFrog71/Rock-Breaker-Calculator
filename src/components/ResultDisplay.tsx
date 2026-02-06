@@ -313,9 +313,14 @@ export default function ResultDisplay({
   );
   const [showMobileModal, setShowMobileModal] = useState(false);
   // Mobile hint: show "Tap ship for controls" until user taps a ship
-  const [showShipHint, setShowShipHint] = useState(
-    () => !localStorage.getItem("ship-hint-dismissed")
-  );
+  const [showShipHint, setShowShipHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !window.localStorage.getItem("ship-hint-dismissed");
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     const updateViewportState = () => {

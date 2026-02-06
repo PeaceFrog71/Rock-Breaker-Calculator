@@ -180,7 +180,7 @@ function App() {
         // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
         const slots = parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
         while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
-        return slots;
+        return slots.slice(0, ROCK_SLOT_COUNT);
       }
       return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
     } catch {
