@@ -2372,7 +2372,7 @@ export default function ResultDisplay({
           </div>
         )}
 
-      {/* Hide power bar when MOLE needs scan info */}
+      {/* Hide power bar whenever scan info is needed (MOLE, gadgets, or missing scanning ship) */}
       {!needsScanInfo && (
         <div
           className="power-bar-container"
