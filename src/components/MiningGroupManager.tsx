@@ -3,8 +3,6 @@ import type { MiningGroup } from '../types';
 import type { SavedMiningGroup } from '../utils/storage';
 import {
   getSavedMiningGroups,
-  saveMiningGroup,
-  updateMiningGroup,
   deleteMiningGroup,
   loadMiningGroup,
   exportMiningGroup,
@@ -14,64 +12,17 @@ import { calculateLaserPower } from '../utils/calculator';
 import './ConfigManager.css';
 
 interface MiningGroupManagerProps {
-  currentMiningGroup: MiningGroup;
   onLoad: (miningGroup: MiningGroup) => void;
   onAfterLoad?: () => void;
 }
 
 export default function MiningGroupManager({
-  currentMiningGroup,
   onLoad,
   onAfterLoad,
 }: MiningGroupManagerProps) {
   const [savedGroups, setSavedGroups] = useState<SavedMiningGroup[]>(
     getSavedMiningGroups()
   );
-  const [showDialog, setShowDialog] = useState(false);
-  const [groupName, setGroupName] = useState('');
-
-  const handleSave = () => {
-    if (!groupName.trim()) {
-      alert('Please enter a group name');
-      return;
-    }
-
-    if (currentMiningGroup.ships.length === 0) {
-      alert('Cannot save an empty mining group');
-      return;
-    }
-
-    const trimmedName = groupName.trim();
-    const existing = savedGroups.find(
-      (g) => g.name.toLowerCase() === trimmedName.toLowerCase()
-    );
-
-    // Update the group's name to match what's being saved
-    const groupToSave = { ...currentMiningGroup, name: trimmedName };
-
-    if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      const updated = updateMiningGroup(existing.id, trimmedName, groupToSave);
-      if (!updated) {
-        alert('Failed to update the mining group. It may have been removed. Saving as a new group instead.');
-        saveMiningGroup(trimmedName, groupToSave);
-      }
-    } else {
-      saveMiningGroup(trimmedName, groupToSave);
-    }
-
-    // Update the current group's name in parent state
-    onLoad(groupToSave);
-
-    setSavedGroups(getSavedMiningGroups());
-    setGroupName('');
-    setShowDialog(false);
-
-    // Close drawer after save (same callback as after load)
-    onAfterLoad?.();
-  };
 
   const handleLoad = (id: string) => {
     const group = loadMiningGroup(id);
@@ -114,21 +65,9 @@ export default function MiningGroupManager({
       <h2>Mining Group Library</h2>
 
       <div className="config-actions">
-        <button
-          className="btn-primary btn-icon-text"
-          onClick={() => {
-            setGroupName(currentMiningGroup.name || '');
-            setShowDialog(true);
-          }}
-          disabled={currentMiningGroup.ships.length === 0}
-          title={currentMiningGroup.ships.length === 0 ? 'Add ships to save' : 'Save current group to library'}
-        >
-          <span className="btn-icon">💾</span>
-          <span className="btn-label">Save Group</span>
-        </button>
-        <label className="btn-secondary btn-icon-text">
-          <span className="btn-icon">📥</span>
-          <span className="btn-label">Import</span>
+        <label className="btn-import">
+          <span className="btn-text">Import</span>
+          <span className="btn-emoji">📥</span>
           <input
             type="file"
             accept=".json"
@@ -137,28 +76,6 @@ export default function MiningGroupManager({
           />
         </label>
       </div>
-
-      {showDialog && (
-        <div className="save-dialog">
-          <h3>Save to Library</h3>
-          <input
-            type="text"
-            placeholder="Enter group name..."
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSave()}
-            autoFocus
-          />
-          <div className="dialog-actions">
-            <button onClick={handleSave} className="btn-primary">
-              Save
-            </button>
-            <button onClick={() => setShowDialog(false)} className="btn-secondary">
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
 
       <div className="configs-list">
         {savedGroups.length === 0 ? (
@@ -206,21 +123,24 @@ export default function MiningGroupManager({
                   className="btn-load"
                   title="Load"
                 >
-                  ▲
+                  <span className="btn-text">Load</span>
+                  <span className="btn-emoji">▲</span>
                 </button>
                 <button
                   onClick={() => handleExport(group)}
                   className="btn-export"
                   title="Export"
                 >
-                  📤
+                  <span className="btn-text">Export</span>
+                  <span className="btn-emoji">📤</span>
                 </button>
                 <button
                   onClick={() => handleDelete(group.id, group.name)}
                   className="btn-delete"
                   title="Delete"
                 >
-                  🗑️
+                  <span className="btn-text">Delete</span>
+                  <span className="btn-emoji">🗑️</span>
                 </button>
               </div>
             </div>

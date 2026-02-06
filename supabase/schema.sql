@@ -20,37 +20,42 @@ CREATE TABLE IF NOT EXISTS saved_configs (
 CREATE INDEX IF NOT EXISTS idx_saved_configs_user_id ON saved_configs(user_id);
 
 -- RLS: Users can only access their own configurations
+-- Using (SELECT auth.uid()) ensures single evaluation per statement, not per row
 ALTER TABLE saved_configs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can read own configs"
   ON saved_configs FOR SELECT
-  USING (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can insert own configs"
   ON saved_configs FOR INSERT
-  WITH CHECK (auth.uid() = user_id);
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can update own configs"
   ON saved_configs FOR UPDATE
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id)
+  WITH CHECK ((SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can delete own configs"
   ON saved_configs FOR DELETE
-  USING (auth.uid() = user_id);
+  USING ((SELECT auth.uid()) = user_id);
 
 -- Auto-update updated_at timestamp
-CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+-- SET search_path = public prevents SQL injection via mutable search_path
+CREATE OR REPLACE FUNCTION public.update_updated_at()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER saved_configs_updated_at
   BEFORE UPDATE ON saved_configs
-  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 -- =============================================================================
@@ -84,17 +89,17 @@ CREATE POLICY "Anyone can read rock submissions"
 CREATE POLICY "Authenticated users can submit rocks"
   ON rock_submissions FOR INSERT
   WITH CHECK (
-    auth.uid() IS NOT NULL
-    AND (user_id IS NULL OR user_id = auth.uid())
+    (SELECT auth.uid()) IS NOT NULL
+    AND (user_id IS NULL OR user_id = (SELECT auth.uid()))
   );
 
 -- Anonymous submissions (user_id IS NULL) are intentionally immutable —
 -- they cannot be updated or deleted since auth.uid() can never equal NULL.
 CREATE POLICY "Users can update own submissions"
   ON rock_submissions FOR UPDATE
-  USING (user_id IS NOT NULL AND auth.uid() = user_id)
-  WITH CHECK (user_id IS NOT NULL AND auth.uid() = user_id);
+  USING (user_id IS NOT NULL AND (SELECT auth.uid()) = user_id)
+  WITH CHECK (user_id IS NOT NULL AND (SELECT auth.uid()) = user_id);
 
 CREATE POLICY "Users can delete own submissions"
   ON rock_submissions FOR DELETE
-  USING (user_id IS NOT NULL AND auth.uid() = user_id);
+  USING (user_id IS NOT NULL AND (SELECT auth.uid()) = user_id);

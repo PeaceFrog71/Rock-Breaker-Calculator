@@ -787,14 +787,9 @@
   }
 }
 
-/* Tablet - smaller Save Group/Import buttons in Group Library */
+/* Tablet - Import button in Group Library */
 @media (pointer: coarse) and (min-width: 768px) {
-  .mining-group-manager .config-actions .btn-primary,
-  .mining-group-manager .config-actions .btn-secondary {
-    font-size: 0.95rem;
-  }
-
-  .mining-group-manager .config-actions .btn-label {
+  .mining-group-manager .config-actions .btn-import {
     font-size: 0.95rem;
   }
 
