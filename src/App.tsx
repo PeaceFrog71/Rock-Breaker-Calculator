@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
 import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
-import { SHIPS, GADGETS } from "./types";
+import { SHIPS } from "./types";
 import {
   calculateBreakability,
   calculateGroupBreakability,
@@ -10,10 +10,6 @@ import {
   initializeDefaultLasersForShip,
 } from "./utils/shipDefaults";
 import { toggleModuleActive } from "./utils/moduleHelpers";
-import {
-  formatGadgetTooltip,
-  getGadgetEffects,
-} from "./utils/formatters";
 import {
   saveCurrentConfiguration,
   loadCurrentConfiguration,
@@ -28,7 +24,8 @@ import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
 import AuthModal from "./components/AuthModal";
 import UserMenu from "./components/UserMenu";
-import ResistanceModeSelector from "./components/ResistanceModeSelector";
+import RockPropertiesPanel from "./components/RockPropertiesPanel";
+import GadgetsPanel from "./components/GadgetsPanel";
 import MobileDrawer from "./components/MobileDrawer";
 import CollapsiblePanel from "./components/CollapsiblePanel";
 import { useMobileDetection } from "./hooks/useMobileDetection";
@@ -621,16 +618,18 @@ function App() {
           {isAuthConfigured && (
             <UserMenu onSignInClick={() => setShowAuthModal(true)} />
           )}
-          <a
-            href="https://ko-fi.com/peacefroggaming"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="header-kofi-link"
-            title="Support on Ko-fi"
-          >
-            <img src="/rieger-icon.png" alt="" className="kofi-icon" />
-            <span>Buy me a Rieger</span>
-          </a>
+          {!isMobile && (
+            <a
+              href="https://ko-fi.com/peacefroggaming"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="header-kofi-link"
+              title="Support on Ko-fi"
+            >
+              <img src="/rieger-icon.png" alt="" className="kofi-icon" />
+              <span>Buy me a Rieger</span>
+            </a>
+          )}
         </div>
       </header>
 
@@ -641,261 +640,132 @@ function App() {
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className={`overview-tab ${isMobile ? 'mobile-single-column' : ''}`}>
-              {/* Rock Properties Content - shared between desktop sidebar and mobile drawer */}
-              {(() => {
-                const rockPropertiesContent = (
-                  <>
-                    <div className="compact-form-group">
-                      <label>Name</label>
-                      <input
-                        type="text"
-                        value={rock.name || ''}
-                        onChange={(e) => setRock({ ...rock, name: e.target.value })}
-                        placeholder="Rock name"
-                      />
-                    </div>
-                    <div className="compact-form-group">
-                      <label>Mass</label>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        value={rock.mass === 0 ? '' : rock.mass}
-                        onChange={(e) => setRock({ ...rock, mass: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <ResistanceModeSelector
-                      value={rock.resistance}
-                      mode={rock.resistanceMode || 'base'}
-                      includeGadgets={rock.includeGadgetsInScan || false}
-                      showHint={showResistanceHint}
-                      onChange={handleResistanceChange}
-                      onModeToggle={handleResistanceModeToggle}
-                      onGadgetToggle={handleGadgetInclusionToggle}
+              {/* Mobile Drawers - Rock and Gadgets on Overview tab */}
+              {isMobile && (
+                <>
+                  <MobileDrawer
+                    isOpen={rockDrawerOpen}
+                    onClose={() => setRockDrawerOpen(false)}
+                    onOpen={() => { setGadgetDrawerOpen(false); setRockDrawerOpen(true); }}
+                    side="left"
+                    title="Rock Properties"
+                    tabLabel="Rock"
+                    tabImage={rockLabelVertical}
+                  >
+                    <RockPropertiesPanel
+                      rock={rock}
+                      rockSlots={rockSlots}
+                      activeRockSlot={activeRockSlot}
+                      isRockAtDefaults={isRockAtDefaults}
+                      showResistanceHint={showResistanceHint}
+                      onRockChange={setRock}
+                      onResistanceChange={handleResistanceChange}
+                      onResistanceModeToggle={handleResistanceModeToggle}
+                      onGadgetInclusionToggle={handleGadgetInclusionToggle}
+                      onRockResetClear={handleRockResetClear}
+                      onRockSlotSwitch={handleRockSlotSwitch}
                     />
-                    <div className="compact-form-group">
-                      <label>Instability</label>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        value={!rock.instability ? '' : rock.instability}
-                        onChange={(e) => setRock({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-                        min="0"
-                        step="0.1"
-                      />
-                    </div>
-                    <button
-                      className="clear-rock-button"
-                      onClick={handleRockResetClear}
-                      aria-label={isRockAtDefaults ? 'Clear all rock values' : 'Reset rock values to defaults'}
-                    >
-                      {isRockAtDefaults ? 'Clear' : 'Reset'}
-                    </button>
-                    <div className="rock-slots">
-                      {rockSlots.map((slot, index) => (
-                        <button
-                          key={index}
-                          className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
-                          onClick={() => handleRockSlotSwitch(index)}
-                          title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
-                          aria-label={`Rock slot ${index + 1}`}
-                          aria-pressed={index === activeRockSlot}
-                        >
-                          {index + 1}
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                );
+                  </MobileDrawer>
+                  <MobileDrawer
+                    isOpen={gadgetDrawerOpen}
+                    onClose={() => setGadgetDrawerOpen(false)}
+                    onOpen={() => { setRockDrawerOpen(false); setGadgetDrawerOpen(true); }}
+                    side="right"
+                    title="Gadgets"
+                    tabLabel="Gadgets"
+                    tabImage={gadgetLabelVertical}
+                  >
+                    <GadgetsPanel
+                      gadgets={gadgets}
+                      gadgetCount={gadgetCount}
+                      gadgetEnabled={gadgetEnabled}
+                      gadgetInScan={gadgetInScan}
+                      includeGadgetsInScan={rock.includeGadgetsInScan || false}
+                      onGadgetCountChange={setGadgetCount}
+                      onGadgetsChange={setGadgets}
+                      onGadgetInScanChange={setGadgetInScan}
+                      onToggleGadget={handleToggleGadget}
+                      onToggleGadgetInScan={handleToggleGadgetInScan}
+                    />
+                  </MobileDrawer>
+                </>
+              )}
 
-                const gadgetsContent = (
-                  <>
-                    <div className="gadget-header-compact">
-                      <h2>Gadgets</h2>
-                      <div className="gadget-count-stepper">
-                        <button
-                          className="stepper-btn"
-                          onClick={() => setGadgetCount(Math.max(0, gadgetCount - 1))}
-                          disabled={gadgetCount <= 0}
-                        >
-                          ▼
-                        </button>
-                        <span className="stepper-value">{gadgetCount}</span>
-                        <button
-                          className="stepper-btn"
-                          onClick={() => setGadgetCount(Math.min(10, gadgetCount + 1))}
-                          disabled={gadgetCount >= 10}
-                        >
-                          ▲
-                        </button>
-                      </div>
-                    </div>
-                    {Array.from({ length: gadgetCount }).map((_, index) => {
-                      const gadget = gadgets[index];
-                      const isEnabled = gadgetEnabled[index] !== false;
-                      const isInScan = gadgetInScan[index] === true;
-                      const effects = getGadgetEffects(gadget);
+              {/* Desktop Left Sidebar - Rock Parameters */}
+              {!isMobile && (
+                <div className="overview-sidebar overview-left">
+                  <div className="sidebar-panel">
+                    <h2>Rock Properties</h2>
+                    <RockPropertiesPanel
+                      rock={rock}
+                      rockSlots={rockSlots}
+                      activeRockSlot={activeRockSlot}
+                      isRockAtDefaults={isRockAtDefaults}
+                      showResistanceHint={showResistanceHint}
+                      onRockChange={setRock}
+                      onResistanceChange={handleResistanceChange}
+                      onResistanceModeToggle={handleResistanceModeToggle}
+                      onGadgetInclusionToggle={handleGadgetInclusionToggle}
+                      onRockResetClear={handleRockResetClear}
+                      onRockSlotSwitch={handleRockSlotSwitch}
+                    />
+                  </div>
+                </div>
+              )}
 
-                      return (
-                        <div key={index} className="compact-form-group gadget-select-wrapper">
-                          <div className="gadget-label-row">
-                            <label>Gadget {index + 1}</label>
-                            {rock.includeGadgetsInScan && gadget && gadget.id !== 'none' && (
-                              <label className="in-scan-checkbox">
-                                <input
-                                  type="checkbox"
-                                  checked={isInScan}
-                                  onChange={() => handleToggleGadgetInScan(index)}
-                                  title="Check if this gadget was attached to the rock when you scanned"
-                                />
-                                <span>In Scan</span>
-                              </label>
-                            )}
-                          </div>
-                          <select
-                            value={gadgets[index]?.id || 'none'}
-                            onChange={(e) => {
-                              const newGadget = GADGETS.find((g) => g.id === e.target.value) || null;
-                              const newGadgets = [...gadgets];
-                              newGadgets[index] = newGadget;
-                              setGadgets(newGadgets);
-                              // Clear inScan state when gadget is removed
-                              if (!newGadget || newGadget.id === 'none') {
-                                const newInScan = [...gadgetInScan];
-                                newInScan[index] = false;
-                                setGadgetInScan(newInScan);
-                              }
-                            }}
-                            title={gadgets[index] && gadgets[index].id !== 'none' ?
-                              formatGadgetTooltip(gadgets[index]) : 'Select a gadget'}
-                          >
-                            {GADGETS.map((gadget) => (
-                              <option
-                                key={gadget.id}
-                                value={gadget.id}
-                                title={formatGadgetTooltip(gadget)}
-                              >
-                                {gadget.name}
-                              </option>
-                            ))}
-                          </select>
+              {/* Mobile Ko-fi link - CSS controls visibility (shows only on mobile) */}
+              <a
+                href="https://ko-fi.com/peacefroggaming"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="kofi-mobile-inline"
+              >
+                <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
+                <span>Buy me a Rieger-C3<br />on KO-FI</span>
+              </a>
 
-                          {/* Gadget Info Box - directly below selector */}
-                          {gadget && gadget.id !== 'none' && effects.length > 0 && (
-                            <div
-                              className={`gadget-info-item ${!isEnabled ? 'disabled' : ''}`}
-                              onClick={() => handleToggleGadget(index)}
-                            >
-                              <div className="gadget-info-effects">
-                                {effects.map((effect, i) => (
-                                  <span key={i} className={`gadget-effect ${effect.isPositive ? 'positive' : 'negative'}`}>
-                                    {effect.label}: {effect.pct}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                    {/* Guidance message when "Gadgets in Scan" is checked but none marked */}
-                    {rock.includeGadgetsInScan &&
-                     gadgets.some(g => g && g.id !== 'none') &&
-                     !gadgetInScan.some((inScan, i) => inScan && gadgets[i] && gadgets[i]!.id !== 'none') && (
-                      <div className="gadgets-scan-hint">
-                        <span className="hint-icon">💡</span>
-                        <span>Mark which gadgets were on the rock when you scanned</span>
-                      </div>
-                    )}
-                  </>
-                );
+              {/* Center - Mining Graphic */}
+              <div className="overview-center">
+                <ResultDisplay
+                  result={result}
+                  rock={rock}
+                  gadgets={gadgets}
+                  gadgetEnabled={gadgetEnabled}
+                  onToggleGadget={handleToggleGadget}
+                  miningGroup={useMiningGroup ? miningGroup : undefined}
+                  selectedShip={!useMiningGroup ? selectedShip : undefined}
+                  config={!useMiningGroup ? config : undefined}
+                  configName={!useMiningGroup ? currentConfigName : undefined}
+                  onToggleShip={useMiningGroup ? handleToggleShip : undefined}
+                  onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
+                  onSetScanningShip={rock.resistanceMode === 'modified' ? handleSetScanningShip : undefined}
+                  onSingleShipToggleLaser={!useMiningGroup && selectedShip.id === 'mole' ? handleSingleShipToggleLaser : undefined}
+                  onToggleModule={!useMiningGroup ? handleToggleModule : undefined}
+                  onGroupToggleModule={useMiningGroup ? handleGroupToggleModule : undefined}
+                  backgroundMode={backgroundMode}
+                  onToggleBackground={() => setBackgroundMode(prev => prev === 'starfield' ? 'landscape' : 'starfield')}
+                />
+              </div>
 
-                return (
-                  <>
-                    {/* Mobile Drawers - Rock and Gadgets on Overview tab */}
-                    {isMobile && (
-                      <>
-                        <MobileDrawer
-                          isOpen={rockDrawerOpen}
-                          onClose={() => setRockDrawerOpen(false)}
-                          onOpen={() => { setGadgetDrawerOpen(false); setRockDrawerOpen(true); }}
-                          side="left"
-                          title="Rock Properties"
-                          tabLabel="Rock"
-                          tabImage={rockLabelVertical}
-                        >
-                          {rockPropertiesContent}
-                        </MobileDrawer>
-                        <MobileDrawer
-                          isOpen={gadgetDrawerOpen}
-                          onClose={() => setGadgetDrawerOpen(false)}
-                          onOpen={() => { setRockDrawerOpen(false); setGadgetDrawerOpen(true); }}
-                          side="right"
-                          title="Gadgets"
-                          tabLabel="Gadgets"
-                          tabImage={gadgetLabelVertical}
-                        >
-                          {gadgetsContent}
-                        </MobileDrawer>
-                      </>
-                    )}
-
-                    {/* Desktop Left Sidebar - Rock Parameters */}
-                    {!isMobile && (
-                      <div className="overview-sidebar overview-left">
-                        <div className="sidebar-panel">
-                          <h2>Rock Properties</h2>
-                          {rockPropertiesContent}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mobile Ko-fi link - CSS controls visibility (shows only on mobile) */}
-                    <a
-                      href="https://ko-fi.com/peacefroggaming"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="kofi-mobile-inline"
-                    >
-                      <img src="/rieger-icon.png" alt="Rieger-C3 mining module icon" />
-                      <span>Buy me a Rieger-C3<br />on KO-FI</span>
-                    </a>
-
-                    {/* Center - Mining Graphic */}
-                    <div className="overview-center">
-                      <ResultDisplay
-                        result={result}
-                        rock={rock}
-                        gadgets={gadgets}
-                        gadgetEnabled={gadgetEnabled}
-                        onToggleGadget={handleToggleGadget}
-                        miningGroup={useMiningGroup ? miningGroup : undefined}
-                        selectedShip={!useMiningGroup ? selectedShip : undefined}
-                        config={!useMiningGroup ? config : undefined}
-                        configName={!useMiningGroup ? currentConfigName : undefined}
-                        onToggleShip={useMiningGroup ? handleToggleShip : undefined}
-                        onToggleLaser={useMiningGroup ? handleToggleLaser : undefined}
-                        onSetScanningShip={rock.resistanceMode === 'modified' ? handleSetScanningShip : undefined}
-                        onSingleShipToggleLaser={!useMiningGroup && selectedShip.id === 'mole' ? handleSingleShipToggleLaser : undefined}
-                        onToggleModule={!useMiningGroup ? handleToggleModule : undefined}
-                        onGroupToggleModule={useMiningGroup ? handleGroupToggleModule : undefined}
-                        backgroundMode={backgroundMode}
-                        onToggleBackground={() => setBackgroundMode(prev => prev === 'starfield' ? 'landscape' : 'starfield')}
-                      />
-                    </div>
-
-                    {/* Desktop Right Sidebar - Gadgets */}
-                    {!isMobile && (
-                      <div className="overview-sidebar overview-right">
-                        <div className="sidebar-panel">
-                          {gadgetsContent}
-                        </div>
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
+              {/* Desktop Right Sidebar - Gadgets */}
+              {!isMobile && (
+                <div className="overview-sidebar overview-right">
+                  <div className="sidebar-panel">
+                    <GadgetsPanel
+                      gadgets={gadgets}
+                      gadgetCount={gadgetCount}
+                      gadgetEnabled={gadgetEnabled}
+                      gadgetInScan={gadgetInScan}
+                      includeGadgetsInScan={rock.includeGadgetsInScan || false}
+                      onGadgetCountChange={setGadgetCount}
+                      onGadgetsChange={setGadgets}
+                      onGadgetInScanChange={setGadgetInScan}
+                      onToggleGadget={handleToggleGadget}
+                      onToggleGadgetInScan={handleToggleGadgetInScan}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
