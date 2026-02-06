@@ -450,12 +450,15 @@ export default function ResultDisplay({
     if (miningGroup) {
       if (!rock.scannedByShipId) return true;
 
-      // If scanning ship is a MOLE, also need the specific laser index
+      // Verify scanning ship still exists in the group (may have been removed)
       const scannedShip = miningGroup.ships.find(
         (s) => s.id === rock.scannedByShipId
       );
+      if (!scannedShip) return true;
+
+      // If scanning ship is a MOLE, also need the specific laser index
       if (
-        scannedShip?.ship.id === "mole" &&
+        scannedShip.ship.id === "mole" &&
         rock.scannedByLaserIndex === undefined
       ) {
         return true;
@@ -2351,7 +2354,7 @@ export default function ResultDisplay({
         </div>
       </div>
 
-      {/* Scanning ship selection message - hide when MOLE needs specific laser selection */}
+      {/* Scanning ship selection message - hide when broader scan info is still needed */}
       {onSetScanningShip &&
         rock.resistanceMode === "modified" &&
         !rock.scannedByShipId &&
