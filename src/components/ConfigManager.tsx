@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { MiningConfiguration, Ship, ShipInstance } from '../types';
 import type { SavedShipConfig } from '../utils/storage';
 import {
@@ -23,9 +23,6 @@ interface ConfigManagerProps {
   onAddToGroup?: (shipInstance: ShipInstance) => void;
   // Called after a successful load (for closing drawers, etc.)
   onAfterLoad?: () => void;
-  // External control for save dialog (for Save button in ShipSelector header)
-  showSaveDialog?: boolean;
-  onShowSaveDialogChange?: (show: boolean) => void;
   // Hide the Save button (when moved to ShipSelector header)
   hideSaveButton?: boolean;
 }
@@ -37,29 +34,24 @@ export default function ConfigManager({
   onLoad,
   onAddToGroup,
   onAfterLoad,
-  showSaveDialog: externalShowDialog,
-  onShowSaveDialogChange,
   hideSaveButton,
 }: ConfigManagerProps) {
   const isGroupMode = !!onAddToGroup;
   const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
     getSavedShipConfigs()
   );
-  // Use external dialog state if provided, otherwise use internal state
-  const [internalShowDialog, setInternalShowDialog] = useState(false);
-  const showDialog = externalShowDialog ?? internalShowDialog;
-  const setShowDialog = (show: boolean) => {
-    if (onShowSaveDialogChange) {
-      onShowSaveDialogChange(show);
-    } else {
-      setInternalShowDialog(show);
-    }
-  };
+
+  // Refresh saved configs when config name changes (e.g., after external save via modal)
+  useEffect(() => {
+    setSavedConfigs(getSavedShipConfigs());
+  }, [currentConfigName]);
+  // Internal save dialog state (for legacy Save button when not hidden)
+  const [showDialog, setShowDialog] = useState(false);
   const [configName, setConfigName] = useState('');
 
   const handleSave = () => {
     if (!configName.trim()) {
-      alert('Please enter a configuration name');
+      alert('Please enter a ship name');
       return;
     }
 
@@ -153,13 +145,13 @@ export default function ConfigManager({
 
       {showDialog && (
         <div className="save-dialog">
-          <h3>Save Configuration</h3>
+          <h3>Save Ship</h3>
           <input
             type="text"
-            placeholder="Enter configuration name..."
+            placeholder="Enter ship name..."
             value={configName}
             onChange={(e) => setConfigName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSave()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
             autoFocus
           />
           <div className="dialog-actions">
