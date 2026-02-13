@@ -31,6 +31,8 @@ export default function SaveShipModal({
   useEffect(() => {
     if (isOpen) {
       setConfigName(currentConfigName || '');
+    } else {
+      setConfigName('');
     }
   }, [isOpen, currentConfigName]);
 
@@ -71,9 +73,15 @@ export default function SaveShipModal({
   };
 
   return (
-    <div className="save-ship-modal-overlay" onClick={onClose}>
+    <div
+      className="save-ship-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="save-ship-modal-title"
+      onClick={onClose}
+    >
       <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Save Ship</h3>
+        <h3 id="save-ship-modal-title">Save Ship</h3>
         <input
           type="text"
           placeholder="Enter ship name..."
