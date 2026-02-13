@@ -478,6 +478,11 @@ function App() {
   const handleClearConfig = () => {
     setConfig(initializeDefaultLasersForShip(selectedShip));
     setCurrentConfigName(undefined);
+    // Clear cache so switching ships and back doesn't restore old config
+    setShipConfigs(prev => ({
+      ...prev,
+      [selectedShip.id]: { config: initializeDefaultLasersForShip(selectedShip), name: undefined }
+    }));
   };
 
   // Open save dialog (for #190 - Save button in ShipSelector header)
