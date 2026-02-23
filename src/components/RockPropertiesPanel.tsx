@@ -13,6 +13,7 @@ interface RockPropertiesPanelProps {
   onGadgetInclusionToggle: () => void;
   onRockResetClear: () => void;
   onRockSlotSwitch: (index: number) => void;
+  onRegolithImport?: () => void;
 }
 
 export default function RockPropertiesPanel({
@@ -27,6 +28,7 @@ export default function RockPropertiesPanel({
   onGadgetInclusionToggle,
   onRockResetClear,
   onRockSlotSwitch,
+  onRegolithImport,
 }: RockPropertiesPanelProps) {
   return (
     <>
@@ -70,6 +72,15 @@ export default function RockPropertiesPanel({
           step="0.1"
         />
       </div>
+      {onRegolithImport && (
+        <button
+          className="regolith-import-button"
+          onClick={onRegolithImport}
+          aria-label="Import rock from Regolith"
+        >
+          Import from Regolith
+        </button>
+      )}
       <button
         className="clear-rock-button"
         onClick={onRockResetClear}

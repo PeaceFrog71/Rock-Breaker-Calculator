@@ -387,6 +387,26 @@ button, .btn-primary, .btn-secondary {
   box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
 }
 
+.regolith-import-button {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: transparent;
+  border: 1px solid var(--accent-cyan);
+  border-radius: 4px;
+  color: var(--accent-cyan);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.regolith-import-button:hover {
+  background: rgba(0, 217, 255, 0.1);
+  box-shadow: 0 0 8px rgba(0, 217, 255, 0.3);
+}
+
 .clear-rock-button {
   width: 100%;
   margin-top: 0.75rem;

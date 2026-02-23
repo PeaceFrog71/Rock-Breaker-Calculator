@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth, getDisplayName, getAvatarUrl, getAvatarId, getCustomAvatarUrl } from '../contexts/AuthContext';
+import { useAuth, getDisplayName, getAvatarUrl, getAvatarId, getCustomAvatarUrl, getRegolithApiKeySupabase } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { AVATAR_OPTIONS, getAvatarSrc } from '../utils/avatarMap';
+import { getRegolithApiKeyLocal, saveRegolithApiKeyLocal, clearRegolithApiKeyLocal } from '../utils/storage';
+import { validateApiKey } from '../utils/regolith';
 import './ProfileModal.css';
 
 interface ProfileModalProps {
@@ -52,6 +54,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [activeTab, setActiveTab] = useState<'profile' | 'integrations'>('profile');
+
+  // Profile tab state
   const [displayName, setDisplayName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [uploadedPreview, setUploadedPreview] = useState<string | null>(null);
@@ -63,6 +68,18 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // Integrations tab state
+  const [regolithKeyInput, setRegolithKeyInput] = useState('');
+  const [regolithStorage, setRegolithStorage] = useState<'local' | 'account'>('local');
+  const [regolithSaving, setRegolithSaving] = useState(false);
+  const [regolithError, setRegolithError] = useState('');
+  const [regolithSuccess, setRegolithSuccess] = useState('');
+
+  const localKey = getRegolithApiKeyLocal();
+  const accountKey = user ? getRegolithApiKeySupabase(user) : null;
+  const isRegolithConnected = !!(localKey || accountKey);
+  const regolithStorageLabel = accountKey ? 'BreakIt account' : localKey ? 'This browser' : null;
 
   // Populate fields when modal opens
   useEffect(() => {
@@ -76,6 +93,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
       setConfirmPassword('');
       setError('');
       setSuccess('');
+      setRegolithKeyInput('');
+      setRegolithError('');
+      setRegolithSuccess('');
     }
   }, [isOpen, user]);
 
@@ -226,12 +246,74 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     onClose();
   };
 
+  const handleRegolithSave = async () => {
+    if (!regolithKeyInput.trim()) {
+      setRegolithError('Please enter your Regolith API key.');
+      return;
+    }
+    setRegolithSaving(true);
+    setRegolithError('');
+    setRegolithSuccess('');
+
+    const valid = await validateApiKey(regolithKeyInput.trim());
+    if (!valid) {
+      setRegolithError('Invalid API key — could not connect to Regolith.');
+      setRegolithSaving(false);
+      return;
+    }
+
+    if (regolithStorage === 'account' && user) {
+      const { error: saveError } = await supabase.auth.updateUser({
+        data: { regolith_api_key: regolithKeyInput.trim() },
+      });
+      if (saveError) {
+        setRegolithError(saveError.message);
+        setRegolithSaving(false);
+        return;
+      }
+    } else {
+      saveRegolithApiKeyLocal(regolithKeyInput.trim());
+    }
+
+    setRegolithKeyInput('');
+    setRegolithSuccess(`Connected! Key saved to ${regolithStorage === 'account' ? 'your BreakIt account' : 'this browser'}.`);
+    setRegolithSaving(false);
+  };
+
+  const handleRegolithDisconnect = async () => {
+    clearRegolithApiKeyLocal();
+    if (user) {
+      await supabase.auth.updateUser({ data: { regolith_api_key: null } });
+    }
+    setRegolithSuccess('Regolith disconnected.');
+    setRegolithError('');
+  };
+
   return (
     <div className="profile-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="profile-modal-title">
       <div className="profile-modal">
         <button className="close-button" onClick={onClose}>×</button>
 
         <h2 id="profile-modal-title">Profile</h2>
+
+        {/* Tab Navigation */}
+        <div className="profile-tabs">
+          <button
+            className={`profile-tab${activeTab === 'profile' ? ' active' : ''}`}
+            onClick={() => setActiveTab('profile')}
+          >
+            Profile
+          </button>
+          <button
+            className={`profile-tab${activeTab === 'integrations' ? ' active' : ''}`}
+            onClick={() => setActiveTab('integrations')}
+          >
+            Integrations
+            {isRegolithConnected && <span className="profile-tab-badge" />}
+          </button>
+        </div>
+
+        {activeTab === 'profile' && (<>
 
         {/* Avatar Display */}
         <div className="profile-avatar-display">
@@ -384,21 +466,114 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
         {/* Footer */}
         <div className="profile-footer">
-          <button
-            className="profile-cancel-btn"
-            onClick={onClose}
-            disabled={saving}
-          >
-            Cancel
-          </button>
-          <button
-            className="profile-save-btn"
-            onClick={handleSave}
-            disabled={saving}
-          >
+          <button className="profile-cancel-btn" onClick={onClose} disabled={saving}>Cancel</button>
+          <button className="profile-save-btn" onClick={handleSave} disabled={saving}>
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>
+
+        </>)}
+
+        {activeTab === 'integrations' && (
+          <div className="profile-integrations">
+            <div className="integration-card">
+              <div className="integration-header">
+                <div className="integration-title">
+                  <span className="integration-name">Regolith</span>
+                  <span className={`integration-status ${isRegolithConnected ? 'connected' : 'disconnected'}`}>
+                    {isRegolithConnected ? `Connected · ${regolithStorageLabel}` : 'Not connected'}
+                  </span>
+                </div>
+                <p className="integration-desc">
+                  Import rock scans (mass, resistance, instability) directly from your active Regolith session.
+                  Get your API key from your <a href="https://regolith.rocks" target="_blank" rel="noopener noreferrer">Regolith dashboard</a>.
+                </p>
+              </div>
+
+              {!isRegolithConnected && (
+                <>
+                  <div className="profile-field">
+                    <label htmlFor="regolith-key">API Key</label>
+                    <input
+                      id="regolith-key"
+                      type="password"
+                      value={regolithKeyInput}
+                      onChange={(e) => { setRegolithKeyInput(e.target.value); setRegolithError(''); setRegolithSuccess(''); }}
+                      placeholder="Paste your Regolith API key"
+                      autoComplete="off"
+                      disabled={regolithSaving}
+                    />
+                  </div>
+
+                  <div className="regolith-storage-choice">
+                    <p className="regolith-storage-label">Where should we store your key?</p>
+                    <label className={`regolith-storage-option ${regolithStorage === 'local' ? 'selected' : ''}`}>
+                      <input
+                        type="radio"
+                        name="regolith-storage"
+                        value="local"
+                        checked={regolithStorage === 'local'}
+                        onChange={() => setRegolithStorage('local')}
+                        disabled={regolithSaving}
+                      />
+                      <div>
+                        <strong>This browser only</strong>
+                        <ul>
+                          <li>✅ Never leaves your browser — PeaceFrog cannot see it</li>
+                          <li>⚠️ Only works on this browser/device</li>
+                          <li>⚠️ May need re-entry after browser updates or cache clears</li>
+                        </ul>
+                      </div>
+                    </label>
+                    <label className={`regolith-storage-option ${regolithStorage === 'account' ? 'selected' : ''} ${!user ? 'disabled' : ''}`}>
+                      <input
+                        type="radio"
+                        name="regolith-storage"
+                        value="account"
+                        checked={regolithStorage === 'account'}
+                        onChange={() => setRegolithStorage('account')}
+                        disabled={regolithSaving || !user}
+                      />
+                      <div>
+                        <strong>My BreakIt account</strong>
+                        {!user && <span className="regolith-requires-login"> (sign in required)</span>}
+                        <ul>
+                          <li>✅ Follows you across devices</li>
+                          <li>✅ Tied to your BreakIt login</li>
+                          <li>⚠️ Stored in your account profile (not accessible to PeaceFrog)</li>
+                        </ul>
+                      </div>
+                    </label>
+                  </div>
+
+                  {regolithError && <p className="profile-error">{regolithError}</p>}
+                  {regolithSuccess && <p className="profile-success">{regolithSuccess}</p>}
+
+                  <button
+                    className="profile-save-btn"
+                    onClick={handleRegolithSave}
+                    disabled={regolithSaving || !regolithKeyInput.trim()}
+                  >
+                    {regolithSaving ? 'Connecting...' : 'Connect Regolith'}
+                  </button>
+                </>
+              )}
+
+              {isRegolithConnected && (
+                <>
+                  {regolithSuccess && <p className="profile-success">{regolithSuccess}</p>}
+                  <button
+                    className="profile-cancel-btn"
+                    onClick={handleRegolithDisconnect}
+                  >
+                    Disconnect
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

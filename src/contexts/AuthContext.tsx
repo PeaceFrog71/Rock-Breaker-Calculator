@@ -44,6 +44,15 @@ export function getAvatarUrl(user: User | null): string | null {
 }
 
 /**
+ * Get the Regolith API key from user metadata (Supabase storage path).
+ * Returns null if no key is stored in the account.
+ */
+export function getRegolithApiKeySupabase(user: User | null): string | null {
+  if (!user) return null;
+  return user.user_metadata?.regolith_api_key || null;
+}
+
+/**
  * Get the custom avatar ID from user metadata.
  * Returns the selected avatar ID (e.g., 'golem', 'prospector', 'mole', 'rieger', 'custom')
  * or null if no custom avatar is set.
