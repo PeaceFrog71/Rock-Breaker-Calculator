@@ -173,6 +173,19 @@ button, .btn-primary, .btn-secondary {
   right: 0;
 }
 
+.version-tag--clickable {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.version-tag--clickable:hover {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+
 .header-links {
   display: flex;
   align-items: center;

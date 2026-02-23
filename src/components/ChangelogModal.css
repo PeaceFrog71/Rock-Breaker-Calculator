@@ -1,0 +1,169 @@
+.changelog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.changelog-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 560px;
+  max-height: 80vh;
+  width: 90%;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
+              0 0 80px rgba(0, 217, 255, 0.1);
+}
+
+.changelog-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.changelog-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+.changelog-modal::-webkit-scrollbar-thumb {
+  background: var(--accent-cyan);
+  border-radius: 3px;
+  opacity: 0.6;
+}
+
+.changelog-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.25rem 0.5rem;
+  transition: color 0.2s;
+}
+
+.changelog-close:hover {
+  color: var(--accent-cyan);
+}
+
+.changelog-heading {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: var(--accent-cyan);
+  letter-spacing: 0.1em;
+  margin: 0 0 1.5rem 0;
+  text-transform: uppercase;
+}
+
+/* ── Entry ─────────────────────────────────────────────────────────────────── */
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.changelog-entry {
+  border-left: 2px solid rgba(0, 217, 255, 0.25);
+  padding-left: 1rem;
+}
+
+.changelog-version-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.6rem;
+}
+
+.changelog-version {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  color: var(--accent-cyan);
+  letter-spacing: 0.05em;
+}
+
+.changelog-date {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+/* ── Bullets ───────────────────────────────────────────────────────────────── */
+
+.changelog-bullets {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.changelog-bullet {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.changelog-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.1em 0.4em;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+.changelog-bullet--new .changelog-badge {
+  background: rgba(0, 217, 255, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(0, 217, 255, 0.4);
+}
+
+.changelog-bullet--improved .changelog-badge {
+  background: rgba(0, 255, 136, 0.1);
+  color: #00ff88;
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.changelog-bullet--fixed .changelog-badge {
+  background: rgba(255, 200, 50, 0.1);
+  color: #fbc02d;
+  border: 1px solid rgba(255, 200, 50, 0.3);
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+
+.changelog-footer {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 217, 255, 0.15);
+  text-align: center;
+}
+
+.changelog-footer a {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.changelog-footer a:hover {
+  color: var(--accent-cyan);
+}
