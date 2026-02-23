@@ -36,7 +36,13 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
   const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      // Reset state so stale results don't flash on next open
+      setRocks([]);
+      setErrorMsg('');
+      setSessionId(null);
+      return;
+    }
 
     const apiKey = (user ? getRegolithApiKeySupabase(user) : null) || getRegolithApiKeyLocal();
 
@@ -163,6 +169,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
                     key={`${entry.find.scoutingFindId}-${entry.rockIndex}`}
                     className="regolith-rock-item"
                     onClick={() => handleSelect(entry)}
+                    aria-label={`Import rock ${i + 1}: ${entry.rock.mass.toLocaleString()} kg${entry.rock.res != null ? `, ${(entry.rock.res * 100).toFixed(1)}% resistance` : ''}${entry.rock.rockType ? `, ${entry.rock.rockType}` : ''}`}
                   >
                     <span className="regolith-rock-number">#{i + 1}</span>
                     <div className="regolith-rock-info">

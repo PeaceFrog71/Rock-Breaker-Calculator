@@ -330,9 +330,9 @@ function App() {
   };
 
   // Handle rock import from Regolith: merge imported fields into current rock
+  // Note: modal closes itself via onClose — no need to close it here
   const handleRegolithImport = (imported: Partial<Rock>) => {
     setRock((prev) => ({ ...prev, ...imported }));
-    setShowRegolithModal(false);
   };
 
   // Handle rock slot switch: save current to old slot, load new slot

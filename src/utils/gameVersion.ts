@@ -47,6 +47,7 @@ export async function getGameVersion(): Promise<string> {
   if (SC_API_URL) {
     try {
       const response = await fetch(SC_API_URL);
+      if (!response.ok) throw new Error(`SC API error: ${response.status}`);
       const json = await response.json();
       const version = (json?.data?.current_live as string | null | undefined) ?? null;
 

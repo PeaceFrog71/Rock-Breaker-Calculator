@@ -79,11 +79,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const localKey = getRegolithApiKeyLocal();
   const accountKey = user ? getRegolithApiKeySupabase(user) : null;
   const isRegolithConnected = !!(localKey || accountKey);
-  const regolithStorageLabel = accountKey ? 'BreakIt account' : localKey ? 'This browser' : null;
+  const regolithStorageLabel = accountKey ? 'PeaceFrog Gaming account' : localKey ? 'This browser' : null;
 
-  // Populate fields when modal opens
+  // Populate fields when modal opens; reset tab to default on each open
   useEffect(() => {
     if (isOpen && user) {
+      setActiveTab('profile');
       setDisplayName(getDisplayName(user));
       setSelectedAvatar(getAvatarId(user));
       setUploadedPreview(getCustomAvatarUrl(user));
@@ -276,7 +277,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     }
 
     setRegolithKeyInput('');
-    setRegolithSuccess(`Connected! Key saved to ${regolithStorage === 'account' ? 'your BreakIt account' : 'this browser'}.`);
+    setRegolithSuccess(`Connected! Key saved to ${regolithStorage === 'account' ? 'your PeaceFrog Gaming account' : 'this browser'}.`);
     setRegolithSaving(false);
   };
 
@@ -285,7 +286,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     if (user) {
       await supabase.auth.updateUser({ data: { regolith_api_key: null } });
     }
-    setRegolithSuccess('Regolith disconnected.');
+    setRegolithSuccess('Disconnected from Regolith.');
     setRegolithError('');
   };
 
@@ -535,12 +536,12 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         disabled={regolithSaving || !user}
                       />
                       <div>
-                        <strong>My BreakIt account</strong>
+                        <strong>My PeaceFrog Gaming account</strong>
                         {!user && <span className="regolith-requires-login"> (sign in required)</span>}
                         <ul>
                           <li>✅ Follows you across devices</li>
-                          <li>✅ Tied to your BreakIt login</li>
-                          <li>⚠️ Stored in your account profile (not accessible to PeaceFrog Gaming)</li>
+                          <li>✅ Tied to your PeaceFrog Gaming login</li>
+                          <li>⚠️ Stored securely in your PeaceFrog Gaming account profile</li>
                         </ul>
                       </div>
                     </label>
