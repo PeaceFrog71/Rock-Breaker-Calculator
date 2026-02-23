@@ -1,7 +1,7 @@
 {
   "name": "rock-breaker-app",
   "private": true,
-  "version": "2.17.0",
+  "version": "2.18.0",
   "description": "Star Citizen Rock Breaker Mining Calculator",
   "author": "Your Name",
   "main": "dist-electron/main.js",
@@ -60,6 +60,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "gh-pages": "^6.3.0",
     "globals": "^16.5.0",
+    "jsdom": "^28.1.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.3",
     "vite": "^5.4.11",

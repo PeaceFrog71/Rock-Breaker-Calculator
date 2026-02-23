@@ -1,0 +1,203 @@
+.regolith-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.regolith-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 1.5rem;
+  width: min(420px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3), 0 0 80px rgba(0, 217, 255, 0.1);
+}
+
+.regolith-modal-close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.regolith-modal-close:hover { color: var(--text-primary); }
+
+.regolith-modal h3 {
+  margin: 0;
+  color: var(--accent-cyan);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-right: 1.5rem;
+}
+
+.regolith-modal-subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* Status states */
+
+.regolith-modal-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem 0;
+}
+
+.regolith-modal-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.regolith-modal-error {
+  font-size: 0.85rem;
+  color: #ff6b6b;
+  text-align: center;
+  margin: 0;
+}
+
+/* Spinner */
+
+.regolith-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(0, 217, 255, 0.2);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: regolith-spin 0.8s linear infinite;
+}
+
+@keyframes regolith-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Rock list */
+
+.regolith-rock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  overflow-y: auto;
+  max-height: 50vh;
+  padding-right: 0.25rem;
+}
+
+.regolith-rock-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+}
+
+.regolith-rock-item:hover {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 217, 255, 0.05);
+}
+
+.regolith-rock-item.depleted {
+  opacity: 0.5;
+}
+
+.regolith-rock-number {
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  min-width: 1.75rem;
+  padding-top: 0.1rem;
+}
+
+.regolith-rock-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.regolith-rock-stats {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+}
+
+.regolith-rock-stats strong {
+  color: var(--accent-cyan);
+}
+
+.regolith-rock-type {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.regolith-rock-depleted {
+  font-size: 0.72rem;
+  color: var(--danger, #ff3366);
+}
+
+.regolith-rock-ores {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.regolith-ore-chip {
+  font-size: 0.68rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 10px;
+  background: rgba(0, 217, 255, 0.1);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.regolith-ore-chip.inert {
+  background: rgba(168, 181, 199, 0.08);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.regolith-rock-location {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  align-self: flex-start;
+  padding-top: 0.1rem;
+}

@@ -158,6 +158,38 @@ Create a pull request:
 - Validate branch name before creating PR
 - **Add Copilot as reviewer** (`gh pr edit --add-reviewer copilot`)
 
+**After Copilot (or anyone) reviews and you push fixes:**
+- Always run `/vc review-reply <pr-number>` to respond to every open comment
+- **Silence = ambiguity.** Reviewers (and Drew) can't tell if a comment was seen, ignored, or addressed
+- This applies to Copilot comments too — they count as review feedback
+
+### `/vc review-reply <pr-number>`
+Respond to all open review comments (from Copilot or human reviewers) on a PR.
+
+**This is MANDATORY whenever fixes are pushed after a review.** Never push fixes without
+replying to the review thread — silence looks like the comments were missed.
+
+Workflow:
+1. Fetch all comments: `gh api repos/PeaceFrog71/BreakIt-Calculator/pulls/<pr>/comments`
+2. For each comment, determine the outcome:
+   - **Fixed** → reply explaining exactly what changed
+   - **Won't fix** → reply explaining why (design decision, not applicable, etc.)
+   - **Deferred** → reply noting it's tracked as a follow-up issue
+3. Post replies using:
+   ```bash
+   gh api repos/PeaceFrog71/BreakIt-Calculator/pulls/<pr>/comments/<id>/replies \
+     --method POST --field body="<response>"
+   ```
+4. Push the fix commits first, then reply so the reply references accurate code
+
+**Reply style:**
+- `Fixed. <one sentence describing what changed.>`
+- `Won't fix. <one sentence explaining why.>`
+- Keep replies factual and brief — this is a record, not a discussion
+
+**Important:** Avoid backticks (`` ` ``) inside double-quoted `--field body="..."` arguments
+in bash — they trigger command substitution. Use plain text or escape them carefully.
+
 ### `/vc cleanup [branch-name]`
 Clean up merged branches:
 - If branch-name provided: Delete that specific branch (local + remote)

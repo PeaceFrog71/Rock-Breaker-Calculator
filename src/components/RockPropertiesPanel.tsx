@@ -13,6 +13,7 @@ interface RockPropertiesPanelProps {
   onGadgetInclusionToggle: () => void;
   onRockResetClear: () => void;
   onRockSlotSwitch: (index: number) => void;
+  onRegolithImport?: () => void;
 }
 
 export default function RockPropertiesPanel({
@@ -27,6 +28,7 @@ export default function RockPropertiesPanel({
   onGadgetInclusionToggle,
   onRockResetClear,
   onRockSlotSwitch,
+  onRegolithImport,
 }: RockPropertiesPanelProps) {
   return (
     <>
@@ -64,12 +66,21 @@ export default function RockPropertiesPanel({
         <input
           type="number"
           inputMode="decimal"
-          value={!rock.instability ? '' : rock.instability}
+          value={rock.instability == null ? '' : rock.instability}
           onChange={(e) => onRockChange({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           min="0"
           step="0.1"
         />
       </div>
+      {onRegolithImport && (
+        <button
+          className="regolith-import-button"
+          onClick={onRegolithImport}
+          aria-label="Import rock from Regolith"
+        >
+          Import from Regolith
+        </button>
+      )}
       <button
         className="clear-rock-button"
         onClick={onRockResetClear}
@@ -91,6 +102,14 @@ export default function RockPropertiesPanel({
           </button>
         ))}
       </div>
+      <a
+        className="regolith-attribution"
+        href="https://regolith.rocks"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Scan rocks with Regolith.rocks
+      </a>
     </>
   );
 }

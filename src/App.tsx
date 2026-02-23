@@ -25,6 +25,7 @@ import HelpModal from "./components/HelpModal";
 import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
+import RegolithImportModal from "./components/RegolithImportModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
 import GadgetsPanel from "./components/GadgetsPanel";
@@ -142,6 +143,7 @@ function App() {
   const [showChangelogModal, setShowChangelogModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
+  const [showRegolithModal, setShowRegolithModal] = useState(false);
   const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
 
   // Auto-open auth modal when user clicks password reset link from email
@@ -327,6 +329,12 @@ function App() {
       // Custom or cleared values → Reset to defaults
       setRock({ ...DEFAULT_ROCK });
     }
+  };
+
+  // Handle rock import from Regolith: merge imported fields into current rock
+  // Note: modal closes itself via onClose — no need to close it here
+  const handleRegolithImport = (imported: Partial<Rock>) => {
+    setRock((prev) => ({ ...prev, ...imported }));
   };
 
   // Handle rock slot switch: save current to old slot, load new slot
@@ -691,6 +699,7 @@ function App() {
                       onGadgetInclusionToggle={handleGadgetInclusionToggle}
                       onRockResetClear={handleRockResetClear}
                       onRockSlotSwitch={handleRockSlotSwitch}
+                      onRegolithImport={() => setShowRegolithModal(true)}
                     />
                   </MobileDrawer>
                   <MobileDrawer
@@ -735,6 +744,7 @@ function App() {
                       onGadgetInclusionToggle={handleGadgetInclusionToggle}
                       onRockResetClear={handleRockResetClear}
                       onRockSlotSwitch={handleRockSlotSwitch}
+                      onRegolithImport={() => setShowRegolithModal(true)}
                     />
                   </div>
                 </div>
@@ -1000,6 +1010,11 @@ function App() {
         currentConfig={config}
         currentConfigName={currentConfigName}
         onSaved={handleLoadConfiguration}
+      />
+      <RegolithImportModal
+        isOpen={showRegolithModal}
+        onClose={() => setShowRegolithModal(false)}
+        onImport={handleRegolithImport}
       />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}

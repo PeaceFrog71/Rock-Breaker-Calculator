@@ -59,7 +59,7 @@ export default function UserMenu({ onSignInClick }: UserMenuProps) {
     || googleAvatarUrl;
 
   const avatarElement = avatarSrc ? (
-    <img className="user-avatar-img" src={avatarSrc} alt="" />
+    <img className="user-avatar-img" src={avatarSrc} alt="" referrerPolicy="no-referrer" />
   ) : (
     <span className="user-avatar-initial">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none">

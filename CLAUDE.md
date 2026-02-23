@@ -210,7 +210,7 @@ DevTools limitations to be aware of:
 
 ## Data Source
 
-Equipment data is based on **Star Citizen v4.3.1** from community mining spreadsheets and in-game testing. Data may need updates with new game patches.
+Equipment data is based on **Star Citizen v4.6** from community mining spreadsheets and in-game testing. Data may need updates with new game patches.
 
 ## References
 

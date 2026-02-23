@@ -4,6 +4,7 @@ import type { MiningConfiguration, Ship, MiningGroup, ShipInstance } from '../ty
 const SHIP_LIBRARY_KEY = 'rock-breaker-ship-library';
 const CURRENT_CONFIG_KEY = 'rock-breaker-current';
 const MINING_GROUPS_KEY = 'rock-breaker-mining-groups';
+const REGOLITH_API_KEY = 'regolith-api-key';
 
 // Legacy keys for migration
 const LEGACY_CONFIGS_KEY = 'rock-breaker-configs';
@@ -438,4 +439,30 @@ export function createShipInstanceFromConfig(savedConfig: SavedShipConfig, custo
     config: JSON.parse(JSON.stringify(savedConfig.config)), // Deep copy to break reference
     isActive: true,
   };
+}
+
+// ─── Regolith API Key (localStorage path) ────────────────────────────────────
+
+export function getRegolithApiKeyLocal(): string | null {
+  try {
+    return localStorage.getItem(REGOLITH_API_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function saveRegolithApiKeyLocal(key: string): void {
+  try {
+    localStorage.setItem(REGOLITH_API_KEY, key);
+  } catch (error) {
+    console.error('Error saving Regolith API key:', error);
+  }
+}
+
+export function clearRegolithApiKeyLocal(): void {
+  try {
+    localStorage.removeItem(REGOLITH_API_KEY);
+  } catch (error) {
+    console.error('Error clearing Regolith API key:', error);
+  }
 }
