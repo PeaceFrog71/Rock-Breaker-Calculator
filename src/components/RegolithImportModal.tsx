@@ -3,7 +3,8 @@ import type { Rock } from '../types';
 import { useAuth, getRegolithApiKeySupabase } from '../contexts/AuthContext';
 import { getRegolithApiKeyLocal } from '../utils/storage';
 import { fetchActiveSessionId, fetchSessionRocks } from '../utils/regolith';
-import type { RegolithShipRock } from '../utils/regolith';
+import type { RegolithClusterFind, RegolithShipRock } from '../utils/regolith';
+import { logRockImport } from '../utils/rockDataLogger';
 import './RegolithImportModal.css';
 
 interface RegolithImportModalProps {
@@ -15,9 +16,8 @@ interface RegolithImportModalProps {
 type ModalState = 'loading' | 'no-key' | 'no-session' | 'error' | 'ready';
 
 interface RockEntry {
-  findId: string;
+  find: RegolithClusterFind;
   rockIndex: number;
-  location: string | null;
   rock: RegolithShipRock;
 }
 
@@ -33,6 +33,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
   const [state, setState] = useState<ModalState>('loading');
   const [rocks, setRocks] = useState<RockEntry[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -55,16 +56,13 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
         }
 
         const finds = await fetchSessionRocks(apiKey, sessionId);
+        setSessionId(sessionId);
         const entries: RockEntry[] = [];
 
         finds.forEach((find) => {
           find.shipRocks.forEach((rock, i) => {
-            entries.push({
-              findId: find.scoutingFindId,
-              rockIndex: i,
-              location: find.gravityWell,
-              rock,
-            });
+            if (rock.state !== 'READY') return;
+            entries.push({ find, rockIndex: i, rock });
           });
         });
 
@@ -94,15 +92,18 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
   if (!isOpen) return null;
 
   const handleSelect = (entry: RockEntry) => {
-    const { rock } = entry;
+    const { rock, find, rockIndex } = entry;
     // res is 0–1 in Regolith (0.25 = 25%) — convert to 0–100 for BreakIt
-    // inst is already on the same scale BreakIt uses
     onImport({
       mass: rock.mass,
       resistance: rock.res != null ? rock.res * 100 : undefined,
-      instability: rock.inst ?? undefined,
+      instability: rock.inst ?? 0,
       name: rock.rockType ?? undefined,
     });
+    // Log to Supabase for global analytics — fire-and-forget
+    if (sessionId) {
+      logRockImport({ find, rock, rockIndex, sessionId, user });
+    }
     onClose();
   };
 
@@ -157,14 +158,11 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
               Select a rock from your active session to import.
             </p>
             <div className="regolith-rock-list">
-              {rocks.map((entry, i) => {
-                const isDepleted = entry.rock.state === 'DEPLETED';
-                return (
+              {rocks.map((entry, i) => (
                   <button
-                    key={`${entry.findId}-${entry.rockIndex}`}
-                    className={`regolith-rock-item${isDepleted ? ' depleted' : ''}`}
+                    key={`${entry.find.scoutingFindId}-${entry.rockIndex}`}
+                    className="regolith-rock-item"
                     onClick={() => handleSelect(entry)}
-                    title={isDepleted ? 'Rock is depleted' : undefined}
                   >
                     <span className="regolith-rock-number">#{i + 1}</span>
                     <div className="regolith-rock-info">
@@ -176,10 +174,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
                         {entry.rock.res != null && (
                           <span><strong>{(entry.rock.res * 100).toFixed(1)}</strong>% res</span>
                         )}
-                        {entry.rock.inst != null && entry.rock.inst > 0 && (
-                          <span><strong>{entry.rock.inst.toFixed(1)}</strong> inst</span>
-                        )}
-                        {isDepleted && <span className="regolith-rock-depleted">Depleted</span>}
+                        <span><strong>{(entry.rock.inst ?? 0).toFixed(1)}</strong> inst</span>
                       </div>
                       {entry.rock.ores.length > 0 && (
                         <div className="regolith-rock-ores">
@@ -191,12 +186,11 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
                         </div>
                       )}
                     </div>
-                    {entry.location && (
-                      <span className="regolith-rock-location">{entry.location}</span>
+                    {entry.find.gravityWell && (
+                      <span className="regolith-rock-location">{entry.find.gravityWell}</span>
                     )}
                   </button>
-                );
-              })}
+              ))}
             </div>
           </>
         )}

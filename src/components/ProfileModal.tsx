@@ -519,7 +519,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                       <div>
                         <strong>This browser only</strong>
                         <ul>
-                          <li>✅ Never leaves your browser — PeaceFrog cannot see it</li>
+                          <li>✅ Never leaves your browser — PeaceFrog Gaming cannot see it</li>
                           <li>⚠️ Only works on this browser/device</li>
                           <li>⚠️ May need re-entry after browser updates or cache clears</li>
                         </ul>
@@ -540,7 +540,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <ul>
                           <li>✅ Follows you across devices</li>
                           <li>✅ Tied to your BreakIt login</li>
-                          <li>⚠️ Stored in your account profile (not accessible to PeaceFrog)</li>
+                          <li>⚠️ Stored in your account profile (not accessible to PeaceFrog Gaming)</li>
                         </ul>
                       </div>
                     </label>

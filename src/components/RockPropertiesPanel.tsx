@@ -66,7 +66,7 @@ export default function RockPropertiesPanel({
         <input
           type="number"
           inputMode="decimal"
-          value={!rock.instability ? '' : rock.instability}
+          value={rock.instability == null ? '' : rock.instability}
           onChange={(e) => onRockChange({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
           min="0"
           step="0.1"
@@ -102,6 +102,14 @@ export default function RockPropertiesPanel({
           </button>
         ))}
       </div>
+      <a
+        className="regolith-attribution"
+        href="https://regolith.rocks"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Scan rocks with Regolith.rocks
+      </a>
     </>
   );
 }

@@ -17,6 +17,13 @@ export interface RegolithShipRock {
 export interface RegolithClusterFind {
   scoutingFindId: string;
   gravityWell: string | null;
+  state: string; // ScoutingFindStateEnum: 'DISCOVERED' | 'READY_FOR_WORKERS' | 'WORKING' | 'DEPLETED' | 'ABANDONNED'
+  clusterCount: number | null;
+  score: number | null;
+  rawScore: number | null;
+  surveyBonus: number | null;
+  createdAt: number | null;       // epoch ms from Regolith
+  regolithVersion: string | null; // SC game version recorded by Regolith at scan time
   shipRocks: RegolithShipRock[];
 }
 
@@ -100,6 +107,13 @@ export async function fetchSessionRocks(
           ... on ShipClusterFind {
             scoutingFindId
             gravityWell
+            state
+            clusterCount
+            score
+            rawScore
+            surveyBonus
+            createdAt
+            version
             shipRocks {
               mass
               res
@@ -123,6 +137,13 @@ export async function fetchSessionRocks(
         items: Array<{
           scoutingFindId?: string;
           gravityWell?: string | null;
+          state?: string;
+          clusterCount?: number | null;
+          score?: number | null;
+          rawScore?: number | null;
+          surveyBonus?: number | null;
+          createdAt?: number | null;
+          version?: string | null;
           shipRocks?: RegolithShipRock[];
         }>;
       } | null;
@@ -132,12 +153,25 @@ export async function fetchSessionRocks(
   const data = await gql<SessionResponse>(apiKey, query);
   const items = data.session?.scouting?.items ?? [];
 
-  // Filter to only ShipClusterFinds (they have shipRocks)
+  // Filter to only active ShipClusterFinds — must have shipRocks and not be abandoned/depleted
+  // Note: 'ABANDONNED' is a typo in Regolith's API (double N) but must match exactly
+  const INACTIVE_FIND_STATES = new Set(['ABANDONNED', 'DEPLETED']);
   return items
-    .filter((item) => item.scoutingFindId !== undefined && item.shipRocks !== undefined)
+    .filter((item) =>
+      item.scoutingFindId !== undefined &&
+      item.shipRocks !== undefined &&
+      !INACTIVE_FIND_STATES.has(item.state ?? '')
+    )
     .map((item) => ({
       scoutingFindId: item.scoutingFindId!,
       gravityWell: item.gravityWell ?? null,
+      state: item.state ?? 'DISCOVERED',
+      clusterCount: item.clusterCount ?? null,
+      score: item.score ?? null,
+      rawScore: item.rawScore ?? null,
+      surveyBonus: item.surveyBonus ?? null,
+      createdAt: item.createdAt ?? null,
+      regolithVersion: item.version ?? null,
       shipRocks: item.shipRocks!,
     }));
 }

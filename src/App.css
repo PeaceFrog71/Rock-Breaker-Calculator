@@ -391,20 +391,21 @@ button, .btn-primary, .btn-secondary {
   width: 100%;
   margin-top: 0.75rem;
   padding: 0.5rem 1rem;
-  background: transparent;
-  border: 1px solid var(--accent-cyan);
-  border-radius: 4px;
-  color: var(--accent-cyan);
+  background: #fbc02d;
+  border: none;
+  border-radius: 6px;
+  color: #000000;
   font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .regolith-import-button:hover {
-  background: rgba(0, 217, 255, 0.1);
-  box-shadow: 0 0 8px rgba(0, 217, 255, 0.3);
+  background: #fdd065;
+  box-shadow: 0 2px 8px rgba(251, 192, 45, 0.5);
 }
 
 .clear-rock-button {
@@ -433,6 +434,29 @@ button, .btn-primary, .btn-secondary {
   gap: 0.25rem;
   justify-content: center;
   margin-top: 0.5rem;
+}
+
+.regolith-attribution {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  border: 1px solid #fbc02d;
+  border-radius: 6px;
+  color: #fbc02d;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.regolith-attribution:hover {
+  background: rgba(251, 192, 45, 0.1);
+  box-shadow: 0 0 8px rgba(251, 192, 45, 0.3);
 }
 
 .rock-slot-button {
