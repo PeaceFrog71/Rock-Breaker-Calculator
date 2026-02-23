@@ -47,6 +47,13 @@ const makeRock = (overrides?: Partial<RegolithShipRock>): RegolithShipRock => ({
 const makeFind = (overrides?: Partial<RegolithClusterFind>): RegolithClusterFind => ({
   scoutingFindId: 'find-001',
   gravityWell: 'Crusader',
+  state: 'READY_FOR_WORKERS',
+  clusterCount: 3,
+  score: 1500,
+  rawScore: 1200,
+  surveyBonus: 0.1,
+  createdAt: 1700000000000,
+  regolithVersion: '4.5',
   shipRocks: [makeRock()],
   ...overrides,
 });
@@ -281,6 +288,158 @@ describe('regolith.ts', () => {
       expect(body.query).toContain('ores');
       expect(body.query).toContain('percent');
       expect(body.query).toContain('state');
+    });
+
+    it('queries for find-level fields (score, clusterCount, surveyBonus, version)', async () => {
+      const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { session: { scouting: { items: [] } } } }),
+      } as Response);
+
+      await fetchSessionRocks('key', 'session-abc');
+
+      const [, init] = spy.mock.calls[0];
+      const body = JSON.parse(init?.body as string);
+      expect(body.query).toContain('clusterCount');
+      expect(body.query).toContain('score');
+      expect(body.query).toContain('rawScore');
+      expect(body.query).toContain('surveyBonus');
+      expect(body.query).toContain('createdAt');
+      expect(body.query).toContain('version');
+    });
+
+    it('maps find-level fields (clusterCount, score, rawScore, surveyBonus, createdAt, regolithVersion)', async () => {
+      // Use raw API shape — the API returns "version", we remap it to "regolithVersion"
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [{
+              scoutingFindId: 'find-001',
+              gravityWell: 'Crusader',
+              state: 'READY_FOR_WORKERS',
+              clusterCount: 3,
+              score: 1500,
+              rawScore: 1200,
+              surveyBonus: 0.1,
+              createdAt: 1700000000000,
+              version: '4.5',       // raw API field name (mapped → regolithVersion)
+              shipRocks: [makeRock()],
+            }],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+
+      expect(results[0].state).toBe('READY_FOR_WORKERS');
+      expect(results[0].clusterCount).toBe(3);
+      expect(results[0].score).toBe(1500);
+      expect(results[0].rawScore).toBe(1200);
+      expect(results[0].surveyBonus).toBe(0.1);
+      expect(results[0].createdAt).toBe(1700000000000);
+      expect(results[0].regolithVersion).toBe('4.5');
+    });
+
+    it('maps API version field → regolithVersion', async () => {
+      // Regolith API returns "version", we rename it to "regolithVersion"
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [{
+              scoutingFindId: 'find-ver',
+              gravityWell: null,
+              state: 'WORKING',
+              shipRocks: [makeRock()],
+              version: '4.6',
+            }],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+      expect(results[0].regolithVersion).toBe('4.6');
+    });
+
+    // ── Abandoned / depleted find filtering ────────────────────────────────────
+
+    it('filters out ABANDONNED finds (note: Regolith API double-N typo)', async () => {
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [
+              makeFind({ scoutingFindId: 'abandoned', state: 'ABANDONNED' }),
+              makeFind({ scoutingFindId: 'active', state: 'READY_FOR_WORKERS' }),
+            ],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].scoutingFindId).toBe('active');
+    });
+
+    it('filters out DEPLETED finds', async () => {
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [
+              makeFind({ scoutingFindId: 'depleted', state: 'DEPLETED' }),
+              makeFind({ scoutingFindId: 'active', state: 'DISCOVERED' }),
+            ],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].scoutingFindId).toBe('active');
+    });
+
+    it('includes finds in DISCOVERED, READY_FOR_WORKERS, and WORKING states', async () => {
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [
+              makeFind({ scoutingFindId: 'discovered', state: 'DISCOVERED' }),
+              makeFind({ scoutingFindId: 'ready', state: 'READY_FOR_WORKERS' }),
+              makeFind({ scoutingFindId: 'working', state: 'WORKING' }),
+            ],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+
+      expect(results).toHaveLength(3);
+      const ids = results.map(r => r.scoutingFindId);
+      expect(ids).toContain('discovered');
+      expect(ids).toContain('ready');
+      expect(ids).toContain('working');
+    });
+
+    it('rocks inside ABANDONNED finds still have READY state (confirm find-level filter is needed)', async () => {
+      // This documents WHY we filter at find level: rocks inside abandoned finds
+      // still report state = 'READY' — the only indication is find.state
+      mockFetchOk({
+        session: {
+          scouting: {
+            items: [
+              makeFind({
+                scoutingFindId: 'abandoned',
+                state: 'ABANDONNED',
+                shipRocks: [makeRock({ state: 'READY' })], // rock still says READY!
+              }),
+            ],
+          },
+        },
+      });
+
+      const results = await fetchSessionRocks('key', 'session-abc');
+      // The find must be excluded even though the rock says READY
+      expect(results).toHaveLength(0);
     });
   });
 });
