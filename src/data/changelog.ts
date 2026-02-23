@@ -18,6 +18,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.18.0',
+    date: '2026-02-23',
+    new: [
+      'Import rock scans directly from Regolith.rocks — mass, resistance, instability, and ore composition in one click',
+      'Regolith API key management in Profile → Integrations (stored locally or in your BreakIt account)',
+      'Rock scan data (including ore percentages) contributed anonymously to global mining analytics',
+    ],
+    improved: [
+      'Abandoned and depleted finds are filtered out of the import list automatically',
+    ],
+    fixed: [
+      'Instability field now correctly accepts 0 as a valid entry',
+    ],
+  },
+  {
     version: '2.17.0',
     date: '2026-02-23',
     new: [
