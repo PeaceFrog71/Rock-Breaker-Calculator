@@ -1,0 +1,68 @@
+/**
+ * BreakIt Calculator changelog — update this file with each release to main.
+ *
+ * Adding a new release:
+ *   1. Add a new entry at the TOP of the array (newest first)
+ *   2. Set version to match package.json
+ *   3. Set date to the release date (YYYY-MM-DD)
+ *   4. Add bullets under new / improved / fixed (omit empty categories)
+ */
+
+export interface ChangelogEntry {
+  version: string;
+  date: string;
+  new?: string[];
+  improved?: string[];
+  fixed?: string[];
+}
+
+export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '2.17.0',
+    date: '2026-02-23',
+    new: [
+      'Clickable version tag in the header opens a What\'s New modal showing recent updates',
+    ],
+  },
+  {
+    version: '2.16.0',
+    date: '2026-02-15',
+    new: [
+      'RSI community logo links to the BreakIt Calculator community page',
+    ],
+  },
+  {
+    version: '2.15.0',
+    date: '2026-01-20',
+    new: [
+      'Save ship configurations with custom names for quick recall',
+    ],
+    improved: [
+      'Ship names are preserved when switching between saved configurations',
+      'Laser setup panel opens automatically after loading a saved config',
+    ],
+  },
+  {
+    version: '2.14.0',
+    date: '2026-01-10',
+    new: [
+      'Fourth rock slot for tracking multiple scan targets per session',
+    ],
+    improved: [
+      'Desktop view uses labeled text buttons for clearer navigation',
+      'Mobile hint shown when tapping the ship name to switch ships',
+    ],
+  },
+  {
+    version: '2.0.0',
+    date: '2025-12-01',
+    new: [
+      'Full mobile and tablet layout — BreakIt now works in the field',
+      'Multi-ship mining group support (up to 4 ships)',
+      'Gadgets panel with In Scan toggle for accurate resistance reverse-calculation',
+    ],
+    improved: [
+      'Resistance mode selector (Base vs Modified scan) with contextual hints',
+    ],
+  },
+];

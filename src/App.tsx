@@ -22,6 +22,7 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import MiningGroupManager from "./components/MiningGroupManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
 import UserMenu from "./components/UserMenu";
@@ -138,6 +139,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
   const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
@@ -631,7 +633,13 @@ function App() {
               HELP
             </button>
           </div>
-          <span className="version-tag">v{version}</span>
+          <button
+            className="version-tag version-tag--clickable"
+            onClick={() => setShowChangelogModal(true)}
+            title="What's New"
+          >
+            v{version}
+          </button>
         </div>
         <div className="header-controls">
           {isAuthConfigured && (
@@ -983,6 +991,7 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+      <ChangelogModal isOpen={showChangelogModal} onClose={() => setShowChangelogModal(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => { setShowAuthModal(false); setAuthModalView(undefined); clearPasswordRecovery(); }} initialView={authModalView} />
       <SaveShipModal
         isOpen={showSaveDialog}
