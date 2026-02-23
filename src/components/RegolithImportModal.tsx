@@ -21,6 +21,12 @@ interface RockEntry {
   rock: RegolithShipRock;
 }
 
+/** Format ore enum name for display: INERTMATERIAL → Inert, QUANTANIUM → Quantanium */
+function formatOreName(ore: string): string {
+  if (ore === 'INERTMATERIAL') return 'Inert';
+  return ore.charAt(0) + ore.slice(1).toLowerCase();
+}
+
 export default function RegolithImportModal({ isOpen, onClose, onImport }: RegolithImportModalProps) {
   const { user } = useAuth();
 
@@ -89,11 +95,13 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
 
   const handleSelect = (entry: RockEntry) => {
     const { rock } = entry;
-    // Regolith res is on a 0-100 scale (percentage), same as BreakIt
+    // res is 0–1 in Regolith (0.25 = 25%) — convert to 0–100 for BreakIt
+    // inst is already on the same scale BreakIt uses
     onImport({
       mass: rock.mass,
-      resistance: rock.res ?? undefined,
+      resistance: rock.res != null ? rock.res * 100 : undefined,
       instability: rock.inst ?? undefined,
+      name: rock.rockType ?? undefined,
     });
     onClose();
   };
@@ -149,27 +157,46 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
               Select a rock from your active session to import.
             </p>
             <div className="regolith-rock-list">
-              {rocks.map((entry, i) => (
-                <button
-                  key={`${entry.findId}-${entry.rockIndex}`}
-                  className="regolith-rock-item"
-                  onClick={() => handleSelect(entry)}
-                >
-                  <span className="regolith-rock-number">#{i + 1}</span>
-                  <div className="regolith-rock-stats">
-                    <span><strong>{entry.rock.mass.toLocaleString()}</strong> kg</span>
-                    {entry.rock.res != null && (
-                      <span><strong>{entry.rock.res.toFixed(1)}</strong>% res</span>
+              {rocks.map((entry, i) => {
+                const isDepleted = entry.rock.state === 'DEPLETED';
+                return (
+                  <button
+                    key={`${entry.findId}-${entry.rockIndex}`}
+                    className={`regolith-rock-item${isDepleted ? ' depleted' : ''}`}
+                    onClick={() => handleSelect(entry)}
+                    title={isDepleted ? 'Rock is depleted' : undefined}
+                  >
+                    <span className="regolith-rock-number">#{i + 1}</span>
+                    <div className="regolith-rock-info">
+                      <div className="regolith-rock-stats">
+                        {entry.rock.rockType && (
+                          <span className="regolith-rock-type">{entry.rock.rockType}</span>
+                        )}
+                        <span><strong>{entry.rock.mass.toLocaleString()}</strong> kg</span>
+                        {entry.rock.res != null && (
+                          <span><strong>{(entry.rock.res * 100).toFixed(1)}</strong>% res</span>
+                        )}
+                        {entry.rock.inst != null && entry.rock.inst > 0 && (
+                          <span><strong>{entry.rock.inst.toFixed(1)}</strong> inst</span>
+                        )}
+                        {isDepleted && <span className="regolith-rock-depleted">Depleted</span>}
+                      </div>
+                      {entry.rock.ores.length > 0 && (
+                        <div className="regolith-rock-ores">
+                          {entry.rock.ores.map((ore) => (
+                            <span key={ore.ore} className={`regolith-ore-chip ${ore.ore === 'INERTMATERIAL' ? 'inert' : ''}`}>
+                              {formatOreName(ore.ore)} {(ore.percent * 100).toFixed(0)}%
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {entry.location && (
+                      <span className="regolith-rock-location">{entry.location}</span>
                     )}
-                    {entry.rock.inst != null && (
-                      <span><strong>{entry.rock.inst.toFixed(2)}</strong> inst</span>
-                    )}
-                  </div>
-                  {entry.location && (
-                    <span className="regolith-rock-location">{entry.location}</span>
-                  )}
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </>
         )}

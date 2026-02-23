@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { validateApiKey, fetchActiveSessionId, fetchSessionRocks } from './regolith';
-import type { RegolithClusterFind } from './regolith';
+import type { RegolithClusterFind, RegolithShipRock } from './regolith';
 
 // ─── Fetch mock helpers ────────────────────────────────────────────────────────
 
@@ -28,6 +28,28 @@ function mockFetchHttpError(status = 401) {
 function mockFetchNetworkError() {
   vi.spyOn(global, 'fetch').mockRejectedValueOnce(new Error('Network failure'));
 }
+
+// ─── Fixtures ─────────────────────────────────────────────────────────────────
+
+const makeRock = (overrides?: Partial<RegolithShipRock>): RegolithShipRock => ({
+  mass: 1234,
+  res: 0.25,   // 0–1 scale (25% resistance)
+  inst: 25,
+  rockType: 'QTYPE',
+  state: 'READY',
+  ores: [
+    { ore: 'QUANTANIUM', percent: 0.35 },
+    { ore: 'INERTMATERIAL', percent: 0.65 },
+  ],
+  ...overrides,
+});
+
+const makeFind = (overrides?: Partial<RegolithClusterFind>): RegolithClusterFind => ({
+  scoutingFindId: 'find-001',
+  gravityWell: 'Crusader',
+  shipRocks: [makeRock()],
+  ...overrides,
+});
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -80,14 +102,35 @@ describe('regolith.ts', () => {
   // ── fetchActiveSessionId ───────────────────────────────────────────────────
 
   describe('fetchActiveSessionId', () => {
-    it('returns the session ID when an active session exists', async () => {
-      mockFetchOk({ sessionUser: { sessionId: 'session-abc' } });
+    it('returns the session ID of the first ACTIVE session', async () => {
+      mockFetchOk({
+        profile: {
+          mySessions: {
+            items: [
+              { sessionId: 'session-active', state: 'ACTIVE' },
+              { sessionId: 'session-closed', state: 'CLOSED' },
+            ],
+          },
+        },
+      });
       const id = await fetchActiveSessionId('valid-key');
-      expect(id).toBe('session-abc');
+      expect(id).toBe('session-active');
     });
 
-    it('returns null when sessionUser is null (no active session)', async () => {
-      mockFetchOk({ sessionUser: null });
+    it('returns null when all sessions are CLOSED', async () => {
+      mockFetchOk({
+        profile: {
+          mySessions: {
+            items: [{ sessionId: 'session-closed', state: 'CLOSED' }],
+          },
+        },
+      });
+      const id = await fetchActiveSessionId('valid-key');
+      expect(id).toBeNull();
+    });
+
+    it('returns null when mySessions items is empty', async () => {
+      mockFetchOk({ profile: { mySessions: { items: [] } } });
       const id = await fetchActiveSessionId('valid-key');
       expect(id).toBeNull();
     });
@@ -103,28 +146,29 @@ describe('regolith.ts', () => {
       const id = await fetchActiveSessionId('valid-key');
       expect(id).toBeNull();
     });
+
+    it('uses profile.mySessions query (not sessionUser)', async () => {
+      const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: { profile: { mySessions: { items: [] } } },
+        }),
+      } as Response);
+
+      await fetchActiveSessionId('valid-key');
+
+      const [, init] = spy.mock.calls[0];
+      const body = JSON.parse(init?.body as string);
+      expect(body.query).toContain('mySessions');
+      expect(body.query).not.toContain('sessionUser');
+    });
   });
 
   // ── fetchSessionRocks ──────────────────────────────────────────────────────
 
   describe('fetchSessionRocks', () => {
-    const makeShipClusterFind = (overrides?: Partial<RegolithClusterFind>) => ({
-      scoutingFindId: 'find-001',
-      gravityWell: 'Crusader',
-      shipRocks: [
-        { mass: 1234, res: 25, inst: 0.4, rockType: 'Quantainium' },
-      ],
-      ...overrides,
-    });
-
-    it('returns mapped ShipClusterFinds from the session', async () => {
-      mockFetchOk({
-        session: {
-          scouting: {
-            items: [makeShipClusterFind()],
-          },
-        },
-      });
+    it('returns mapped ShipClusterFinds with ores and state', async () => {
+      mockFetchOk({ session: { scouting: { items: [makeFind()] } } });
 
       const results = await fetchSessionRocks('key', 'session-abc');
 
@@ -132,6 +176,11 @@ describe('regolith.ts', () => {
       expect(results[0].scoutingFindId).toBe('find-001');
       expect(results[0].gravityWell).toBe('Crusader');
       expect(results[0].shipRocks[0].mass).toBe(1234);
+      expect(results[0].shipRocks[0].res).toBe(0.25);  // 0–1 scale
+      expect(results[0].shipRocks[0].ores).toHaveLength(2);
+      expect(results[0].shipRocks[0].ores[0].ore).toBe('QUANTANIUM');
+      expect(results[0].shipRocks[0].ores[0].percent).toBe(0.35);
+      expect(results[0].shipRocks[0].state).toBe('READY');
     });
 
     it('filters out non-ShipClusterFind union members (e.g. SalvageFind)', async () => {
@@ -144,7 +193,7 @@ describe('regolith.ts', () => {
               // VehicleClusterFind — has scoutingFindId but no shipRocks
               { scoutingFindId: 'vehicle-001' },
               // Valid ShipClusterFind
-              makeShipClusterFind({ scoutingFindId: 'find-002' }),
+              makeFind({ scoutingFindId: 'find-002' }),
             ],
           },
         },
@@ -157,16 +206,8 @@ describe('regolith.ts', () => {
     });
 
     it('handles null gravityWell gracefully', async () => {
-      mockFetchOk({
-        session: {
-          scouting: {
-            items: [makeShipClusterFind({ gravityWell: null })],
-          },
-        },
-      });
-
+      mockFetchOk({ session: { scouting: { items: [makeFind({ gravityWell: null })] } } });
       const results = await fetchSessionRocks('key', 'session-abc');
-
       expect(results[0].gravityWell).toBeNull();
     });
 
@@ -178,7 +219,7 @@ describe('regolith.ts', () => {
               {
                 scoutingFindId: 'find-003',
                 gravityWell: 'Pyro',
-                shipRocks: [{ mass: 500, res: null, inst: null, rockType: null }],
+                shipRocks: [makeRock({ res: null, inst: null })],
               },
             ],
           },
@@ -209,7 +250,7 @@ describe('regolith.ts', () => {
       expect(results).toEqual([]);
     });
 
-    it('throws on HTTP error (unlike other functions — caller should handle)', async () => {
+    it('throws on HTTP error (caller should handle)', async () => {
       mockFetchHttpError(500);
       await expect(fetchSessionRocks('key', 'session-abc')).rejects.toThrow();
     });
@@ -225,6 +266,21 @@ describe('regolith.ts', () => {
       const [, init] = spy.mock.calls[0];
       const body = JSON.parse(init?.body as string);
       expect(body.query).toContain('my-session-id');
+    });
+
+    it('queries for ores and state fields', async () => {
+      const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { session: { scouting: { items: [] } } } }),
+      } as Response);
+
+      await fetchSessionRocks('key', 'session-abc');
+
+      const [, init] = spy.mock.calls[0];
+      const body = JSON.parse(init?.body as string);
+      expect(body.query).toContain('ores');
+      expect(body.query).toContain('percent');
+      expect(body.query).toContain('state');
     });
   });
 });

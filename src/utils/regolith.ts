@@ -1,10 +1,17 @@
 const REGOLITH_API_URL = 'https://api.regolith.rocks';
 
+export interface RegolithShipRockOre {
+  ore: string;    // ShipOreEnum: 'QUANTANIUM', 'BEXALITE', 'INERTMATERIAL', etc.
+  percent: number; // 0–1 scale (0.65 = 65%)
+}
+
 export interface RegolithShipRock {
   mass: number;
-  res: number | null;
+  res: number | null;   // 0–1 scale (0.25 = 25% resistance)
   inst: number | null;
   rockType: string | null;
+  ores: RegolithShipRockOre[];
+  state: string; // RockStateEnum: 'READY' | 'DEPLETED' | 'IGNORE'
 }
 
 export interface RegolithClusterFind {
@@ -53,16 +60,22 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
 }
 
 /**
- * Fetch the session ID for the user's current active Regolith session.
+ * Fetch the session ID of the user's active Regolith session.
+ * Uses profile.mySessions to find the first ACTIVE session.
  * Returns null if no active session exists.
  */
 export async function fetchActiveSessionId(apiKey: string): Promise<string | null> {
   try {
-    const data = await gql<{ sessionUser: { sessionId: string } | null }>(
-      apiKey,
-      '{ sessionUser { sessionId } }'
-    );
-    return data.sessionUser?.sessionId ?? null;
+    const data = await gql<{
+      profile: {
+        mySessions: {
+          items: Array<{ sessionId: string; state: string }>;
+        };
+      };
+    }>(apiKey, '{ profile { mySessions { items { sessionId state } } } }');
+
+    const sessions = data.profile?.mySessions?.items ?? [];
+    return sessions.find((s) => s.state === 'ACTIVE')?.sessionId ?? null;
   } catch {
     return null;
   }
@@ -70,6 +83,11 @@ export async function fetchActiveSessionId(apiKey: string): Promise<string | nul
 
 /**
  * Fetch all ShipClusterFinds (and their rocks) from a Regolith session.
+ *
+ * Note on scales:
+ * - res: 0–1 (e.g. 0.25 = 25% resistance) — multiply by 100 before use in BreakIt
+ * - inst: raw value (e.g. 25 = 25 instability)
+ * - ores[].percent: 0–1 (e.g. 0.65 = 65%)
  */
 export async function fetchSessionRocks(
   apiKey: string,
@@ -87,6 +105,11 @@ export async function fetchSessionRocks(
               res
               inst
               rockType
+              state
+              ores {
+                ore
+                percent
+              }
             }
           }
         }
