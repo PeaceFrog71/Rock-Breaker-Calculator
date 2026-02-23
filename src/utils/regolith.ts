@@ -101,7 +101,7 @@ export async function fetchSessionRocks(
   sessionId: string
 ): Promise<RegolithClusterFind[]> {
   const query = `
-    query FetchSession($sessionId: String!) {
+    query FetchSession($sessionId: ID!) {
       session(sessionId: $sessionId) {
         scouting {
           items {
