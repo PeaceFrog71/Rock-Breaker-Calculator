@@ -1,0 +1,17 @@
+{
+  "name": "Rock Breaker Calculator",
+  "short_name": "Rock Breaker",
+  "description": "Star Citizen mining calculator - determine if your ship can break rocks",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0e27",
+  "theme_color": "#0a0e27",
+  "icons": [
+    {
+      "src": "/og-image.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

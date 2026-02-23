@@ -340,6 +340,15 @@
   transform: translate(-50%, -50%) !important;
 }
 
+/* Desktop single ship mode: laser behind ship */
+.rock-icon.desktop-single-ship ~ .ships-around-rock .laser-beam {
+  z-index: 5;
+}
+
+.rock-icon.desktop-single-ship ~ .ships-around-rock .ship-icon {
+  z-index: 20;
+}
+
 .rock-stats-sidebar {
   display: flex;
   flex-direction: column;
@@ -1181,6 +1190,44 @@
   .ship-icon.mobile-tappable {
     cursor: pointer;
   }
+
+}
+
+/* Ship tap hint - anchored to .rock-display container, gated by localStorage in JS */
+.ship-tap-hint {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 217, 255, 0.15);
+  color: var(--accent-cyan);
+  font-size: clamp(0.75rem, 2.5vw, 1.1rem);
+  font-weight: 600;
+  padding: clamp(0.25rem, 0.8vw, 0.5rem) clamp(0.75rem, 2.5vw, 1.25rem);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 217, 255, 0.3);
+  animation: hintFadeIn 0.5s ease-out, hintPulse 2s ease-in-out 0.5s infinite;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
+  max-width: 90%;
+}
+
+@keyframes hintFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+/* Hide hint on desktop - ships aren't tappable there */
+@media (min-width: 1181px) {
+  .ship-tap-hint {
+    display: none;
+  }
 }
 
 /* Portrait mode on mobile - full width content */
@@ -1342,6 +1389,17 @@
   }
 }
 
+/* Phone-only: single-ship laser behind ship */
+@media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
+  .ships-around-rock:not(.multi-ship-mode) .laser-beam {
+    z-index: 5 !important;
+  }
+
+  .ships-around-rock:not(.multi-ship-mode) .ship-icon {
+    z-index: 20 !important;
+  }
+}
+
 /* Phone-only: smaller multi-ship labels + all labels below ship, left-justified */
 @media (orientation: portrait) and (pointer: coarse) and (max-width: 767px) {
   .ships-around-rock.multi-ship-mode .ship-label {
@@ -1358,6 +1416,70 @@
     bottom: auto !important;
     margin-top: 0.2rem !important;
     margin-bottom: 0 !important;
+  }
+}
+
+/* Tablet portrait: ship labels below and left-justified
+   Two selectors (comma-separated): one for real touch devices (`pointer: coarse`),
+   one for DevTools viewport simulation (viewport-only). Both needed because
+   DevTools doesn't emulate touch pointer by default. See CLAUDE.md for details.
+   NOTE: Some styles also appear in the DevTools-only query near EOF for additional
+   rock-display sizing that only applies in viewport-based detection. */
+@media (orientation: portrait) and (pointer: coarse) and (min-width: 768px),
+       (orientation: portrait) and (min-width: 768px) and (max-width: 1180px) {
+  /* Single ship mode: constrain entire results column to fit between drawer tabs */
+  .result-display:not(:has(.multi-ship-mode)) {
+    width: calc(100vw - 11rem) !important;
+    margin: 0 auto !important;
+  }
+
+  /* Multi-ship mode: square aspect ratio for tablets (narrower than phones) */
+  .rock-container:has(.multi-ship-mode) {
+    aspect-ratio: 1 / 1 !important;
+  }
+
+  /* Tablet portrait: larger ship images - no max constraint, let vw sizing work */
+  .ships-around-rock.multi-ship-mode .ship-image {
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  /* All ship labels: below image, left-justified */
+  .ships-around-rock.multi-ship-mode .ship-label {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    transform: none !important;
+    text-align: left !important;
+    margin-top: 0.3rem !important;
+  }
+
+  /* Override top-position: all labels below ship on tablets */
+  .ships-around-rock.multi-ship-mode .ship-label.top-position {
+    top: 100% !important;
+    bottom: auto !important;
+    margin-top: 0.3rem !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* Multi-ship mode: match status indicator and power bar widths with rock display */
+  .result-display:has(.multi-ship-mode) .status-indicator {
+    width: 70vw !important;
+    max-width: 70vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .result-display:has(.multi-ship-mode) .power-bar-container {
+    width: 70vw !important;
+    max-width: 70vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .result-display:has(.multi-ship-mode) .rock-display {
+    margin-bottom: 0.75rem !important;
   }
 }
 
@@ -1616,4 +1738,50 @@
   width: clamp(60px, 20vw, 100px);
   height: auto;
   opacity: 0.6;
+}
+
+/* DevTools-compatible: Tablet portrait (768-1180px width, portrait orientation)
+   This query contains ADDITIONAL styles for rock-display sizing that aren't in
+   the combined query above. Some rules (status-indicator, power-bar) are duplicated
+   intentionally because this viewport-only query provides fallback when `pointer: coarse`
+   doesn't match (e.g., DevTools testing). See CLAUDE.md "DevTools Testing" section. */
+@media (orientation: portrait) and (min-width: 768px) and (max-width: 1180px) {
+  /* Target the parent rock-display to control overall dimensions */
+  .rock-display:has(.multi-ship-mode) {
+    max-width: 70vw !important;
+    width: 70vw !important;
+    min-height: 70vw !important; /* Force square by matching height to width */
+    margin: 0 auto !important;
+  }
+
+  .rock-container:has(.multi-ship-mode) {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  /* Tablet portrait: larger ship images - no max constraint, let vw sizing work */
+  .ships-around-rock.multi-ship-mode .ship-image {
+    max-width: none !important;
+    max-height: none !important;
+  }
+
+  /* Multi-ship mode: match status indicator and power bar widths with rock display */
+  .result-display:has(.multi-ship-mode) .status-indicator {
+    width: 70vw !important;
+    max-width: 70vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .result-display:has(.multi-ship-mode) .power-bar-container {
+    width: 70vw !important;
+    max-width: 70vw !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-bottom: 1.5rem !important;
+  }
+
+  .result-display:has(.multi-ship-mode) .rock-display {
+    margin-bottom: 0.75rem !important;
+  }
 }

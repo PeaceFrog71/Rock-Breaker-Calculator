@@ -125,6 +125,8 @@ This is a learning exercise - the goal is git fluency, not speed.
 ### Plan File Location
 - **Active plans**: `docs/plans/` with format `<issue#>-<description>.md`
 - Example: `98-ipad-tablet-layout.md`
+- `docs/plans/` is **local only** (gitignored) - persists on disk for Claude + Drew to reference
+- **NEVER** use `.claude/plans/` - that directory is ephemeral (cleared between sessions)
 
 ### At Session Start / After Compaction
 1. **Check for active plans** in `docs/plans/`
@@ -192,9 +194,23 @@ This is a learning exercise - the goal is git fluency, not speed.
 - Touch targets minimum: `2.5rem` (~40px) to meet accessibility guidelines
 - Preferred pattern: `clamp(2.5rem, 8vw, 3.5rem)` scales 40-56px across devices
 
+### DevTools Testing
+**IMPORTANT**: Drew tests mobile/tablet layouts using Chrome DevTools device simulation.
+
+DevTools limitations to be aware of:
+- `navigator.maxTouchPoints` returns 0 (no touch emulation by default)
+- `isMobile` detection via touch capability will fail
+- Media queries for viewport size and orientation work correctly
+
+**Best practice**: When detecting mobile/tablet for conditional rendering:
+- Use React state that updates on resize/orientation change
+- Combine touch detection (`isMobile`) with viewport-based fallback (`isTabletPortrait`)
+- Example: `(isMobile || isTabletPortrait)` where `isTabletPortrait` uses viewport width + orientation media query
+- State must re-render when viewport changes (use `useEffect` with resize + media query listeners)
+
 ## Data Source
 
-Equipment data is based on **Star Citizen v4.3.1** from community mining spreadsheets and in-game testing. Data may need updates with new game patches.
+Equipment data is based on **Star Citizen v4.6** from community mining spreadsheets and in-game testing. Data may need updates with new game patches.
 
 ## References
 

@@ -1,0 +1,104 @@
+.collapsible-panel {
+  background: var(--bg-medium);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapsible-panel.open {
+  overflow: visible;
+}
+
+.collapsible-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-medium) 100%);
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.collapsible-panel.collapsed .collapsible-header {
+  border-bottom: none;
+}
+
+.collapsible-header:hover {
+  background: linear-gradient(135deg, var(--bg-light) 0%, var(--bg-light) 100%);
+}
+
+.collapsible-title {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  position: relative;
+  flex: 1;
+}
+
+.collapsible-title .panel-label {
+  flex-shrink: 0;
+}
+
+.collapsible-title .panel-name {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--accent-gold);
+  font-weight: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.collapsible-arrow {
+  color: var(--accent-blue);
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+
+.collapsible-panel.open .collapsible-content {
+  max-height: 5000px;
+  overflow: visible;
+  transition: max-height 0.5s ease-in;
+}
+
+/* Hide headers inside wrapped components */
+.collapsible-content .config-manager > h2,
+.collapsible-content .mining-group-manager > h2,
+.collapsible-content .lasers-setup .lasers-header,
+.collapsible-content .ship-pool-manager .ship-pool-header h2 {
+  display: none;
+}
+
+/* Adjust padding inside collapsed content */
+.collapsible-content .config-manager,
+.collapsible-content .mining-group-manager,
+.collapsible-content .lasers-setup,
+.collapsible-content .ship-pool-manager {
+  padding: 1rem;
+}
+
+/* Remove panel styling from nested components */
+.collapsible-content .panel {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+}

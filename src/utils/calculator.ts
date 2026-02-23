@@ -148,6 +148,51 @@ export function calculateLaserResistModifier(laser: LaserConfiguration, passiveO
 }
 
 /**
+ * Calculate instability modifier for a single laser with its modules
+ *
+ * Stacking logic (same as resistance):
+ * - Module instability percentages ADD together (e.g., two -10% = -20%)
+ * - The combined module modifier is then MULTIPLIED by the laser head modifier
+ *
+ * Example: Laser (0.65x = -35%) + Module (0.9x = -10%) + Module (0.9x = -10%)
+ *   Module sum: -0.10 + -0.10 = -0.20 → 0.80 multiplier
+ *   Combined: 0.65 × 0.80 = 0.52x total modifier (48% reduction)
+ *
+ * @param passiveOnly - If true, only include passive modules (for back-calculating base values from scans)
+ */
+export function calculateLaserInstabilityModifier(laser: LaserConfiguration, passiveOnly: boolean = false): number {
+  if (!laser.laserHead) return 1;
+
+  // Start with the laser head's instability modifier (default to 1 if not defined)
+  const laserInstabilityMod = laser.laserHead.instabilityModifier ?? 1;
+
+  // Sum module instability percentages (convert from multiplier to percentage first)
+  // instabilityModifier of 0.8 = -20% = -0.20, instabilityModifier of 1.1 = +10% = 0.10
+  let modulePercentageSum = 0;
+  laser.modules.forEach((module, index) => {
+    if (module && module.instabilityModifier !== undefined) {
+      // Skip active modules if passiveOnly is true
+      if (passiveOnly && module.category === 'active') {
+        return;
+      }
+      // Passive modules are always active; active modules need explicit activation
+      const isActive = module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
+      if (isActive) {
+        // Convert multiplier to percentage and add
+        modulePercentageSum += (module.instabilityModifier - 1);
+      }
+    }
+  });
+
+  // Convert summed percentages back to multiplier
+  const combinedModuleModifier = 1 + modulePercentageSum;
+
+  // Multiply laser modifier by combined module modifier
+  return laserInstabilityMod * combinedModuleModifier;
+}
+
+/**
  * Main calculation function based on Excel formulas
  *
  * @param scanGadgets - Optional array of gadgets marked "In Scan" for reverse calculation.
@@ -234,6 +279,9 @@ export function calculateBreakability(
   const adjustedResistance = Math.min(effectiveResistance, MAX_ADJUSTED_RESISTANCE);
   const totalCombinedModifier = totalResistModifier * gadgetModifier;
 
+  // Calculate instability using the dedicated calculator
+  const instabilityResult = calculateInstability(config, rock, gadgets, shipId);
+
   // Calculate base LP needed (from Excel: (Mass / (1 - (Resistance * 0.01))) / 5)
   const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
 
@@ -258,6 +306,9 @@ export function calculateBreakability(
     canBreak,
     powerMargin,
     powerMarginPercent,
+    // Instability results from dedicated calculator
+    totalInstabilityModifier: instabilityResult.totalModifier,
+    adjustedInstability: instabilityResult.adjustedInstability,
   };
 
   // Add resistance context if in modified mode
@@ -283,6 +334,70 @@ export function formatPower(power: number): string {
  */
 export function formatPercent(percent: number): string {
   return percent >= 0 ? `+${percent.toFixed(1)}%` : `${percent.toFixed(1)}%`;
+}
+
+/**
+ * Instability calculation result
+ */
+export interface InstabilityResult {
+  totalModifier: number; // Combined equipment + gadget instability modifier
+  adjustedInstability: number | undefined; // Rock instability after applying modifiers
+  equipmentModifier: number; // Just equipment (lasers + modules)
+  gadgetModifier: number; // Just gadgets
+}
+
+/**
+ * Calculate instability for a mining configuration
+ * Separate from breakability as instability is a distinct mining concern
+ *
+ * @param config - Mining configuration (lasers + modules)
+ * @param rock - Rock being mined (with optional instability value)
+ * @param gadgets - Active gadgets
+ * @param shipId - Ship type (for MOLE manned laser handling)
+ */
+export function calculateInstability(
+  config: MiningConfiguration,
+  rock: Rock,
+  gadgets: (Gadget | null)[] = [],
+  shipId?: string
+): InstabilityResult {
+  // Calculate total instability modifier from lasers
+  let equipmentModifier = 1;
+  config.lasers.forEach((laser) => {
+    if (laser.laserHead) {
+      // For MOLE in single ship mode, only count manned lasers
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          equipmentModifier *= calculateLaserInstabilityModifier(laser);
+        }
+      } else {
+        equipmentModifier *= calculateLaserInstabilityModifier(laser);
+      }
+    }
+  });
+
+  // Calculate gadget instability modifier
+  let gadgetModifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      gadgetModifier *= gadget.instabilityModifier;
+    }
+  });
+
+  // Combined modifier
+  const totalModifier = equipmentModifier * gadgetModifier;
+
+  // Calculate adjusted instability if rock has instability value
+  const adjustedInstability = rock.instability !== undefined
+    ? rock.instability * totalModifier
+    : undefined;
+
+  return {
+    totalModifier,
+    adjustedInstability,
+    equipmentModifier,
+    gadgetModifier,
+  };
 }
 
 /**
@@ -319,23 +434,37 @@ export function calculateGroupBreakability(
   // Calculate total laser power (sum from all active ships)
   let totalLaserPower = 0;
 
+  // Track how many ships are actually contributing power (lasers on)
+  // This is used for the multi-ship instability penalty
+  let shipsWithLasersOn = 0;
+
   // Collect all resistance modifiers from all active ships
   let allResistModifiers: number[] = [];
+
+  // Collect all instability modifiers from all active ships
+  let allInstabilityModifiers: number[] = [];
 
   activeShips.forEach((shipInstance) => {
     const config = shipInstance.config;
 
     // Add power from this ship's lasers (only manned lasers for MOLE)
+    let shipPower = 0;
     config.lasers.forEach((laser) => {
       // For MOLE, only count manned lasers
       if (shipInstance.ship.id === 'mole') {
         if (laser.isManned !== false) {
-          totalLaserPower += calculateLaserPower(laser);
+          shipPower += calculateLaserPower(laser);
         }
       } else {
-        totalLaserPower += calculateLaserPower(laser);
+        shipPower += calculateLaserPower(laser);
       }
     });
+    totalLaserPower += shipPower;
+
+    // Count this ship if it's contributing power (at least one laser on)
+    if (shipPower > 0) {
+      shipsWithLasersOn++;
+    }
 
     // Calculate this ship's resistance modifier from lasers only
     let shipResistMod = 1;
@@ -355,11 +484,30 @@ export function calculateGroupBreakability(
     });
 
     allResistModifiers.push(shipResistMod);
+
+    // Calculate this ship's instability modifier from lasers
+    let shipInstabilityMod = 1;
+    config.lasers.forEach((laser) => {
+      if (laser.laserHead) {
+        // For MOLE, only count manned lasers
+        if (shipInstance.ship.id === 'mole') {
+          if (laser.isManned !== false) {
+            shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
+          }
+        } else {
+          shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
+        }
+      }
+    });
+    allInstabilityModifiers.push(shipInstabilityMod);
   });
 
   // Multi-ship mining uses multiplicative stacking: all ship resistance modifiers multiply together
   // Verified in-game: resistance modifiers from multiple ships are multiplied
   const equipmentModifier = allResistModifiers.reduce((acc, mod) => acc * mod, 1);
+
+  // Multi-ship instability also uses multiplicative stacking
+  const equipmentInstabilityModifier = allInstabilityModifiers.reduce((acc, mod) => acc * mod, 1);
 
   // For modified resistance mode, calculate the scanning laser's modifier separately
   // This is used to reverse the modified resistance to derive the base value
@@ -382,6 +530,28 @@ export function calculateGroupBreakability(
       gadgetModifier *= gadget.resistModifier;
     }
   });
+
+  // Apply gadget instability modifiers
+  let gadgetInstabilityModifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      gadgetInstabilityModifier *= gadget.instabilityModifier;
+    }
+  });
+
+  // Calculate total instability modifier
+  const totalInstabilityModifier = equipmentInstabilityModifier * gadgetInstabilityModifier;
+
+  // Multi-ship instability penalty: base instability doubles for each additional ship WITH LASERS ON
+  // Only ships actually contributing power count toward the penalty
+  // 1 ship = ×1, 2 ships = ×2, 3 ships = ×4, 4 ships = ×8
+  const multiShipInstabilityPenalty = shipsWithLasersOn > 0
+    ? Math.pow(2, shipsWithLasersOn - 1)
+    : 1;
+
+  const adjustedInstability = rock.instability !== undefined
+    ? rock.instability * multiShipInstabilityPenalty * totalInstabilityModifier
+    : undefined;
 
   // Calculate scan gadget modifier (for reverse calculation - gadgets marked "In Scan")
   let scanGadgetModifier = 1;
@@ -431,6 +601,10 @@ export function calculateGroupBreakability(
     canBreak,
     powerMargin,
     powerMarginPercent,
+    // Instability results for multi-ship
+    totalInstabilityModifier,
+    adjustedInstability,
+    multiShipInstabilityPenalty,
   };
 
   // Add resistance context if in modified mode

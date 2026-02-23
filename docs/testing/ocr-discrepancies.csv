@@ -1,0 +1,82 @@
+Filename,Issue,OCR_Mass,OCR_Resist,OCR_Instab,OCR_Elements,Notes
+PARTIAL EXTRACTIONS - No data extracted,,,,,,
+Screenshot 2026-01-26 154931.png,PARTIAL,299,0,0.01,"hephaestanite, aluminum, inert",Could not extract scan data
+Screenshot 2026-01-26 161947G.png,PARTIAL,3600,21,29.13,"agricium, inert",Could not extract scan data (green resist)
+Screenshot 2026-01-26 192417G.png,PARTIAL,685,11,1.99,"laranite, corundum",Could not extract scan data (green resist)
+Screenshot 2026-01-26 193143.png,PARTIAL,NO IMAGE,,,,Could not extract scan data
+Screenshot 2026-01-27 003012.png,PARTIAL,9595,26,68.24,"taranite, corundum, inert",Could not extract scan data
+Screenshot 2026-01-27 003610G.png,PARTIAL,1292,7,3.13,corundum,Could not extract scan data (green resist)
+Screenshot 2026-01-27 003826G.png,PARTIAL,1003,12,3.98,"taranite, corundum",Could not extract scan data (green resist)
+Screenshot 2026-01-27 004250.png,PARTIAL,659,0,16.1,hephaestanite,Could not extract scan data
+Screenshot 2026-01-27 005839.png,PARTIAL,907,0,0,"tin, inert",Could not extract scan data
+Screenshot 2026-01-27 010020.png,PARTIAL,882,0,0,tin,Could not extract scan data
+Screenshot 2026-01-27 011543.png,PARTIAL,NO IMAGE,,,,Could not extract scan data
+Screenshot 2026-01-27 011551.png,PARTIAL,5757,40,60.63,"beryl, tin, inert",Could not extract scan data
+Screenshot 2026-01-27 012055.png,PARTIAL,7334,6,14.74,"corundum, inert",Could not extract scan data
+GARBLED INSTABILITY - Values impossibly high,,,,,,
+Screenshot 2026-01-27 012159.png,GARBLED INSTAB,25523,35%,250.63,"taranite, corundum",Instability 280083 - OCR garble
+Screenshot 2026-01-27 010903.png,GARBLED INSTAB,556,71%,24.87,"riccite, tin",Instability 2487 - OCR garble
+Screenshot 2026-01-27 014404.png,GARBLED INSTAB,14935,32%,117.47,"taranite, titanium",Instability 947 - OCR garble
+Screenshot 2026-01-27 011032.png,GARBLED INSTAB,815,39%,9.47,"riccite, tin",Instability 947 - OCR garble
+Screenshot 2026-01-26 192704G.png,GARBLED INSTAB,1343,21%,6.49,"laranite, corundum",Instability 549 - OCR garble (green resist)
+Screenshot 2026-01-26 164752.png,GARBLED INSTAB,1474,0%,0,aluminum,Instability 928 - OCR garble
+Screenshot 2026-01-27 003534G.png,GARBLED INSTAB,1149,7%,2.79,corundum,Instability 279 - possibly garbled (green resist)
+Screenshot 2026-01-27 012749.png,GARBLED INSTAB,3938,20%,2.53,"borase, titanium",Instability 253 - possibly garbled
+GARBLED RESISTANCE - Values over 100%,,,,,,
+Screenshot 2026-01-27 011622.png,GARBLED RESIST,503,34%,4.18,"beryl, tin, inert",Resistance 324% - OCR garble
+Screenshot 2026-01-27 011436.png,GARBLED RESIST,3314,36%,26.27,"beryl, tin, inert",Resistance 96% - possibly garbled
+Screenshot 2026-01-27 013935.png,GARBLED RESIST,19667,34%,111.87,"laranite, corundum",Resistance 94% - possibly garbled
+Screenshot 2026-01-27 012036.png,GARBLED RESIST,5619,33%,34.49,"agricium, corundum",Resistance 93% - possibly garbled
+GARBLED MASS - Values impossibly small,,,,,,
+Screenshot 2026-01-26 101355.png,GARBLED MASS,1623,33%,14.42,"taranite, titanium",Mass=1 - OCR garble
+Screenshot 2026-01-27 014424.png,GARBLED MASS,18829,26%,65,"gold, titanium",Mass=1 - OCR garble
+Screenshot 2026-01-26 164847.png,GARBLED MASS,5011,17%,22,"gold, aluminum",Mass=5 - OCR garble
+Screenshot 2026-01-26 165452G.png,GARBLED MASS,606,16%,3,"gold, aluminum",Mass=6 - OCR garble (green resist)
+Screenshot 2026-01-27 003313G.png,GARBLED MASS,809,26%,9,"taranite, corundum",Mass=8 - OCR garble (green resist)
+Screenshot 2026-01-26 045756.png,GARBLED MASS,16082,28%,59.38,"agricium, tungsten",Mass=18 - possibly garbled
+Screenshot 2026-01-27 012126.png,GARBLED MASS,1882,30%,11,"agricium, corundum",Mass=108 - possibly garbled
+MISSING RESISTANCE - OCR could not read,,,,,,
+Screenshot 2026-01-26 100602.png,NO RESIST,1701,0%,21,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 100623.png,NO RESIST,10872,0%,127.16,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 100634.png,NO RESIST,7855,0%,81.67,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 100716.png,NO RESIST,7550,0%,77,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 102250.png,NO RESIST,4741,6%,30.22,"titanium, hephaestanite",Resistance missing
+Screenshot 2026-01-26 154920.png,NO RESIST,3196,0%,43.45,aluminum,Resistance missing
+Screenshot 2026-01-26 154942.png,NO RESIST,151,0%,0,inert,Resistance missing + no elements
+Screenshot 2026-01-26 155016.png,NO RESIST,1329,0%,14.12,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 155029.png,NO RESIST,3626,0%,42.28,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 155213.png,NO RESIST,2059,0%,18,"hephaestanite, aluminum",Resistance missing
+Screenshot 2026-01-26 160911G.png,NO RESIST,1184,8%,7,"taranite, aluminum",Resistance missing (green resist)
+Screenshot 2026-01-26 161607.png,NO RESIST,7883,0%,0,aluminum,Resistance missing
+Screenshot 2026-01-26 165439.png,NO RESIST,93,0%,0,aluminum,Resistance missing + mass possibly garbled
+Screenshot 2026-01-26 190605.png,NO RESIST,11937,33%,50.79,"beryl, tungsten",Resistance missing
+Screenshot 2026-01-26 191032G.png,NO RESIST,3045,12%,9,"laranite, tungsten",Resistance missing (green resist)
+Screenshot 2026-01-26 191230G.png,NO RESIST,2061,16%,3,tungsten,Resistance missing (green resist)
+Screenshot 2026-01-26 191320.png,NO RESIST,1621,0%,0,tungsten,Resistance missing
+Screenshot 2026-01-27 003958.png,NO RESIST,279,8%,1,"taranite, corundum",Resistance missing + mass possibly garbled
+MISSING INSTABILITY - OCR could not read,,,,,,
+Screenshot 2026-01-26 101812.png,NO INSTAB,39587,25%,137,"gold, titanium",Instability missing
+Screenshot 2026-01-26 190944G.png,NO INSTAB,765,16%,8,taranite,Instability missing (green resist)
+Screenshot 2026-01-27 002944.png,NO INSTAB,8013,7%,17.29,corundum,Instability missing
+Screenshot 2026-01-27 002958.png,NO INSTAB,746,4%,8,"corundum, hephaestanite",Instability missing
+Screenshot 2026-01-27 003313G.png,NO INSTAB,809,26%,8,"taranite, corundum",Instability missing + mass garbled (green resist)
+Screenshot 2026-01-27 003930.png,NO INSTAB,1184,14%,3.65,"taranite, corundum",Instability missing
+Screenshot 2026-01-27 004208G.png,NO INSTAB,810,16%,4.02,"bexalite, corundum",Instability missing (green resist)
+Screenshot 2026-01-27 011055.png,NO INSTAB,1642,23%,8.5,"riccite, tin","Instability missing, no elements"
+Screenshot 2026-01-27 012805.png,NO INSTAB,785,41%,8.44,"bexalite, titanium",Instability missing
+Screenshot 2026-01-27 013935.png,NO INSTAB,19667,34%,111.9,"laranite, corundum",Instability missing + resist possibly garbled
+Screenshot 2026-01-27 014424.png,NO INSTAB,18829,26%,65,"gold, titanium",Instability missing + mass garbled
+MISSING ELEMENTS - OCR found no composition,,,,,,
+Screenshot 2026-01-26 154942.png,NO ELEMENTS,151,0%,0,inert,No elements + no resistance
+Screenshot 2026-01-26 162023.png,NO ELEMENTS,1338,0%,0,aluminum,No elements detected
+Screenshot 2026-01-26 192649G.png,NO ELEMENTS,565,7%,1,corundum,No elements detected (green resist)
+Screenshot 2026-01-27 003534G.png,NO ELEMENTS,1149,7%,2.79,corundum,No elements + instab possibly garbled (green resist)
+Screenshot 2026-01-27 003632G.png,NO ELEMENTS,1607,7%,3,corundum,No elements detected (green resist)
+Screenshot 2026-01-27 010628.png,NO ELEMENTS,5551,49%,110,"riccite, tin",No elements detected
+Screenshot 2026-01-27 010903.png,NO ELEMENTS,556,71%,24.87,"riccite, tin",No elements + instab garbled
+Screenshot 2026-01-27 010943.png,NO ELEMENTS,656,74%,32,"riccite, tin",No elements + resist possibly garbled
+Screenshot 2026-01-27 011032.png,NO ELEMENTS,815,39%,9.47,"riccite, tin",No elements + instab garbled
+Screenshot 2026-01-27 011055.png,NO ELEMENTS,1642,23%,8.48,"riccite, tin",No elements + instab missing
+Screenshot 2026-01-27 011128.png,NO ELEMENTS,624,52%,13,"riccite, tin",No elements detected
+Screenshot 2026-01-27 011220.png,NO ELEMENTS,992,56%,24.29,"riccite, tin",No elements detected
+Screenshot 2026-01-27 011301.png,NO ELEMENTS,224,38%,5,"riccite, tin",No elements detected

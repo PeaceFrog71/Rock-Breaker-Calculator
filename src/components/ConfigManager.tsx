@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { MiningConfiguration, Ship, ShipInstance } from '../types';
 import type { SavedShipConfig } from '../utils/storage';
 import {
@@ -23,6 +23,8 @@ interface ConfigManagerProps {
   onAddToGroup?: (shipInstance: ShipInstance) => void;
   // Called after a successful load (for closing drawers, etc.)
   onAfterLoad?: () => void;
+  // Hide the Save button (when moved to ShipSelector header)
+  hideSaveButton?: boolean;
 }
 
 export default function ConfigManager({
@@ -32,17 +34,24 @@ export default function ConfigManager({
   onLoad,
   onAddToGroup,
   onAfterLoad,
+  hideSaveButton,
 }: ConfigManagerProps) {
   const isGroupMode = !!onAddToGroup;
   const [savedConfigs, setSavedConfigs] = useState<SavedShipConfig[]>(
     getSavedShipConfigs()
   );
+
+  // Refresh saved configs when config name changes (e.g., after external save via modal)
+  useEffect(() => {
+    setSavedConfigs(getSavedShipConfigs());
+  }, [currentConfigName]);
+  // Internal save dialog state (for legacy Save button when not hidden)
   const [showDialog, setShowDialog] = useState(false);
   const [configName, setConfigName] = useState('');
 
   const handleSave = () => {
     if (!configName.trim()) {
-      alert('Please enter a configuration name');
+      alert('Please enter a ship name');
       return;
     }
 
@@ -121,8 +130,8 @@ export default function ConfigManager({
     <div className="config-manager panel">
       <h2>Ship Library</h2>
 
-      {/* Only show save/import actions in single ship mode */}
-      {!isGroupMode && currentShip && currentConfig && (
+      {/* Save button - only when not hidden (legacy location) */}
+      {!isGroupMode && currentShip && currentConfig && !hideSaveButton && (
         <div className="config-actions">
           <button className="btn-primary btn-icon-text" onClick={() => {
             setConfigName(currentConfigName || '');
@@ -131,28 +140,18 @@ export default function ConfigManager({
             <span className="btn-icon">💾</span>
             <span className="btn-label">Save Current</span>
           </button>
-          <label className="btn-secondary btn-icon-text">
-            <span className="btn-icon">📥</span>
-            <span className="btn-label">Import</span>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
-          </label>
         </div>
       )}
 
       {showDialog && (
         <div className="save-dialog">
-          <h3>Save Configuration</h3>
+          <h3>Save Ship</h3>
           <input
             type="text"
-            placeholder="Enter configuration name..."
+            placeholder="Enter ship name..."
             value={configName}
             onChange={(e) => setConfigName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSave()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
             autoFocus
           />
           <div className="dialog-actions">
@@ -207,27 +206,46 @@ export default function ConfigManager({
                   className="btn-load"
                   title={isGroupMode ? "Add to Mining Group" : "Load"}
                 >
-                  ▲
+                  <span className="btn-text">{isGroupMode ? "Add" : "Load"}</span>
+                  <span className="btn-emoji">▲</span>
                 </button>
                 <button
                   onClick={() => handleExport(config)}
                   className="btn-export"
                   title="Export"
                 >
-                  📤
+                  <span className="btn-text">Export</span>
+                  <span className="btn-emoji">📤</span>
                 </button>
                 <button
                   onClick={() => handleDelete(config.id, config.name)}
                   className="btn-delete"
                   title="Delete"
                 >
-                  🗑️
+                  <span className="btn-text">Delete</span>
+                  <span className="btn-emoji">🗑️</span>
                 </button>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Import button at the bottom */}
+      {!isGroupMode && (
+        <div className="import-action">
+          <label className="btn-import">
+            <span className="btn-text">Import</span>
+            <span className="btn-emoji">📥</span>
+            <input
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              style={{ display: 'none' }}
+            />
+          </label>
+        </div>
+      )}
     </div>
   );
 }

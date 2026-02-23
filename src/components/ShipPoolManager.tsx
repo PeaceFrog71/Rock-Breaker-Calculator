@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { MiningGroup, ShipInstance } from '../types';
 import ShipConfigModal from './ShipConfigModal';
-import { saveShipConfig, updateShipConfig, getSavedShipConfigs } from '../utils/storage';
+import { saveShipConfig, updateShipConfig, getSavedShipConfigs, saveMiningGroup, getSavedMiningGroups, updateMiningGroup } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
 import './ShipPoolManager.css';
 import './ConfigManager.css';
@@ -25,6 +25,46 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
     // Open modal to configure new ship
     setEditingShip(undefined);
     setIsModalOpen(true);
+  };
+
+  const handleClearGroup = () => {
+    if (miningGroup.ships.length === 0 && !miningGroup.name) return;
+    if (confirm('Remove all ships and reset group name?')) {
+      onChange({ ships: [], name: undefined });
+    }
+  };
+
+  const handleSaveGroup = () => {
+    if (miningGroup.ships.length === 0) {
+      alert('Add at least one ship before saving the group');
+      return;
+    }
+
+    const currentName = miningGroup.name || '';
+    const name = prompt('Enter a name for this mining group:', currentName);
+    if (!name || !name.trim()) return;
+
+    const trimmedName = name.trim();
+    const savedGroups = getSavedMiningGroups();
+    const existing = savedGroups.find(
+      (g) => g.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (existing) {
+      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
+        return;
+      }
+      const updated = updateMiningGroup(existing.id, trimmedName, miningGroup);
+      if (!updated) {
+        alert('Failed to update the existing group. Saving as a new group instead.');
+        saveMiningGroup(trimmedName, miningGroup);
+      }
+    } else {
+      saveMiningGroup(trimmedName, miningGroup);
+    }
+
+    // Update the group name in state
+    onChange({ ...miningGroup, name: trimmedName });
   };
 
   const handleEditShip = (ship: ShipInstance) => {
@@ -103,9 +143,19 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
           Mining Group
           {miningGroup.name && <span className="group-name">{miningGroup.name}</span>}
         </h2>
-        <button className="add-ship-button" onClick={handleAddShip}>
-          Add<br />Ship
-        </button>
+        <div className="header-buttons">
+          <div className="left-buttons">
+            <button className="add-ship-button" onClick={handleAddShip}>
+              Add<br />Ship
+            </button>
+            <button className="save-group-button" onClick={handleSaveGroup}>
+              Save<br />Group
+            </button>
+          </div>
+          <button className="clear-group-button" onClick={handleClearGroup}>
+            Clear
+          </button>
+        </div>
       </div>
 
       <div className="ship-pool-content">
@@ -165,21 +215,24 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     onClick={() => handleEditShip(ship)}
                     title="Edit ship configuration"
                   >
-                    ✏️
+                    <span className="btn-text">Edit</span>
+                    <span className="btn-emoji">✏️</span>
                   </button>
                   <button
                     className="save-library-button"
                     onClick={() => handleSaveShipToLibrary(ship)}
                     title="Save to Ship Library"
                   >
-                    💾
+                    <span className="btn-text">Save</span>
+                    <span className="btn-emoji">💾</span>
                   </button>
                   <button
                     className="remove-button"
                     onClick={() => handleRemoveShip(ship.id)}
                     title="Remove ship from group"
                   >
-                    🗑️
+                    <span className="btn-text">Remove</span>
+                    <span className="btn-emoji">🗑️</span>
                   </button>
                 </div>
               </div>

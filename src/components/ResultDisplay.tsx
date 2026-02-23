@@ -52,7 +52,7 @@ interface ShipOffsets {
 
 const SHIP_OFFSETS: Record<string, ShipOffsets> = {
   golem: {
-    laser: { x: 0, y: -18 },
+    laser: { x: 10, y: -18 }, // Adjusted: right 10
     scanIcon: { x: -62 },
     moduleButtons: { x: -55 },
   },
@@ -62,7 +62,7 @@ const SHIP_OFFSETS: Record<string, ShipOffsets> = {
     moduleButtons: { x: -25 },
   },
   prospector: {
-    laser: { x: 0, y: -10 },
+    laser: { x: 55, y: -3 }, // Adjusted: left 4, down 3
     scanIcon: { x: -72 },
     moduleButtons: { x: -33 },
   },
@@ -84,16 +84,26 @@ interface LaserBeamProps {
 
 // Tablet-specific laser using vw units for positioning
 // Renders at rock-display level, not inside rock-container
-function TabletLaser({ shipId, laserCount = 1, rockMass = 10000 }: { shipId: string; laserCount?: number; rockMass?: number }) {
+function TabletLaser({
+  shipId,
+  laserCount = 1,
+  rockMass = 10000,
+}: {
+  shipId: string;
+  laserCount?: number;
+  rockMass?: number;
+}) {
   // Ship center at 50% - 20vw, rock center at 50% + 23vw
   // Per-ship horizontal offset from ship center (vw units) - laser starts from ship's right edge
   const shipOffsets: Record<string, { x: number; y: number }> = {
-    prospector: { x: 15, y: 0 },   // 50% - 15vw (5vw right of ship center)
-    golem: { x: 16, y: -2 },       // 50% - 16vw (4vw right of ship center), up 2vw
-    mole: { x: 13, y: 0 },         // 50% - 13vw (7vw right of ship center)
+    prospector: { x: 15, y: 0 }, // 50% - 15vw (5vw right of ship center)
+    golem: { x: 16, y: -2 }, // 50% - 16vw (4vw right of ship center), up 2vw
+    mole: { x: 13, y: 0 }, // 50% - 13vw (7vw right of ship center)
   };
+
   const offsets = shipOffsets[shipId] || { x: 15, y: 0 };
-  const width = offsets.x + 23;  // offset + rock position (23vw)
+  const rockOffset = 23; // Rock position: 50% + 23vw
+  const width = offsets.x + rockOffset; // offset + rock position
   const beamHeight = 20;
 
   // Scale laser spread based on rock size
@@ -240,6 +250,7 @@ interface ResultDisplayProps {
   gadgets: (Gadget | null)[];
   gadgetEnabled?: boolean[];
   onToggleGadget?: (index: number) => void;
+  needsGadgetScanInfo?: boolean;
   miningGroup?: MiningGroup;
   onToggleShip?: (shipId: string) => void;
   onToggleLaser?: (shipId: string, laserIndex: number) => void;
@@ -267,6 +278,7 @@ export default function ResultDisplay({
   gadgets,
   gadgetEnabled,
   onToggleGadget,
+  needsGadgetScanInfo,
   miningGroup,
   selectedShip,
   config,
@@ -283,14 +295,58 @@ export default function ResultDisplay({
   // Mobile detection via shared hook
   const isMobile = useMobileDetection();
   // Phone vs tablet detection (phones < 768px)
-  const [isPhone, setIsPhone] = useState(typeof window !== 'undefined' && window.innerWidth < 768);
-  const [mobileModalShip, setMobileModalShip] = useState<ShipInstance | null>(null);
+  const [isPhone, setIsPhone] = useState(
+    typeof window !== "undefined" && window.innerWidth < 768
+  );
+  // Tablet portrait detection for DevTools simulation (re-renders on viewport change)
+  const [isTabletPortrait, setIsTabletPortrait] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const w = window.innerWidth;
+    return (
+      w >= 768 &&
+      w <= 1180 &&
+      window.matchMedia("(orientation: portrait)").matches
+    );
+  });
+  const [mobileModalShip, setMobileModalShip] = useState<ShipInstance | null>(
+    null
+  );
   const [showMobileModal, setShowMobileModal] = useState(false);
+  // Mobile hint: show "Tap ship for controls" until user taps a ship
+  const [showShipHint, setShowShipHint] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !window.localStorage.getItem("ship-hint-dismissed");
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
-    const handleResize = () => setIsPhone(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const updateViewportState = () => {
+      setIsPhone(window.innerWidth < 768);
+      const w = window.innerWidth;
+      setIsTabletPortrait(
+        w >= 768 &&
+          w <= 1180 &&
+          window.matchMedia("(orientation: portrait)").matches
+      );
+    };
+
+    // Listen for resize events
+    window.addEventListener("resize", updateViewportState);
+
+    // Also listen for media query changes (catches DevTools device switches)
+    const portraitQuery = window.matchMedia("(orientation: portrait)");
+    portraitQuery.addEventListener("change", updateViewportState);
+
+    // Initial check after mount
+    updateViewportState();
+
+    return () => {
+      window.removeEventListener("resize", updateViewportState);
+      portraitQuery.removeEventListener("change", updateViewportState);
+    };
   }, []);
 
   // Flying ship easter egg - appears every 5-10 minutes
@@ -303,7 +359,8 @@ export default function ResultDisplay({
     "from-left" | "from-right"
   >("from-left");
   const [flyingShipScale, setFlyingShipScale] = useState(1); // Random scale 0.5-1.0
-  const [overchargeWarningExpanded, setOverchargeWarningExpanded] = useState(false);
+  const [overchargeWarningExpanded, setOverchargeWarningExpanded] =
+    useState(false);
   const [showDataDrawer, setShowDataDrawer] = useState(false);
 
   // Helper to scale flyby ship dimensions with random reduction (keeps integers)
@@ -382,28 +439,46 @@ export default function ResultDisplay({
 
   // Check if we're in the "possible break" zone for showing the warning
   // Exclude zero power - that's just "cannot break", not "possible break"
-  const isPossibleBreak = !result.canBreak && result.totalLaserPower > 0 && result.powerMarginPercent >= -15;
+  const isPossibleBreak =
+    !result.canBreak &&
+    result.totalLaserPower > 0 &&
+    result.powerMarginPercent >= -15;
 
-  // Check if MOLE needs scan info before showing break result
-  // In Modified mode, MOLE needs to know which laser scanned to reverse-calculate base resistance
-  const moleNeedsScanInfo = (() => {
-    if (rock.resistanceMode !== 'modified') return false;
+  // Check if we need more scan info before showing break result
+  // In Modified mode, we need to know which ship/laser scanned to reverse-calculate base resistance
+  // Also, if "Gadgets in Scan" is checked, at least one gadget must be marked "In Scan"
+  const needsLaserScanInfo = (() => {
+    if (rock.resistanceMode !== "modified") return false;
 
-    // Single ship mode - check if MOLE without scanning laser selected
-    if (!miningGroup && selectedShip?.id === 'mole') {
+    // Single ship mode - MOLE needs scanning laser selected
+    if (!miningGroup && selectedShip?.id === "mole") {
       return rock.scannedByLaserIndex === undefined;
     }
 
-    // Multi-ship mode - check if scanned by a MOLE without laser index
-    if (miningGroup && rock.scannedByShipId) {
-      const scannedShip = miningGroup.ships.find(s => s.id === rock.scannedByShipId);
-      if (scannedShip?.ship.id === 'mole' && rock.scannedByLaserIndex === undefined) {
+    // Multi-ship mode - need scanning ship selected
+    if (miningGroup) {
+      if (!rock.scannedByShipId) return true;
+
+      // Verify scanning ship still exists in the group (may have been removed)
+      const scannedShip = miningGroup.ships.find(
+        (s) => s.id === rock.scannedByShipId
+      );
+      if (!scannedShip) return true;
+
+      // If scanning ship is a MOLE, also need the specific laser index
+      if (
+        scannedShip.ship.id === "mole" &&
+        rock.scannedByLaserIndex === undefined
+      ) {
         return true;
       }
     }
 
     return false;
   })();
+
+  // Combined: block break assessment when any scan info is missing
+  const needsScanInfo = needsLaserScanInfo || !!needsGadgetScanInfo;
 
   const powerPercentage =
     result.adjustedLPNeeded > 0
@@ -417,36 +492,34 @@ export default function ResultDisplay({
   // Get asteroid size in vh units (viewport-relative for consistent scaling)
   // Returns { size: number, unit: 'vh' } for portrait mobile, px for desktop
   const getAsteroidSize = () => {
-    const isPortraitMobile = isMobile && window.matchMedia('(orientation: portrait)').matches;
+    const isPortraitMobile =
+      isMobile && window.matchMedia("(orientation: portrait)").matches;
 
     if (isPortraitMobile) {
       // vh units for portrait mobile - scales with viewport
-      if (rock.mass < 5000) return { width: 12, height: 12, unit: 'vh' }; // Tiny
-      if (rock.mass < 10000) return { width: 18, height: 18, unit: 'vh' }; // Small
-      if (rock.mass < 25000) return { width: 24, height: 24, unit: 'vh' }; // Medium
-      if (rock.mass < 50000) return { width: 30, height: 30, unit: 'vh' }; // Large
-      return { width: 36, height: 36, unit: 'vh' }; // Huge (>= 50,000)
+      if (rock.mass < 5000) return { width: 12, height: 12, unit: "vh" }; // Tiny
+      if (rock.mass < 10000) return { width: 18, height: 18, unit: "vh" }; // Small
+      if (rock.mass < 25000) return { width: 24, height: 24, unit: "vh" }; // Medium
+      if (rock.mass < 50000) return { width: 30, height: 30, unit: "vh" }; // Large
+      return { width: 36, height: 36, unit: "vh" }; // Huge (>= 50,000)
     }
 
     // px units for desktop/landscape
-    if (rock.mass < 5000) return { width: 100, height: 100, unit: 'px' }; // Tiny
-    if (rock.mass < 10000) return { width: 175, height: 175, unit: 'px' }; // Small
-    if (rock.mass < 25000) return { width: 250, height: 250, unit: 'px' }; // Medium
-    if (rock.mass < 50000) return { width: 325, height: 325, unit: 'px' }; // Large
-    return { width: 400, height: 400, unit: 'px' }; // Huge (>= 50,000)
+    if (rock.mass < 5000) return { width: 100, height: 100, unit: "px" }; // Tiny
+    if (rock.mass < 10000) return { width: 175, height: 175, unit: "px" }; // Small
+    if (rock.mass < 25000) return { width: 250, height: 250, unit: "px" }; // Medium
+    if (rock.mass < 50000) return { width: 325, height: 325, unit: "px" }; // Large
+    return { width: 400, height: 400, unit: "px" }; // Huge (>= 50,000)
   };
 
   // Get rock size class for CSS targeting
   const getRockSizeClass = () => {
-    if (rock.mass < 5000) return 'rock-tiny';
-    if (rock.mass < 10000) return 'rock-small';
-    if (rock.mass < 25000) return 'rock-medium';
-    if (rock.mass < 50000) return 'rock-large';
-    return 'rock-huge';
+    if (rock.mass < 5000) return "rock-tiny";
+    if (rock.mass < 10000) return "rock-small";
+    if (rock.mass < 25000) return "rock-medium";
+    if (rock.mass < 50000) return "rock-large";
+    return "rock-huge";
   };
-
-  // All rocks centered at the same position (no vertical offset)
-  const rockVerticalOffset = 0;
 
   // Get ship icon based on ship type
   const getShipIcon = (shipId: string) => {
@@ -473,6 +546,11 @@ export default function ResultDisplay({
     if (isMobile) {
       setMobileModalShip(shipInstance);
       setShowMobileModal(true);
+      // Dismiss the "tap ship" hint permanently
+      if (showShipHint) {
+        setShowShipHint(false);
+        localStorage.setItem("ship-hint-dismissed", "true");
+      }
     }
   };
 
@@ -485,8 +563,8 @@ export default function ResultDisplay({
         id: selectedShip.id,
         name: selectedShip.name,
         laserSlots: config.lasers.length,
-        maxLaserSize: selectedShip.id === 'mole' ? 2 : 1,
-        description: ''
+        maxLaserSize: selectedShip.id === "mole" ? 2 : 1,
+        description: "",
       },
       name: configName || selectedShip.name,
       config: config,
@@ -496,10 +574,16 @@ export default function ResultDisplay({
 
   return (
     <div className="result-display">
-      {moleNeedsScanInfo ? (
+      {needsScanInfo ? (
         <div className="status-indicator need-scan-info">
           <h2>NEED SCAN INFO</h2>
-          <span className="need-scan-subtext">Tap ship to select scanning laser</span>
+          <span className="need-scan-subtext">
+            {needsLaserScanInfo && needsGadgetScanInfo
+              ? 'Select scanning ship/laser & mark gadgets "In Scan"'
+              : needsLaserScanInfo
+                ? "Select which ship/laser scanned this rock"
+                : 'Mark gadgets "In Scan" in Gadgets panel'}
+          </span>
         </div>
       ) : (
         <div
@@ -516,6 +600,10 @@ export default function ResultDisplay({
         }`}
         onClick={onToggleBackground}
         title="Click to change background">
+        {/* Mobile hint: "Tap ship for controls" - inside rock-display for proper positioning */}
+        {showShipHint && (
+          <div className="ship-tap-hint">Tap ship for controls</div>
+        )}
         {/* Flying ship easter egg */}
         {showFlyingShip && (
           <div
@@ -547,7 +635,8 @@ export default function ResultDisplay({
                     : scaleFlybyDimension(34),
                 imageRendering: "pixelated",
                 // GOLEM brightness adjusted (was 1.3, reduced 20%)
-                filter: flyingShipType === "golem" ? "brightness(1.04)" : undefined,
+                filter:
+                  flyingShipType === "golem" ? "brightness(1.04)" : undefined,
                 transform: (() => {
                   const parts: string[] = [];
                   if (flyingShipDirection === "from-left") {
@@ -562,19 +651,25 @@ export default function ResultDisplay({
           </div>
         )}
         {/* Tablet laser - rendered at rock-display level for fixed vw-based positioning */}
-        {/* Only for tablets (768px+), phones use in-container SVG laser */}
+        {/* For tablets (768px+) - works with touch OR portrait viewport simulation */}
         {!miningGroup &&
           selectedShip &&
-          isMobile &&
+          (isMobile ||
+            window.matchMedia(
+              "(orientation: portrait) and (min-width: 768px) and (max-width: 1180px)"
+            ).matches) &&
           window.innerWidth >= 768 &&
           config &&
-          (selectedShip.id !== 'mole' || getMannedLasers(config).length > 0) && (
-          <TabletLaser
-            shipId={selectedShip.id}
-            laserCount={selectedShip.id === 'mole' ? getMannedLasers(config).length : 1}
-            rockMass={rock.mass}
-          />
-        )}
+          (selectedShip.id !== "mole" ||
+            getMannedLasers(config).length > 0) && (
+            <TabletLaser
+              shipId={selectedShip.id}
+              laserCount={
+                selectedShip.id === "mole" ? getMannedLasers(config).length : 1
+              }
+              rockMass={rock.mass}
+            />
+          )}
         <div
           className="rock-container"
           onClick={(e) => e.stopPropagation()}
@@ -587,7 +682,8 @@ export default function ResultDisplay({
               const center = svgSize / 2;
               const asteroidSize = getAsteroidSize();
               const asteroidRadius = asteroidSize.width / 2;
-              const shipOffsets = SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
+              const shipOffsets =
+                SHIP_OFFSETS[selectedShip.id] || SHIP_OFFSETS.prospector;
 
               // Desktop: ship at 25% from left, rock at 75% from left
               // Mobile: keep original centered layout
@@ -646,9 +742,10 @@ export default function ResultDisplay({
                   }
                 } else {
                   // Tablet: use vw-based positioning
-                  laserStartX = center - (20 * vwInPx) + shipOffsets.laser.x + mobileAdjustX;
+                  laserStartX =
+                    center - 20 * vwInPx + shipOffsets.laser.x + mobileAdjustX;
                   laserStartY = center + shipOffsets.laser.y + mobileAdjustY;
-                  rockCenterX = center + (20 * vwInPx);
+                  rockCenterX = center + 20 * vwInPx;
                 }
               } else {
                 // Desktop: ship at 15% from left + 150px offset, rock at 85% from left
@@ -656,7 +753,8 @@ export default function ResultDisplay({
                 const rockPositionX = svgSize * 0.85; // 680px
                 // GOLEM laser starts a bit further right on desktop
                 const golemDesktopAdjust = selectedShip.id === "golem" ? 20 : 0;
-                laserStartX = shipPositionX + shipOffsets.laser.x + golemDesktopAdjust;
+                laserStartX =
+                  shipPositionX + shipOffsets.laser.x + golemDesktopAdjust;
                 laserStartY = center + shipOffsets.laser.y;
                 rockCenterX = rockPositionX;
               }
@@ -680,19 +778,32 @@ export default function ResultDisplay({
                   {(() => {
                     // Skip laser in this container for tablets - it's rendered separately with vw units
                     // Phones (width < 768) use this in-container SVG laser
-                    if (isMobile && window.innerWidth >= 768) {
+                    const isTabletViewport =
+                      isMobile ||
+                      window.matchMedia(
+                        "(orientation: portrait) and (min-width: 768px) and (max-width: 1180px)"
+                      ).matches;
+                    if (isTabletViewport && window.innerWidth >= 768) {
                       return null;
                     }
 
                     // For MOLE, only render lasers if there are manned lasers
                     if (isMole && numMannedLasers > 0) {
-                      const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
+                      const angleOffsets = calculateMoleLaserAngleOffsets(
+                        numMannedLasers,
+                        rock.mass
+                      );
 
                       return (
                         <>
                           {angleOffsets.map((angleOffset, laserIndex) => {
-                            const laserLength = Math.abs(laserEndX - laserStartX);
-                            const yOffset = calculateLaserYOffset(angleOffset, laserLength);
+                            const laserLength = Math.abs(
+                              laserEndX - laserStartX
+                            );
+                            const yOffset = calculateLaserYOffset(
+                              angleOffset,
+                              laserLength
+                            );
 
                             const offsetEndX = laserEndX;
                             const offsetEndY = laserEndY + yOffset;
@@ -749,24 +860,31 @@ export default function ResultDisplay({
 
                   {/* Ship icon */}
                   <div
-                    className={`ship-icon active ship-${selectedShip.id} ${isMobile ? 'mobile-tappable' : ''}`}
-                    style={isMobile ? {
-                      // Mobile: ship on left side
-                      position: "absolute",
-                      top: "50%",
-                      // Phones: fixed position that doesn't change with rock size
-                      // Tablets: center then shift left with transform
-                      left: window.innerWidth < 768 ? "-5vw" : "50%",
-                      transform: window.innerWidth < 768
-                        ? "translateY(-50%)"  // Phone: only center vertically
-                        : "translate(calc(-50% - 20vw), -50%)",  // Tablet: vw-based
-                    } : {
-                      // Desktop: ship positioned left (moved right 150px)
-                      position: "absolute",
-                      top: "50%",
-                      left: "calc(15% - 130px)",
-                      transform: "translate(-50%, -50%)",
-                    }}
+                    className={`ship-icon active ship-${selectedShip.id} ${
+                      isMobile ? "mobile-tappable" : ""
+                    }`}
+                    style={
+                      isMobile
+                        ? {
+                            // Mobile: ship on left side
+                            position: "absolute",
+                            top: "50%",
+                            // Phones: fixed position that doesn't change with rock size
+                            // Tablets: center then shift left with transform
+                            left: window.innerWidth < 768 ? "-5vw" : "50%",
+                            transform:
+                              window.innerWidth < 768
+                                ? "translateY(-50%)" // Phone: only center vertically
+                                : "translate(calc(-50% - 20vw), -50%)", // Tablet: vw-based
+                          }
+                        : {
+                            // Desktop: ship positioned left (moved right 150px)
+                            position: "absolute",
+                            top: "50%",
+                            left: "calc(15% - 130px)",
+                            transform: "translate(-50%, -50%)",
+                          }
+                    }
                     onClick={(e) => {
                       e.stopPropagation();
                       if (isMobile) {
@@ -784,7 +902,12 @@ export default function ResultDisplay({
                       const hasActiveLasers = !isMole || numMannedLasers > 0;
                       // Use phone config for phones, desktop config otherwise
                       const isPhone = window.innerWidth < 768;
-                      const shipImageConfig = getShipImageConfig(selectedShip.id, false, false, isPhone && isMobile);
+                      const shipImageConfig = getShipImageConfig(
+                        selectedShip.id,
+                        false,
+                        false,
+                        isPhone && isMobile
+                      );
                       const shipImage = SHIP_IMAGES[selectedShip.id];
 
                       if (shipImageConfig && shipImage) {
@@ -821,53 +944,64 @@ export default function ResultDisplay({
                     <div className="ship-label" title={selectedShip.name}>
                       {configName || getShortShipName(selectedShip.name)}
                     </div>
-
                   </div>
 
                   {/* Scanning sensor for Prospector/GOLEM (single-laser ships) - positioned to the left of ship */}
                   {onSetScanningShip &&
-                   rock.resistanceMode === 'modified' &&
-                   (selectedShip.id === 'prospector' || selectedShip.id === 'golem') &&
-                   config &&
-                   config.lasers[0]?.laserHead &&
-                   config.lasers[0].laserHead.id !== 'none' && (
-                    <span
-                      className={`scanning-sensor ${
-                        rock.scannedByShipId === selectedShip.id && rock.scannedByLaserIndex === 0
-                          ? 'selected' : ''
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        onSetScanningShip(selectedShip.id, 0);
-                      }}
-                      title={isMobile ? "Tap to mark as scanning ship" : "Click to mark as scanning ship"}
-                      style={isMobile ? {
-                        // Mobile: position above ship (original layout)
-                        position: "absolute",
-                        top: "calc(50% - 10vh)",
-                        left: "calc(50% - 220px)",
-                        transform: "translate(-50%, 0)",
-                        cursor: "pointer",
-                        pointerEvents: "auto",
-                        zIndex: 10,
-                        fontSize: "0.75rem"
-                      } : {
-                        // Desktop: controls left of ship (moved left 150px)
-                        position: "absolute",
-                        top: "calc(50% - 10px)",
-                        left: "calc(50% - 430px)",
-                        transform: "translate(-50%, -50%)",
-                        cursor: "pointer",
-                        pointerEvents: "auto",
-                        zIndex: 10
-                      }}>
-                      📡
-                    </span>
-                  )}
+                    rock.resistanceMode === "modified" &&
+                    (selectedShip.id === "prospector" ||
+                      selectedShip.id === "golem") &&
+                    config &&
+                    config.lasers[0]?.laserHead &&
+                    config.lasers[0].laserHead.id !== "none" && (
+                      <span
+                        className={`scanning-sensor ${
+                          rock.scannedByShipId === selectedShip.id &&
+                          rock.scannedByLaserIndex === 0
+                            ? "selected"
+                            : ""
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onSetScanningShip(selectedShip.id, 0);
+                        }}
+                        title={
+                          isMobile
+                            ? "Tap to mark as scanning ship"
+                            : "Click to mark as scanning ship"
+                        }
+                        style={
+                          isMobile
+                            ? {
+                                // Mobile: position above ship (original layout)
+                                position: "absolute",
+                                top: "calc(50% - 10vh)",
+                                left: "calc(50% - 220px)",
+                                transform: "translate(-50%, 0)",
+                                cursor: "pointer",
+                                pointerEvents: "auto",
+                                zIndex: 10,
+                                fontSize: "0.75rem",
+                              }
+                            : {
+                                // Desktop: controls left of ship (moved left 150px)
+                                position: "absolute",
+                                top: "calc(50% - 10px)",
+                                left: "calc(50% - 430px)",
+                                transform: "translate(-50%, -50%)",
+                                cursor: "pointer",
+                                pointerEvents: "auto",
+                                zIndex: 10,
+                              }
+                        }>
+                        📡
+                      </span>
+                    )}
 
                   {/* Active module controls for Prospector/GOLEM (single-laser ships) */}
-                  {(selectedShip.id === 'prospector' || selectedShip.id === 'golem') &&
+                  {(selectedShip.id === "prospector" ||
+                    selectedShip.id === "golem") &&
                     config &&
                     onToggleModule &&
                     (() => {
@@ -892,34 +1026,40 @@ export default function ResultDisplay({
                         isActive: boolean;
                       }>;
 
-                      if (!activeModules || activeModules.length === 0) return null;
+                      if (!activeModules || activeModules.length === 0)
+                        return null;
 
                       return (
                         <div
                           className="laser-controls"
-                          style={isMobile ? {
-                            // Mobile: original layout (hidden by CSS anyway)
-                            position: "absolute",
-                            top: "calc(50% - 15px)",
-                            left: "calc(50% - 220px - 30px)",
-                            transform: "translate(-100%, -50%)",
-                            display: "flex",
-                            flexDirection: "row",
-                            gap: "0.25rem",
-                            pointerEvents: "auto",
-                            alignItems: "center",
-                          } : {
-                            // Desktop: left of ship (moved left 150px)
-                            position: "absolute",
-                            top: "calc(50% - 15px)",
-                            left: "calc(50% - 460px)",
-                            transform: "translate(-100%, -50%)",
-                            display: "flex",
-                            flexDirection: "row",
-                            gap: "0.25rem",
-                            pointerEvents: "auto",
-                            alignItems: "center",
-                          }}
+                          style={
+                            (isMobile || isTabletPortrait)
+                              ? {
+                                  // Mobile/tablet: position above the ship
+                                  position: "absolute",
+                                  top: "calc(50% - 12vh)",
+                                  left: "5vw",
+                                  transform: "translateY(-100%)",
+                                  display: "flex",
+                                  flexDirection: "row",
+                                  gap: "0.5rem",
+                                  pointerEvents: "auto",
+                                  alignItems: "center",
+                                  zIndex: 20,
+                                }
+                              : {
+                                  // Desktop: left of ship, aligned with ship center
+                                  position: "absolute",
+                                  top: "calc(50% - 25px)",
+                                  left: "calc(15% - 185px)",
+                                  transform: "translate(-100%, -50%)",
+                                  display: "flex",
+                                  flexDirection: "row",
+                                  gap: "0.25rem",
+                                  pointerEvents: "auto",
+                                  alignItems: "center",
+                                }
+                          }
                           onClick={(e) => e.stopPropagation()}>
                           {activeModules.map((item) => (
                             <span
@@ -961,29 +1101,43 @@ export default function ResultDisplay({
                         }}
                         onClick={(e) => e.stopPropagation()}>
                         {/* Single sensor icon above all laser buttons - positioned absolutely */}
-                        {onSetScanningShip && rock.resistanceMode === 'modified' && (() => {
-                          const isSelected = rock.scannedByShipId === selectedShip.id;
-                          return (
-                            <span
-                              className={`scanning-sensor-mole ${isSelected ? 'selected' : ''}`}
-                              style={{
-                                position: "absolute",
-                                top: "-2rem",
-                                right: "0",
-                                fontSize: "1.5rem",
-                                opacity: isSelected ? 1 : 0.8,
-                                filter: isSelected
-                                  ? "brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9))"
-                                  : "drop-shadow(0 0 4px rgba(0, 255, 204, 0.6))",
-                                pointerEvents: "auto",
-                              }}
-                              title={isSelected ? "This ship scanned the rock" : "Click a laser's radio button to select scanning laser"}>
-                              📡
-                            </span>
-                          );
-                        })()}
+                        {onSetScanningShip &&
+                          rock.resistanceMode === "modified" &&
+                          (() => {
+                            const isSelected =
+                              rock.scannedByShipId === selectedShip.id;
+                            return (
+                              <span
+                                className={`scanning-sensor-mole ${
+                                  isSelected ? "selected" : ""
+                                }`}
+                                style={{
+                                  position: "absolute",
+                                  top: "-2rem",
+                                  right: "0",
+                                  fontSize: "1.5rem",
+                                  opacity: isSelected ? 1 : 0.8,
+                                  filter: isSelected
+                                    ? "brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9))"
+                                    : "drop-shadow(0 0 4px rgba(0, 255, 204, 0.6))",
+                                  pointerEvents: "auto",
+                                }}
+                                title={
+                                  isSelected
+                                    ? "This ship scanned the rock"
+                                    : "Click a laser's radio button to select scanning laser"
+                                }>
+                                📡
+                              </span>
+                            );
+                          })()}
                         {/* Vertical stack of laser buttons */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.5rem",
+                          }}>
                           {[0, 1, 2].map((laserIndex) => {
                             const isLaserManned =
                               config.lasers[laserIndex]?.isManned !== false;
@@ -1016,7 +1170,9 @@ export default function ResultDisplay({
                               isActive: boolean;
                             }>;
 
-                            const isScanning = rock.scannedByShipId === selectedShip.id && rock.scannedByLaserIndex === laserIndex;
+                            const isScanning =
+                              rock.scannedByShipId === selectedShip.id &&
+                              rock.scannedByLaserIndex === laserIndex;
 
                             return (
                               <div
@@ -1041,33 +1197,53 @@ export default function ResultDisplay({
                                     L{laserIndex + 1}
                                   </button>
                                   {/* Radio button indicator for scanning ship */}
-                                  {onSetScanningShip && rock.resistanceMode === 'modified' && laserHead && laserHead.id !== 'none' && (
-                                    <span
-                                      className={`scanning-radio ${isScanning ? 'selected' : ''}`}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        onSetScanningShip(selectedShip.id, laserIndex);
-                                      }}
-                                      title={isScanning ? "This laser scanned the rock" : "Click to select as scanning laser"}
-                                      style={{
-                                        position: "absolute",
-                                        bottom: "-4px",
-                                        right: "-4px",
-                                        width: "12px",
-                                        height: "12px",
-                                        borderRadius: "50%",
-                                        border: "2px solid var(--accent-cyan)",
-                                        backgroundColor: isScanning ? "var(--accent-cyan)" : "#000",
-                                        cursor: "pointer",
-                                        boxShadow: isScanning ? "0 0 8px rgba(0, 255, 204, 0.8)" : "none"
-                                      }}>
-                                    </span>
-                                  )}
+                                  {onSetScanningShip &&
+                                    rock.resistanceMode === "modified" &&
+                                    laserHead &&
+                                    laserHead.id !== "none" && (
+                                      <span
+                                        className={`scanning-radio ${
+                                          isScanning ? "selected" : ""
+                                        }`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          onSetScanningShip(
+                                            selectedShip.id,
+                                            laserIndex
+                                          );
+                                        }}
+                                        title={
+                                          isScanning
+                                            ? "This laser scanned the rock"
+                                            : "Click to select as scanning laser"
+                                        }
+                                        style={{
+                                          position: "absolute",
+                                          bottom: "-4px",
+                                          right: "-4px",
+                                          width: "12px",
+                                          height: "12px",
+                                          borderRadius: "50%",
+                                          border:
+                                            "2px solid var(--accent-cyan)",
+                                          backgroundColor: isScanning
+                                            ? "var(--accent-cyan)"
+                                            : "#000",
+                                          cursor: "pointer",
+                                          boxShadow: isScanning
+                                            ? "0 0 8px rgba(0, 255, 204, 0.8)"
+                                            : "none",
+                                        }}></span>
+                                    )}
                                 </div>
                                 {/* Module buttons to the left - will stack left when added */}
                                 {activeModules && activeModules.length > 0 && (
                                   <div
-                                    style={{ display: "flex", gap: "0.25rem", order: 1 }}>
+                                    style={{
+                                      display: "flex",
+                                      gap: "0.25rem",
+                                      order: 1,
+                                    }}>
                                     {activeModules.map((item) => (
                                       <span
                                         key={item.moduleIndex}
@@ -1108,12 +1284,17 @@ export default function ResultDisplay({
           {miningGroup && miningGroup.ships.length > 0 && (
             <div className="ships-around-rock multi-ship-mode">
               {miningGroup.ships.map((shipInstance, index) => {
-                // Check for portrait multi-ship mode
-                const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-                const isPortraitMultiShip = isMobile && isPortrait;
-                // Ships-on-left for: portrait mobile, OR phones/vintage iPad in landscape (< 1024px)
+                // Check for portrait multi-ship mode (use isTabletPortrait for DevTools compatibility)
+                const isPortrait = window.matchMedia(
+                  "(orientation: portrait)"
+                ).matches;
+                const isPortraitMultiShip =
+                  (isMobile || isTabletPortrait) && isPortrait;
+                // Ships-on-left for: portrait mobile/tablet, OR phones/vintage iPad in landscape (< 1024px)
                 // Larger tablets (iPad Air 1180px, Surface Pro 1368px) use polar layout
-                const useShipsOnLeft = isPortraitMultiShip || (isMobile && window.innerWidth < 1024);
+                const useShipsOnLeft =
+                  isPortraitMultiShip ||
+                  ((isMobile || isTabletPortrait) && window.innerWidth < 1024);
 
                 // Positions: 60°, 120°, 240°, 300° (top is 0°, clockwise)
                 const positions = [60, 120, 240, 300];
@@ -1129,12 +1310,18 @@ export default function ResultDisplay({
                 // Upper ships (index 0 and 3) get extra upward adjustment
                 const yAdjustments = [-100, 0, 0, -100];
                 const x = Math.cos((adjustedAngle * Math.PI) / 180) * radius;
-                const y = Math.sin((adjustedAngle * Math.PI) / 180) * radius + yOffset + (yAdjustments[index] || 0);
+                const y =
+                  Math.sin((adjustedAngle * Math.PI) / 180) * radius +
+                  yOffset +
+                  (yAdjustments[index] || 0);
                 const isActive = shipInstance.isActive !== false;
 
-                // Portrait mode: evenly distributed from 17% to 92% of container height
-                // Index 0 = bottom (92%), index 3 = top (17%)
-                const portraitYPercents = [92, 67, 42, 17];
+                // Portrait mode: evenly distributed vertically
+                // Index 0 = bottom, index 3 = top
+                // Tablet portrait: shifted up to keep labels out of padding
+                const portraitYPercents = isTabletPortrait
+                  ? [85, 62, 39, 16] // Tablet: shifted up 5-7%
+                  : [92, 67, 42, 17]; // Phone: original positions
                 const portraitYPercent = portraitYPercents[index] ?? 50;
 
                 // Check if this ship has any manned lasers (with laser heads configured)
@@ -1151,8 +1338,12 @@ export default function ResultDisplay({
                       (() => {
                         const svgSize = 800;
                         const center = svgSize / 2;
-                        const isPortrait = window.matchMedia('(orientation: portrait)').matches;
-                        const isPortraitMultiShip = isMobile && isPortrait;
+                        const isPortrait = window.matchMedia(
+                          "(orientation: portrait)"
+                        ).matches;
+                        // Use isTabletPortrait state for DevTools compatibility
+                        const isPortraitMultiShip =
+                          (isMobile || isTabletPortrait) && isPortrait;
 
                         // Mobile multi-ship mode: ships are CSS-positioned on left, rock on right
                         // Override coordinates to match the CSS layout
@@ -1161,9 +1352,12 @@ export default function ResultDisplay({
                         let rockCenterEndX: number;
                         const rockCenterEndY = center;
 
-                        // Ships-on-left layout for: portrait mobile, OR phones/vintage iPad in landscape (< 1024px)
+                        // Ships-on-left layout for: portrait mobile/tablet, OR phones/vintage iPad in landscape (< 1024px)
                         // Larger tablets (iPad Air, Surface Pro) in landscape use polar layout
-                        const useShipsOnLeft = isPortraitMultiShip || (isMobile && window.innerWidth < 1024);
+                        const useShipsOnLeft =
+                          isPortraitMultiShip ||
+                          ((isMobile || isTabletPortrait) &&
+                            window.innerWidth < 1024);
 
                         if (useShipsOnLeft) {
                           // Ships-on-left mode: ships on left (CSS left:0), rock on right (offset 25vw)
@@ -1174,7 +1368,8 @@ export default function ResultDisplay({
                           // - Container has aspect-ratio 3:4, so height = width * 4/3
                           const viewportWidth = window.innerWidth;
                           const containerPadding = 32; // 1rem × 2 sides
-                          const containerWidth = viewportWidth - containerPadding;
+                          const containerWidth =
+                            viewportWidth - containerPadding;
                           const containerHeight = containerWidth * (4 / 3);
 
                           // SVG coordinate system: 800×800, centered on container
@@ -1185,7 +1380,7 @@ export default function ResultDisplay({
                           // Ship positions: CSS left: 0, top: percent%
                           // Ship image dimensions from portrait config (in vw):
                           const shipWidthsVW: Record<string, number> = {
-                            prospector: 17,  // from SHIP_IMAGE_CONFIG_PORTRAIT
+                            prospector: 17, // from SHIP_IMAGE_CONFIG_PORTRAIT
                             golem: 14,
                             mole: 24,
                           };
@@ -1194,11 +1389,15 @@ export default function ResultDisplay({
                             golem: 9.1,
                             mole: 15.6,
                           };
-                          const shipWidthVW = shipWidthsVW[shipInstance.ship.id] ?? 15;
-                          const shipHeightVW = shipHeightsVW[shipInstance.ship.id] ?? 10;
+                          const shipWidthVW =
+                            shipWidthsVW[shipInstance.ship.id] ?? 15;
+                          const shipHeightVW =
+                            shipHeightsVW[shipInstance.ship.id] ?? 10;
                           // Convert vw to pixels: vw units are % of viewport, not container
-                          const shipWidthPx = (shipWidthVW / 100) * viewportWidth;
-                          const shipHeightPx = (shipHeightVW / 100) * viewportWidth;
+                          const shipWidthPx =
+                            (shipWidthVW / 100) * viewportWidth;
+                          const shipHeightPx =
+                            (shipHeightVW / 100) * viewportWidth;
 
                           // Ship front (right edge) in container CSS coords
                           // Add 1.5x ship width to account for flipped images and visual alignment
@@ -1207,13 +1406,18 @@ export default function ResultDisplay({
                           // Convert to SVG coords
                           laserStartX = shipFrontCSS - containerWidth / 2 + 400;
 
-                          // Ship Y positions: 92%, 67%, 42%, 17% of container height
-                          const portraitYPercents = [0.92, 0.67, 0.42, 0.17];
+                          // Ship Y positions: % of container height
+                          // Tablet portrait: shifted up to keep labels out of padding
+                          const portraitYPercents = isTabletPortrait
+                            ? [0.85, 0.62, 0.39, 0.16] // Tablet: shifted up 5-7%
+                            : [0.92, 0.67, 0.42, 0.17]; // Phone: original positions
                           const shipYPercent = portraitYPercents[index] ?? 0.5;
 
                           // Y position: convert from container % to SVG coords
-                          const shipYInContainer = shipYPercent * containerHeight;
-                          laserStartY = shipYInContainer - containerHeight / 2 + 400;
+                          const shipYInContainer =
+                            shipYPercent * containerHeight;
+                          laserStartY =
+                            shipYInContainer - containerHeight / 2 + 400;
 
                           // Account for CSS margin-top: -2vw on ship-icon
                           const marginTopOffset = (2 / 100) * viewportWidth;
@@ -1223,108 +1427,172 @@ export default function ResultDisplay({
                           // Upper ships need more offset due to position near container edge
                           if (index === 3) {
                             laserStartY += shipHeightPx * 1.4;
+                            // Tablet portrait specific offset
+                            if (isTabletPortrait) {
+                              laserStartX -= 10; // left 10
+                              laserStartY += 30; // down 30
+                            }
                             // Prospector needs extra adjustments
-                            if (shipInstance.ship.id === 'prospector') {
+                            if (shipInstance.ship.id === "prospector") {
                               laserStartX -= shipWidthPx * 0.1;
                               laserStartY += shipHeightPx * 0.3;
+                              if (isTabletPortrait) {
+                                laserStartX += 42; // right 42
+                                laserStartY += 20; // down 20
+                              }
                             }
                             // GOLEM needs extra adjustments
-                            if (shipInstance.ship.id === 'golem') {
+                            if (shipInstance.ship.id === "golem") {
                               laserStartX += shipWidthPx * 0.3;
                               laserStartY += shipHeightPx * 0.6;
                             }
                             // MOLE needs extra adjustments
-                            if (shipInstance.ship.id === 'mole') {
+                            if (shipInstance.ship.id === "mole") {
                               laserStartX -= shipWidthPx * 0.4;
                               laserStartY -= shipHeightPx * 0.1;
+                              if (isTabletPortrait) {
+                                laserStartX += 55; // right 55
+                                laserStartY += 20; // down 20
+                              }
                             }
                           } else if (index === 2) {
                             laserStartY += shipHeightPx * 0.3;
+                            // Tablet portrait specific offset
+                            if (isTabletPortrait) {
+                              laserStartX -= 20; // left 20
+                              laserStartY += 15; // down 15
+                            }
                             // Prospector needs extra adjustments
-                            if (shipInstance.ship.id === 'prospector') {
+                            if (shipInstance.ship.id === "prospector") {
                               laserStartY += shipHeightPx * 0.3;
+                              if (isTabletPortrait) {
+                                laserStartX += 40; // right 40
+                                laserStartY += 17; // down 17
+                              }
                             }
                             // GOLEM needs extra adjustments
-                            if (shipInstance.ship.id === 'golem') {
+                            if (shipInstance.ship.id === "golem") {
                               laserStartX += shipWidthPx * 0.4;
                               laserStartY += shipHeightPx * 0.3;
                             }
                             // MOLE needs extra adjustments
-                            if (shipInstance.ship.id === 'mole') {
+                            if (shipInstance.ship.id === "mole") {
                               laserStartX -= shipWidthPx * 0.4;
                               laserStartY += shipHeightPx * 0.2;
+                              if (isTabletPortrait) {
+                                laserStartX += 60; // right 60
+                                laserStartY += 15; // down 15
+                              }
                             }
                           } else if (index === 1) {
                             laserStartY -= shipHeightPx * 0.8;
                             laserStartX += shipWidthPx * 0.1;
+                            // Tablet portrait specific offset
+                            if (isTabletPortrait) {
+                              laserStartX -= 15; // left 15
+                              laserStartY += 5; // down 5
+                            }
                             // Prospector needs extra adjustments
-                            if (shipInstance.ship.id === 'prospector') {
+                            if (shipInstance.ship.id === "prospector") {
                               laserStartX -= shipWidthPx * 0.1;
                               laserStartY += shipHeightPx * 0.4;
+                              if (isTabletPortrait) {
+                                laserStartX += 42; // right 42
+                                laserStartY -= 3; // up 3
+                              }
                             }
                             // GOLEM needs extra adjustments
-                            if (shipInstance.ship.id === 'golem') {
+                            if (shipInstance.ship.id === "golem") {
                               laserStartX += shipWidthPx * 0.3;
                             }
                             // MOLE needs extra adjustments
-                            if (shipInstance.ship.id === 'mole') {
+                            if (shipInstance.ship.id === "mole") {
                               laserStartX -= shipWidthPx * 0.5;
                               laserStartY += shipHeightPx * 0.4;
+                              if (isTabletPortrait) {
+                                laserStartX += 55; // right 55
+                                laserStartY += 25; // down 25
+                              }
                             }
                           } else if (index === 0) {
                             laserStartY -= shipHeightPx * 2.0;
                             laserStartX += shipWidthPx * 0.1;
+                            // Tablet portrait specific offset
+                            if (isTabletPortrait) {
+                              laserStartX -= 15; // left 15
+                              // Y offset: was up 5, now down 5 = net 0
+                            }
                             // Prospector needs extra adjustments
-                            if (shipInstance.ship.id === 'prospector') {
+                            if (shipInstance.ship.id === "prospector") {
                               laserStartY += shipHeightPx * 0.3;
+                              if (isTabletPortrait) {
+                                laserStartX += 23; // right 23
+                                laserStartY += 2; // down 2
+                              }
                             }
                             // GOLEM needs extra adjustments
-                            if (shipInstance.ship.id === 'golem') {
+                            if (shipInstance.ship.id === "golem") {
                               laserStartX += shipWidthPx * 0.3;
                               laserStartY -= shipHeightPx * 0.3;
                             }
                             // MOLE needs extra adjustments
-                            if (shipInstance.ship.id === 'mole') {
+                            if (shipInstance.ship.id === "mole") {
                               laserStartX -= shipWidthPx * 0.5;
                               laserStartY += shipHeightPx * 0.8;
+                              if (isTabletPortrait) {
+                                laserStartX += 55; // right 55
+                                laserStartY += 15; // down 15
+                              }
                             }
                           }
 
                           // Rock is at container center + translateX(25vw)
                           // Rock center CSS X = containerWidth/2 + 25vw (in viewport pixels)
                           const rockOffsetPx = (25 / 100) * viewportWidth;
-                          const rockCenterCSS = containerWidth / 2 + rockOffsetPx;
-                          rockCenterEndX = rockCenterCSS - containerWidth / 2 + 400;
+                          const rockCenterCSS =
+                            containerWidth / 2 + rockOffsetPx;
+                          rockCenterEndX =
+                            rockCenterCSS - containerWidth / 2 + 400;
                         } else {
                           // Desktop/large tablet polar layout: use fixed pixel positioning
                           // Laser starts at ship position (x, y) and points toward rock center (0, 0)
                           // Per-ship-type laser start offsets: [Ship1, Ship2, Ship3, Ship4]
                           // Positions: Ship1=upper-right, Ship2=lower-right, Ship3=lower-left, Ship4=upper-left
-                          const laserOffsets: Record<string, { x: number[]; y: number[] }> = {
+                          const laserOffsets: Record<
+                            string,
+                            { x: number[]; y: number[] }
+                          > = {
                             golem: {
-                              x: [-15, -10, 15, 17],  // Ship 1: left 15, Ship 2: left 10, Ship 3: right 15, Ship 4: right 17
-                              y: [0, -25, -28, 3],    // Ship 1: center, Ship 2: up 25, Ship 3: up 28, Ship 4: down 3
+                              x: [-15, -10, 15, 17], // Ship 1: left 15, Ship 2: left 10, Ship 3: right 15, Ship 4: right 17
+                              y: [0, -25, -28, 3], // Ship 1: center, Ship 2: up 25, Ship 3: up 28, Ship 4: down 3
                             },
                             prospector: {
-                              x: [-15, -30, 33, 17],  // Ship 1: left 15, Ship 2: left 30, Ship 3: right 33, Ship 4: right 17
-                              y: [0, -15, -21, 3],    // Ship 1: center, Ship 2: up 15, Ship 3: up 21, Ship 4: down 3
+                              x: [-15, -30, 33, 17], // Ship 1: left 15, Ship 2: left 30, Ship 3: right 33, Ship 4: right 17
+                              y: [0, -15, -21, 3], // Ship 1: center, Ship 2: up 15, Ship 3: up 21, Ship 4: down 3
                             },
                             mole: {
-                              x: [-42, -49, 48, 40],  // Ship 1: left 42, Ship 2: left 49, Ship 3: right 48, Ship 4: right 40
-                              y: [25, -18, -17, 25],  // Ship 1: down 25, Ship 2: up 18, Ship 3: up 17, Ship 4: down 25
+                              x: [-42, -49, 48, 40], // Ship 1: left 42, Ship 2: left 49, Ship 3: right 48, Ship 4: right 40
+                              y: [25, -18, -17, 25], // Ship 1: down 25, Ship 2: up 18, Ship 3: up 17, Ship 4: down 25
                             },
                           };
                           const shipType = shipInstance.ship.id;
-                          const offsets = laserOffsets[shipType] || laserOffsets.prospector;
+                          const offsets =
+                            laserOffsets[shipType] || laserOffsets.prospector;
                           const laserX = x + (offsets.x[index] || 0);
                           const laserY = y + (offsets.y[index] || 0);
-                          const laserLength = Math.sqrt(laserX * laserX + laserY * laserY);
+                          const laserLength = Math.sqrt(
+                            laserX * laserX + laserY * laserY
+                          );
                           // Base angle from laser start to rock center: atan2(-y, -x) in degrees
-                          const baseAngle = Math.atan2(-laserY, -laserX) * (180 / Math.PI);
+                          const baseAngle =
+                            Math.atan2(-laserY, -laserX) * (180 / Math.PI);
 
                           // MOLE: render multiple lasers with angle offsets
                           if (isMole && numMannedLasers > 0) {
-                            const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
+                            const angleOffsets = calculateMoleLaserAngleOffsets(
+                              numMannedLasers,
+                              rock.mass
+                            );
                             return (
                               <>
                                 {angleOffsets.map((angleOffset, laserIndex) => (
@@ -1337,23 +1605,27 @@ export default function ResultDisplay({
                                       top: `calc(50% + ${laserY}px)`,
                                       width: `${laserLength}px`,
                                       height: "20px",
-                                      transform: `translate(0, -50%) rotate(${baseAngle + angleOffset}deg)`,
+                                      transform: `translate(0, -50%) rotate(${
+                                        baseAngle + angleOffset
+                                      }deg)`,
                                       transformOrigin: "0 50%",
                                       overflow: "hidden",
                                       pointerEvents: "none",
                                       zIndex: 10,
-                                    }}
-                                  >
-                                    <div style={{
-                                      width: "100%",
-                                      height: "100%",
-                                      transform: "scaleX(-1)",
-                                      backgroundImage: `url(${laserGif})`,
-                                      backgroundRepeat: "repeat-x",
-                                      backgroundSize: "auto 100%",
-                                      imageRendering: "pixelated",
-                                      filter: "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
-                                    }} />
+                                    }}>
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        height: "100%",
+                                        transform: "scaleX(-1)",
+                                        backgroundImage: `url(${laserGif})`,
+                                        backgroundRepeat: "repeat-x",
+                                        backgroundSize: "auto 100%",
+                                        imageRendering: "pixelated",
+                                        filter:
+                                          "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+                                      }}
+                                    />
                                   </div>
                                 ))}
                               </>
@@ -1375,25 +1647,30 @@ export default function ResultDisplay({
                                 overflow: "hidden",
                                 pointerEvents: "none",
                                 zIndex: 10,
-                              }}
-                            >
-                              <div style={{
-                                width: "100%",
-                                height: "100%",
-                                transform: "scaleX(-1)",
-                                backgroundImage: `url(${laserGif})`,
-                                backgroundRepeat: "repeat-x",
-                                backgroundSize: "auto 100%",
-                                imageRendering: "pixelated",
-                                filter: "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
-                              }} />
+                              }}>
+                              <div
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  transform: "scaleX(-1)",
+                                  backgroundImage: `url(${laserGif})`,
+                                  backgroundRepeat: "repeat-x",
+                                  backgroundSize: "auto 100%",
+                                  imageRendering: "pixelated",
+                                  filter:
+                                    "drop-shadow(0 0 8px rgba(255, 200, 0, 0.8)) drop-shadow(0 0 15px rgba(255, 170, 0, 0.5))",
+                                }}
+                              />
                             </div>
                           );
                         }
 
                         // Ships-on-left mode only below this point
                         if (isMole) {
-                          const angleOffsets = calculateMoleLaserAngleOffsets(numMannedLasers, rock.mass);
+                          const angleOffsets = calculateMoleLaserAngleOffsets(
+                            numMannedLasers,
+                            rock.mass
+                          );
 
                           return (
                             <>
@@ -1401,16 +1678,23 @@ export default function ResultDisplay({
                                 // First shorten/lengthen the laser from ship to rock center
                                 const fullDX = rockCenterEndX - laserStartX;
                                 const fullDY = rockCenterEndY - laserStartY;
-                                const laserLengthScale = getLaserLengthScale(rock.mass);
-                                const laserEndX = laserStartX + fullDX * laserLengthScale;
-                                const laserEndY = laserStartY + fullDY * laserLengthScale;
+                                const laserLengthScale = getLaserLengthScale(
+                                  rock.mass
+                                );
+                                const laserEndX =
+                                  laserStartX + fullDX * laserLengthScale;
+                                const laserEndY =
+                                  laserStartY + fullDY * laserLengthScale;
 
                                 // Calculate Y offset for angled laser
                                 const laserLength = Math.sqrt(
                                   (laserEndX - laserStartX) ** 2 +
                                     (laserEndY - laserStartY) ** 2
                                 );
-                                const yOffset = calculateLaserYOffset(angleOffset, laserLength);
+                                const yOffset = calculateLaserYOffset(
+                                  angleOffset,
+                                  laserLength
+                                );
 
                                 const rotatedEndX = laserEndX;
                                 const rotatedEndY = laserEndY + yOffset;
@@ -1444,8 +1728,10 @@ export default function ResultDisplay({
                         const fullDX = rockCenterEndX - laserStartX;
                         const fullDY = rockCenterEndY - laserStartY;
                         const laserLengthScale = getLaserLengthScale(rock.mass);
-                        const laserEndX = laserStartX + fullDX * laserLengthScale;
-                        const laserEndY = laserStartY + fullDY * laserLengthScale;
+                        const laserEndX =
+                          laserStartX + fullDX * laserLengthScale;
+                        const laserEndY =
+                          laserStartY + fullDY * laserLengthScale;
 
                         const variedEnd = addLaserVariation(
                           laserEndX,
@@ -1470,22 +1756,28 @@ export default function ResultDisplay({
                     <div
                       className={`ship-icon ${
                         isActive ? "active" : "inactive"
-                      } clickable ship-${shipInstance.ship.id} ${isMobile ? 'mobile-tappable' : ''}`}
-                      style={useShipsOnLeft ? {
-                        // Ships-on-left: phones + portrait tablets + vintage iPad landscape
-                        position: "absolute",
-                        top: `${portraitYPercent}%`,
-                        left: "0",
-                        transform: "translateY(-50%)",
-                        zIndex: shipInstance.ship.id === 'golem' ? 5 : 15, // GOLEMs behind lasers (10), others in front
-                      } : {
-                        // Polar layout: desktop & larger tablets - fixed pixel positioning
-                        position: "absolute",
-                        top: `calc(50% + ${y}px)`,
-                        left: `calc(50% + ${x}px)`,
-                        transform: "translate(-50%, -50%)",
-                        zIndex: shipInstance.ship.id === 'golem' ? 5 : 15, // GOLEMs behind lasers (10), others in front
-                      }}
+                      } clickable ship-${shipInstance.ship.id} ${
+                        isMobile ? "mobile-tappable" : ""
+                      }`}
+                      style={
+                        useShipsOnLeft
+                          ? {
+                              // Ships-on-left: phones + portrait tablets + vintage iPad landscape
+                              position: "absolute",
+                              top: `${portraitYPercent}%`,
+                              left: "0",
+                              transform: "translateY(-50%)",
+                              zIndex: shipInstance.ship.id === "golem" ? 5 : 15, // GOLEMs behind lasers (10), others in front
+                            }
+                          : {
+                              // Polar layout: desktop & larger tablets - fixed pixel positioning
+                              position: "absolute",
+                              top: `calc(50% + ${y}px)`,
+                              left: `calc(50% + ${x}px)`,
+                              transform: "translate(-50%, -50%)",
+                              zIndex: shipInstance.ship.id === "golem" ? 5 : 15, // GOLEMs behind lasers (10), others in front
+                            }
+                      }
                       onClick={(e) => {
                         e.stopPropagation();
                         if (isMobile) {
@@ -1494,7 +1786,13 @@ export default function ResultDisplay({
                           onToggleShip && onToggleShip(shipInstance.id);
                         }
                       }}
-                      title={isMobile ? "Tap for controls" : `${shipInstance.ship.name} - ${isActive ? "ACTIVE" : "INACTIVE"}`}>
+                      title={
+                        isMobile
+                          ? "Tap for controls"
+                          : `${shipInstance.ship.name} - ${
+                              isActive ? "ACTIVE" : "INACTIVE"
+                            }`
+                      }>
                       {(() => {
                         // Calculate ship transform based on position
                         let shipTransform: string;
@@ -1539,7 +1837,12 @@ export default function ResultDisplay({
 
                         // Ship should glow if active AND has manned lasers
                         const shouldGlow = isActive && hasLasers;
-                        const shipImageConfig = getShipImageConfig(shipInstance.ship.id, true); // small = true for mining group
+                        // Use portrait config (vw-based) for ships-on-left mode, small config (px) for polar layout
+                        const shipImageConfig = getShipImageConfig(
+                          shipInstance.ship.id,
+                          !useShipsOnLeft,
+                          useShipsOnLeft
+                        );
                         const shipImage = SHIP_IMAGES[shipInstance.ship.id];
 
                         if (shipImageConfig && shipImage) {
@@ -1566,75 +1869,104 @@ export default function ResultDisplay({
                           );
                         }
                       })()}
-                      <div className={`ship-label ${index === 0 || index === 3 ? 'top-position' : ''}`}>{shipInstance.name}</div>
+                      <div
+                        className={`ship-label ${
+                          index === 0 || index === 3 ? "top-position" : ""
+                        }`}>
+                        {shipInstance.name}
+                      </div>
                     </div>
 
                     {/* Scanning sensor for Prospector/GOLEM in multi-ship mode */}
                     {onSetScanningShip &&
-                     rock.resistanceMode === 'modified' &&
-                     (shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&
-                     shipInstance.config.lasers[0]?.laserHead &&
-                     shipInstance.config.lasers[0].laserHead.id !== 'none' && (
-                      <span
-                        className={`scanning-sensor ${
-                          rock.scannedByShipId === shipInstance.id && rock.scannedByLaserIndex === 0
-                            ? 'selected' : ''
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          onSetScanningShip(shipInstance.id, 0);
-                        }}
-                        title={isMobile ? "Tap to mark as scanning ship" : "Click to mark as scanning ship"}
-                        style={{
-                          position: "absolute",
-                          top: isPortraitMultiShip ? `calc(50% + ${y - 40}px)` : `calc(50% + ${y - 50}px)`,
-                          left: x < 0
-                            ? `calc(50% + ${x - 50}px)`
-                            : `calc(50% + ${x + 50}px)`,
-                          transform: "translate(-50%, -50%)",
-                          cursor: "pointer",
-                          pointerEvents: "auto",
-                          zIndex: 10,
-                          fontSize: isPortraitMultiShip ? "1rem" : "1.2rem"
-                        }}>
-                        📡
-                      </span>
-                    )}
+                      rock.resistanceMode === "modified" &&
+                      (shipInstance.ship.id === "prospector" ||
+                        shipInstance.ship.id === "golem") &&
+                      shipInstance.config.lasers[0]?.laserHead &&
+                      shipInstance.config.lasers[0].laserHead.id !== "none" && (
+                        <span
+                          className={`scanning-sensor ${
+                            rock.scannedByShipId === shipInstance.id &&
+                            rock.scannedByLaserIndex === 0
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            onSetScanningShip(shipInstance.id, 0);
+                          }}
+                          title={
+                            isMobile
+                              ? "Tap to mark as scanning ship"
+                              : "Click to mark as scanning ship"
+                          }
+                          style={{
+                            position: "absolute",
+                            top: isPortraitMultiShip
+                              ? `calc(50% + ${y - 40}px)`
+                              : `calc(50% + ${y - 50}px)`,
+                            left:
+                              x < 0
+                                ? `calc(50% + ${x - 50}px)`
+                                : `calc(50% + ${x + 50}px)`,
+                            transform: "translate(-50%, -50%)",
+                            cursor: "pointer",
+                            pointerEvents: "auto",
+                            zIndex: 10,
+                            fontSize: isPortraitMultiShip ? "1rem" : "1.2rem",
+                          }}>
+                          📡
+                        </span>
+                      )}
 
                     {/* Scanning sensor for MOLE on mobile - positioned 3vw up and right of ship */}
                     {isMobile &&
-                     onSetScanningShip &&
-                     rock.resistanceMode === 'modified' &&
-                     shipInstance.ship.id === 'mole' &&
-                     shipInstance.config.lasers.some(l => l.laserHead && l.laserHead.id !== 'none') && (
-                      <span
-                        className={`scanning-sensor ${
-                          rock.scannedByShipId === shipInstance.id ? 'selected' : ''
-                        }`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          // For MOLE on mobile, select first manned laser
-                          const firstMannedIndex = shipInstance.config.lasers.findIndex(l => l.isManned !== false && l.laserHead && l.laserHead.id !== 'none');
-                          onSetScanningShip(shipInstance.id, firstMannedIndex >= 0 ? firstMannedIndex : 0);
-                        }}
-                        title="Tap to mark as scanning ship"
-                        style={{
-                          position: "absolute",
-                          top: "-3vw",
-                          right: "-3vw",
-                          fontSize: "1rem",
-                          cursor: "pointer",
-                          pointerEvents: "auto",
-                          zIndex: 30,
-                        }}>
-                        📡
-                      </span>
-                    )}
+                      onSetScanningShip &&
+                      rock.resistanceMode === "modified" &&
+                      shipInstance.ship.id === "mole" &&
+                      shipInstance.config.lasers.some(
+                        (l) => l.laserHead && l.laserHead.id !== "none"
+                      ) && (
+                        <span
+                          className={`scanning-sensor ${
+                            rock.scannedByShipId === shipInstance.id
+                              ? "selected"
+                              : ""
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            // For MOLE on mobile, select first manned laser
+                            const firstMannedIndex =
+                              shipInstance.config.lasers.findIndex(
+                                (l) =>
+                                  l.isManned !== false &&
+                                  l.laserHead &&
+                                  l.laserHead.id !== "none"
+                              );
+                            onSetScanningShip(
+                              shipInstance.id,
+                              firstMannedIndex >= 0 ? firstMannedIndex : 0
+                            );
+                          }}
+                          title="Tap to mark as scanning ship"
+                          style={{
+                            position: "absolute",
+                            top: "-3vw",
+                            right: "-3vw",
+                            fontSize: "1rem",
+                            cursor: "pointer",
+                            pointerEvents: "auto",
+                            zIndex: 30,
+                          }}>
+                          📡
+                        </span>
+                      )}
 
                     {/* Active module controls for Prospector/GOLEM in multi-ship mode */}
-                    {(shipInstance.ship.id === 'prospector' || shipInstance.ship.id === 'golem') &&
+                    {(shipInstance.ship.id === "prospector" ||
+                      shipInstance.ship.id === "golem") &&
                       onGroupToggleModule &&
                       (() => {
                         const laser = shipInstance.config.lasers[0];
@@ -1658,7 +1990,8 @@ export default function ResultDisplay({
                           isActive: boolean;
                         }>;
 
-                        if (!activeModules || activeModules.length === 0) return null;
+                        if (!activeModules || activeModules.length === 0)
+                          return null;
 
                         // Position to the outside of the ship (left side ships: buttons on left, right side: buttons on right)
                         const isLeftSide = x < 0;
@@ -1689,7 +2022,11 @@ export default function ResultDisplay({
                                 title={formatModuleTooltip(item.module)}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  onGroupToggleModule(shipInstance.id, 0, item.moduleIndex);
+                                  onGroupToggleModule(
+                                    shipInstance.id,
+                                    0,
+                                    item.moduleIndex
+                                  );
                                 }}
                                 style={{ cursor: "pointer" }}>
                                 {getModuleSymbol(item.module.id)}
@@ -1700,172 +2037,220 @@ export default function ResultDisplay({
                       })()}
 
                     {/* Laser control buttons for MOLE ships - hidden on mobile */}
-                    {!isMobile && shipInstance.ship.id === "mole" && onToggleLaser && (
-                      <div
-                        className="laser-controls"
-                        style={{
-                          position: "absolute",
-                          top: `calc(50% + ${y}px)`,
-                          left:
-                            x < 0
-                              ? `calc(50% + ${x - 110}px)` // Left side: buttons on the left
-                              : `calc(50% + ${x + 110}px)`, // Right side: buttons on the right
-                          transform: "translate(-50%, -50%)",
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: "0.25rem",
-                          pointerEvents: "auto",
-                          alignItems: x < 0 ? "flex-end" : "flex-start",
-                        }}
-                        onClick={(e) => e.stopPropagation()}>
-                        {/* Single sensor icon above all laser buttons - positioned absolutely */}
-                        {onSetScanningShip && rock.resistanceMode === 'modified' && (() => {
-                          const isSelected = rock.scannedByShipId === shipInstance.id;
-                          return (
-                            <span
-                              className={`scanning-sensor-mole ${isSelected ? 'selected' : ''}`}
-                              style={{
-                                position: "absolute",
-                                top: "-2rem",
-                                right: x < 0 ? "0" : undefined,
-                                left: x < 0 ? undefined : "0",
-                                fontSize: "1.5rem",
-                                opacity: isSelected ? 1 : 0.8,
-                                filter: isSelected
-                                  ? "brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9))"
-                                  : "drop-shadow(0 0 4px rgba(0, 255, 204, 0.6))",
-                                pointerEvents: "auto",
-                              }}
-                              title={isSelected ? "This ship scanned the rock" : "Click a laser's radio button to select scanning laser"}>
-                              📡
-                            </span>
-                          );
-                        })()}
-                        {/* Vertical stack of laser buttons */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                          {[0, 1, 2].map((laserIndex) => {
-                            const isLaserManned =
-                              shipInstance.config.lasers[laserIndex]?.isManned !==
-                              false;
-                            const laserHead =
-                              shipInstance.config.lasers[laserIndex]?.laserHead;
-                            const laserName = laserHead?.name || "No Laser";
-                            const tooltipText = `${laserName} - ${
-                              isLaserManned ? "MANNED" : "UNMANNED"
-                            }`;
+                    {!isMobile &&
+                      shipInstance.ship.id === "mole" &&
+                      onToggleLaser && (
+                        <div
+                          className="laser-controls"
+                          style={{
+                            position: "absolute",
+                            top: `calc(50% + ${y}px)`,
+                            left:
+                              x < 0
+                                ? `calc(50% + ${x - 110}px)` // Left side: buttons on the left
+                                : `calc(50% + ${x + 110}px)`, // Right side: buttons on the right
+                            transform: "translate(-50%, -50%)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: "0.25rem",
+                            pointerEvents: "auto",
+                            alignItems: x < 0 ? "flex-end" : "flex-start",
+                          }}
+                          onClick={(e) => e.stopPropagation()}>
+                          {/* Single sensor icon above all laser buttons - positioned absolutely */}
+                          {onSetScanningShip &&
+                            rock.resistanceMode === "modified" &&
+                            (() => {
+                              const isSelected =
+                                rock.scannedByShipId === shipInstance.id;
+                              return (
+                                <span
+                                  className={`scanning-sensor-mole ${
+                                    isSelected ? "selected" : ""
+                                  }`}
+                                  style={{
+                                    position: "absolute",
+                                    top: "-2rem",
+                                    right: x < 0 ? "0" : undefined,
+                                    left: x < 0 ? undefined : "0",
+                                    fontSize: "1.5rem",
+                                    opacity: isSelected ? 1 : 0.8,
+                                    filter: isSelected
+                                      ? "brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9))"
+                                      : "drop-shadow(0 0 4px rgba(0, 255, 204, 0.6))",
+                                    pointerEvents: "auto",
+                                  }}
+                                  title={
+                                    isSelected
+                                      ? "This ship scanned the rock"
+                                      : "Click a laser's radio button to select scanning laser"
+                                  }>
+                                  📡
+                                </span>
+                              );
+                            })()}
+                          {/* Vertical stack of laser buttons */}
+                          <div
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "4px",
+                            }}>
+                            {[0, 1, 2].map((laserIndex) => {
+                              const isLaserManned =
+                                shipInstance.config.lasers[laserIndex]
+                                  ?.isManned !== false;
+                              const laserHead =
+                                shipInstance.config.lasers[laserIndex]
+                                  ?.laserHead;
+                              const laserName = laserHead?.name || "No Laser";
+                              const tooltipText = `${laserName} - ${
+                                isLaserManned ? "MANNED" : "UNMANNED"
+                              }`;
 
-                            // Get active modules for this laser
-                            const laser = shipInstance.config.lasers[laserIndex];
-                            const activeModules = laser?.modules
-                              ?.map((module, moduleIndex) => {
-                                if (
-                                  module &&
-                                  module.category === "active" &&
-                                  module.id !== "none"
-                                ) {
-                                  const isActive = laser.moduleActive
-                                    ? laser.moduleActive[moduleIndex] === true
-                                    : false;
-                                  return { module, moduleIndex, isActive };
-                                }
-                                return null;
-                              })
-                              .filter(Boolean) as Array<{
-                              module: Module;
-                              moduleIndex: number;
-                              isActive: boolean;
-                            }>;
+                              // Get active modules for this laser
+                              const laser =
+                                shipInstance.config.lasers[laserIndex];
+                              const activeModules = laser?.modules
+                                ?.map((module, moduleIndex) => {
+                                  if (
+                                    module &&
+                                    module.category === "active" &&
+                                    module.id !== "none"
+                                  ) {
+                                    const isActive = laser.moduleActive
+                                      ? laser.moduleActive[moduleIndex] === true
+                                      : false;
+                                    return { module, moduleIndex, isActive };
+                                  }
+                                  return null;
+                                })
+                                .filter(Boolean) as Array<{
+                                module: Module;
+                                moduleIndex: number;
+                                isActive: boolean;
+                              }>;
 
-                            // Determine if ship is on left or right side
-                            const isLeftSide = x < 0;
+                              // Determine if ship is on left or right side
+                              const isLeftSide = x < 0;
 
-                            const isScanning = rock.scannedByShipId === shipInstance.id && rock.scannedByLaserIndex === laserIndex;
+                              const isScanning =
+                                rock.scannedByShipId === shipInstance.id &&
+                                rock.scannedByLaserIndex === laserIndex;
 
-                            return (
-                              <div
-                                key={laserIndex}
-                                style={{
-                                  display: "flex",
-                                  gap: "0.25rem",
-                                  alignItems: "center",
-                                  justifyContent: isLeftSide
-                                    ? "flex-end"
-                                    : "flex-start",
-                                }}>
-                                {/* Laser button with radio indicator - order keeps it fixed */}
-                                <div style={{ position: "relative", order: isLeftSide ? 2 : 1 }}>
-                                  <button
-                                    className={`laser-button ${
-                                      isLaserManned ? "manned" : "unmanned"
-                                    }`}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      onToggleLaser(shipInstance.id, laserIndex);
-                                    }}
-                                    title={tooltipText}>
-                                    L{laserIndex + 1}
-                                  </button>
-                                  {/* Radio button indicator */}
-                                  {onSetScanningShip && rock.resistanceMode === 'modified' && laserHead && laserHead.id !== 'none' && (
-                                    <span
-                                      className={`scanning-radio ${isScanning ? 'selected' : ''}`}
-                                      style={{
-                                        position: "absolute",
-                                        bottom: "-4px",
-                                        right: "-4px",
-                                        width: "12px",
-                                        height: "12px",
-                                        borderRadius: "50%",
-                                        border: "2px solid var(--accent-cyan)",
-                                        backgroundColor: isScanning ? "var(--accent-cyan)" : "#000",
-                                        cursor: "pointer",
-                                        boxShadow: isScanning ? "0 0 8px rgba(0, 255, 204, 0.8)" : "none"
-                                      }}
+                              return (
+                                <div
+                                  key={laserIndex}
+                                  style={{
+                                    display: "flex",
+                                    gap: "0.25rem",
+                                    alignItems: "center",
+                                    justifyContent: isLeftSide
+                                      ? "flex-end"
+                                      : "flex-start",
+                                  }}>
+                                  {/* Laser button with radio indicator - order keeps it fixed */}
+                                  <div
+                                    style={{
+                                      position: "relative",
+                                      order: isLeftSide ? 2 : 1,
+                                    }}>
+                                    <button
+                                      className={`laser-button ${
+                                        isLaserManned ? "manned" : "unmanned"
+                                      }`}
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        onSetScanningShip(shipInstance.id, laserIndex);
-                                      }}>
-                                    </span>
-                                  )}
-                                </div>
-
-                                {/* Module buttons - stack away from ship using flex order */}
-                                {activeModules && activeModules.length > 0 && (
-                                  <div
-                                    style={{ display: "flex", gap: "0.25rem", order: isLeftSide ? 1 : 2 }}>
-                                    {activeModules.map((item) => (
-                                      <span
-                                        key={item.moduleIndex}
-                                        className={`module-icon ${
-                                          item.isActive ? "active" : "inactive"
-                                        }`}
-                                        title={formatModuleTooltip(item.module)}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (onGroupToggleModule) {
-                                            onGroupToggleModule(
+                                        onToggleLaser(
+                                          shipInstance.id,
+                                          laserIndex
+                                        );
+                                      }}
+                                      title={tooltipText}>
+                                      L{laserIndex + 1}
+                                    </button>
+                                    {/* Radio button indicator */}
+                                    {onSetScanningShip &&
+                                      rock.resistanceMode === "modified" &&
+                                      laserHead &&
+                                      laserHead.id !== "none" && (
+                                        <span
+                                          className={`scanning-radio ${
+                                            isScanning ? "selected" : ""
+                                          }`}
+                                          style={{
+                                            position: "absolute",
+                                            bottom: "-4px",
+                                            right: "-4px",
+                                            width: "12px",
+                                            height: "12px",
+                                            borderRadius: "50%",
+                                            border:
+                                              "2px solid var(--accent-cyan)",
+                                            backgroundColor: isScanning
+                                              ? "var(--accent-cyan)"
+                                              : "#000",
+                                            cursor: "pointer",
+                                            boxShadow: isScanning
+                                              ? "0 0 8px rgba(0, 255, 204, 0.8)"
+                                              : "none",
+                                          }}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            onSetScanningShip(
                                               shipInstance.id,
-                                              laserIndex,
-                                              item.moduleIndex
+                                              laserIndex
                                             );
-                                          }
-                                        }}
-                                        style={{
-                                          cursor: onGroupToggleModule
-                                            ? "pointer"
-                                            : "default",
-                                        }}>
-                                        {getModuleSymbol(item.module.id)}
-                                      </span>
-                                    ))}
+                                          }}></span>
+                                      )}
                                   </div>
-                                )}
-                              </div>
-                            );
-                          })}
+
+                                  {/* Module buttons - stack away from ship using flex order */}
+                                  {activeModules &&
+                                    activeModules.length > 0 && (
+                                      <div
+                                        style={{
+                                          display: "flex",
+                                          gap: "0.25rem",
+                                          order: isLeftSide ? 1 : 2,
+                                        }}>
+                                        {activeModules.map((item) => (
+                                          <span
+                                            key={item.moduleIndex}
+                                            className={`module-icon ${
+                                              item.isActive
+                                                ? "active"
+                                                : "inactive"
+                                            }`}
+                                            title={formatModuleTooltip(
+                                              item.module
+                                            )}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              if (onGroupToggleModule) {
+                                                onGroupToggleModule(
+                                                  shipInstance.id,
+                                                  laserIndex,
+                                                  item.moduleIndex
+                                                );
+                                              }
+                                            }}
+                                            style={{
+                                              cursor: onGroupToggleModule
+                                                ? "pointer"
+                                                : "default",
+                                            }}>
+                                            {getModuleSymbol(item.module.id)}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                   </div>
                 );
               })}
@@ -1878,21 +2263,42 @@ export default function ResultDisplay({
               hasExcessiveOvercharge ? "overcharge-warning" : ""
             } ${!miningGroup && !isMobile ? "desktop-single-ship" : ""}`}
             style={{
-              marginTop:
-                rockVerticalOffset > 0 ? `${rockVerticalOffset}px` : undefined,
               // Ships-on-left multi-ship mode: rock offset for phones + portrait tablets + vintage iPad landscape
               // Larger tablets in landscape use polar layout (rock stays centered)
-              ...(miningGroup && isMobile && (window.matchMedia('(orientation: portrait)').matches || window.innerWidth < 1024) ? {
-                transform: `translateX(25vw)`,
-              } : {}),
+              ...(miningGroup &&
+              isMobile &&
+              (window.matchMedia("(orientation: portrait)").matches ||
+                window.innerWidth < 1024)
+                ? {
+                    transform: `translateX(25vw)`,
+                  }
+                : {}),
               // Phone single-ship: rock right of center
-              ...(!miningGroup && isMobile && window.innerWidth < 768 ? {
-                transform: `translateX(25vw)`,
-              } : {}),
+              ...(!miningGroup && isMobile && window.innerWidth < 768
+                ? {
+                    transform: `translateX(25vw)`,
+                  }
+                : {}),
               // Tablet landscape single-ship: rock position (guided)
-              ...(!miningGroup && isMobile && window.innerWidth >= 768 && window.matchMedia('(orientation: landscape) and (min-height: 600px)').matches ? {
-                transform: `translateX(23vw)`,
-              } : {}),
+              ...(!miningGroup &&
+              isMobile &&
+              window.innerWidth >= 768 &&
+              window.matchMedia(
+                "(orientation: landscape) and (min-height: 600px)"
+              ).matches
+                ? {
+                    transform: `translateX(23vw)`,
+                  }
+                : {}),
+              // Tablet portrait single-ship: rock position (same as landscape)
+              ...(!miningGroup &&
+              isMobile &&
+              window.innerWidth >= 768 &&
+              window.matchMedia("(orientation: portrait)").matches
+                ? {
+                    transform: `translateX(23vw)`,
+                  }
+                : {}),
             }}
             onClick={(e) => e.stopPropagation()}>
             <div
@@ -1905,7 +2311,9 @@ export default function ResultDisplay({
                 className="asteroid-image"
                 style={{
                   width: `${getAsteroidSize().width}${getAsteroidSize().unit}`,
-                  height: `${getAsteroidSize().height}${getAsteroidSize().unit}`,
+                  height: `${getAsteroidSize().height}${
+                    getAsteroidSize().unit
+                  }`,
                   imageRendering: "pixelated",
                 }}
               />
@@ -1964,86 +2372,101 @@ export default function ResultDisplay({
         </div>
       </div>
 
-      {/* Scanning ship selection message - hide when MOLE needs specific laser selection */}
-      {onSetScanningShip && rock.resistanceMode === 'modified' && !rock.scannedByShipId && !moleNeedsScanInfo && (
-        <div className="scanning-ship-message">
-          <span className="message-icon">📡</span>
-          <span className="message-text">
-            {isMobile ? (
-              "SELECT SHIP/LASER USED TO SCAN"
-            ) : (
-              <>Select which ship/laser scanned this rock<br />by activating a sensor icon or laser radio button</>
-            )}
-          </span>
-        </div>
-      )}
+      {/* Scanning ship selection message - hide when broader scan info is still needed */}
+      {onSetScanningShip &&
+        rock.resistanceMode === "modified" &&
+        !rock.scannedByShipId &&
+        !needsScanInfo && (
+          <div className="scanning-ship-message">
+            <span className="message-icon">📡</span>
+            <span className="message-text">
+              {isMobile ? (
+                "SELECT SHIP/LASER USED TO SCAN"
+              ) : (
+                <>
+                  Select which ship/laser scanned this rock
+                  <br />
+                  by activating a sensor icon or laser radio button
+                </>
+              )}
+            </span>
+          </div>
+        )}
 
-      {/* Hide power bar when MOLE needs scan info */}
-      {!moleNeedsScanInfo && (
-      <div className="power-bar-container" onClick={(e) => e.stopPropagation()}>
-        <div className={`power-bar ${hasExcessiveOvercharge ? "excessive-glow" : ""}`}>
-          {(() => {
-            // Calculate bar fill width:
-            // 0% power (-100% surplus) = 0% bar (far left)
-            // 50% power (-50% surplus) = 50% bar (middle)
-            // 100% power (0% surplus) = 75% bar (break threshold)
-            // 200% power (+100% surplus) = 100% bar (far right)
-            let fillWidth: number;
-            if (powerPercentage <= 50) {
-              // 0-50% power maps to 0-50% bar (1:1)
-              fillWidth = powerPercentage;
-            } else if (powerPercentage <= 100) {
-              // 50-100% power maps to 50-75% bar
-              fillWidth = 50 + (powerPercentage - 50) * 0.5;
-            } else {
-              // 100-200% power maps to 75-100% bar
-              const surplus = Math.min(result.powerMarginPercent, 100);
-              fillWidth = 75 + surplus * 0.25;
-            }
-            fillWidth = Math.min(Math.max(fillWidth, 0), 100);
+      {/* Hide power bar whenever scan info is needed (MOLE, gadgets, or missing scanning ship) */}
+      {!needsScanInfo && (
+        <div
+          className="power-bar-container"
+          onClick={(e) => e.stopPropagation()}>
+          <div
+            className={`power-bar ${
+              hasExcessiveOvercharge ? "excessive-glow" : ""
+            }`}>
+            {(() => {
+              // Calculate bar fill width:
+              // 0% power (-100% surplus) = 0% bar (far left)
+              // 50% power (-50% surplus) = 50% bar (middle)
+              // 100% power (0% surplus) = 75% bar (break threshold)
+              // 200% power (+100% surplus) = 100% bar (far right)
+              let fillWidth: number;
+              if (powerPercentage <= 50) {
+                // 0-50% power maps to 0-50% bar (1:1)
+                fillWidth = powerPercentage;
+              } else if (powerPercentage <= 100) {
+                // 50-100% power maps to 50-75% bar
+                fillWidth = 50 + (powerPercentage - 50) * 0.5;
+              } else {
+                // 100-200% power maps to 75-100% bar
+                const surplus = Math.min(result.powerMarginPercent, 100);
+                fillWidth = 75 + surplus * 0.25;
+              }
+              fillWidth = Math.min(Math.max(fillWidth, 0), 100);
 
-            // Determine pulse class based on surplus
-            // Yellow pulse for 50-100% surplus, red backglow takes over at >100%
-            const surplusPercent = result.powerMarginPercent;
-            const pulseClass = surplusPercent > 50 && surplusPercent <= 100 ? "pulse-yellow" : "";
+              // Determine pulse class based on surplus
+              // Yellow pulse for 50-100% surplus, red backglow takes over at >100%
+              const surplusPercent = result.powerMarginPercent;
+              const pulseClass =
+                surplusPercent > 50 && surplusPercent <= 100
+                  ? "pulse-yellow"
+                  : "";
 
-            // Dynamic gradient based on fill position:
-            // Colors should appear at correct positions relative to full bar
-            // 0-33% bar: solid red
-            // 33-75% bar: red → orange → yellow (yellow-green transition at 75%)
-            // 75% bar: green (break threshold - 0% surplus)
-            // 75-100% bar: green → yellow → orange → red
-            let gradient: string;
-            if (fillWidth <= 33) {
-              // Fill is entirely in the red zone - solid red
-              gradient = "var(--danger)";
-            } else if (fillWidth <= 75) {
-              // Fill extends into red→yellow zone (not yet at break threshold)
-              // NO green until we reach 0% surplus (75% bar position)
-              const redEndPct = (33 / fillWidth) * 100;
-              const orangePct = (42 / fillWidth) * 100;
-              const yellowStartPct = (50 / fillWidth) * 100;
-              // Yellow all the way to the edge - no green yet
-              gradient = `linear-gradient(90deg,
+              // Dynamic gradient based on fill position:
+              // Colors should appear at correct positions relative to full bar
+              // 0-33% bar: solid red
+              // 33-75% bar: red → orange → yellow (yellow-green transition at 75%)
+              // 75% bar: green (break threshold - 0% surplus)
+              // 75-100% bar: green → yellow → orange → red
+              let gradient: string;
+              if (fillWidth <= 33) {
+                // Fill is entirely in the red zone - solid red
+                gradient = "var(--danger)";
+              } else if (fillWidth <= 75) {
+                // Fill extends into red→yellow zone (not yet at break threshold)
+                // NO green until we reach 0% surplus (75% bar position)
+                const redEndPct = (33 / fillWidth) * 100;
+                const orangePct = (42 / fillWidth) * 100;
+                const yellowStartPct = (50 / fillWidth) * 100;
+                // Yellow all the way to the edge - no green yet
+                gradient = `linear-gradient(90deg,
                 var(--danger) 0%,
                 var(--danger) ${redEndPct}%,
                 #ff6600 ${Math.min(orangePct, 100)}%,
                 #ffdd00 ${Math.min(yellowStartPct, 100)}%,
                 #ffdd00 100%)`;
-            } else {
-              // Fill extends into surplus zone (past 75%)
-              // Calculate all color stop positions within the fill
-              // Yellow stays solid right up to green zone
-              const redEndPct = (33 / fillWidth) * 100;
-              const orangePct = (40 / fillWidth) * 100;
-              const yellowStartPct = (45 / fillWidth) * 100;
-              const yellowEndPct = (72 / fillWidth) * 100; // Yellow stays solid until here
-              const greenStartPct = (73 / fillWidth) * 100;
-              const greenEndPct = (80 / fillWidth) * 100;
-              const yellowBackStartPct = (81 / fillWidth) * 100;
-              const yellowBackEndPct = (88 / fillWidth) * 100;
-              const orangeBackPct = (94 / fillWidth) * 100;
-              gradient = `linear-gradient(90deg,
+              } else {
+                // Fill extends into surplus zone (past 75%)
+                // Calculate all color stop positions within the fill
+                // Yellow stays solid right up to green zone
+                const redEndPct = (33 / fillWidth) * 100;
+                const orangePct = (40 / fillWidth) * 100;
+                const yellowStartPct = (45 / fillWidth) * 100;
+                const yellowEndPct = (72 / fillWidth) * 100; // Yellow stays solid until here
+                const greenStartPct = (73 / fillWidth) * 100;
+                const greenEndPct = (80 / fillWidth) * 100;
+                const yellowBackStartPct = (81 / fillWidth) * 100;
+                const yellowBackEndPct = (88 / fillWidth) * 100;
+                const orangeBackPct = (94 / fillWidth) * 100;
+                gradient = `linear-gradient(90deg,
                 var(--danger) 0%,
                 var(--danger) ${redEndPct}%,
                 #ff6600 ${orangePct}%,
@@ -2055,70 +2478,76 @@ export default function ResultDisplay({
                 #ffdd00 ${yellowBackEndPct}%,
                 #ff6600 ${orangeBackPct}%,
                 var(--danger) 100%)`;
-            }
-
-            return (
-              <div
-                className={`power-fill ${getStatusClass()} ${pulseClass}`}
-                style={{
-                  width: `${fillWidth}%`,
-                  background: gradient,
-                }}
-              />
-            );
-          })()}
-          <div className="power-margin-overlay">
-            {result.powerMarginPercent >= 0 ? "Surplus:" : "Deficit:"}{" "}
-            {formatPercent(result.powerMarginPercent)}
-          </div>
-        </div>
-        <div className="power-labels">
-          <span>Your Power: {formatPower(result.totalLaserPower)}</span>
-          <span>Required: {formatPower(result.adjustedLPNeeded)}</span>
-        </div>
-
-        {/* Tip messages at bottom of power bar frame */}
-        {hasExcessiveOvercharge && (
-          <div
-            className={`overcharge-warning ${isMobile ? 'mobile-clickable' : ''}`}
-            onClick={(e) => {
-              if (isMobile) {
-                e.stopPropagation();
-                setOverchargeWarningExpanded(!overchargeWarningExpanded);
               }
-            }}
-          >
-            {isMobile && !overchargeWarningExpanded ? (
-              <div className="overcharge-short">
-                <strong>WARNING!</strong>
-                <br />
-                Overcharge Possible
-              </div>
-            ) : (
-              <>
-                <strong>WARNING!</strong> Excessive overcharge capability detected.
-                Rock overcharge and premature fracture could easily occur. Approach
-                with caution or reduce the number of lasers used.
-              </>
-            )}
-          </div>
-        )}
 
-        {((result.powerMarginPercent >= -15 && result.powerMarginPercent < 0) ||
-          (result.powerMarginPercent > 0 &&
-            result.powerMarginPercent <= 10)) && (
-          <div className="distance-tip" onClick={(e) => e.stopPropagation()}>
-            <span className="warning-label">TIP:</span> Reducing laser distance may increase chances
-            of a successful break.
+              return (
+                <div
+                  className={`power-fill ${getStatusClass()} ${pulseClass}`}
+                  style={{
+                    width: `${fillWidth}%`,
+                    background: gradient,
+                  }}
+                />
+              );
+            })()}
+            <div className="power-margin-overlay">
+              {result.powerMarginPercent >= 0 ? "Surplus:" : "Deficit:"}{" "}
+              {formatPercent(result.powerMarginPercent)}
+            </div>
           </div>
-        )}
+          <div className="power-labels">
+            <span>Your Power: {formatPower(result.totalLaserPower)}</span>
+            <span>Required: {formatPower(result.adjustedLPNeeded)}</span>
+          </div>
 
-        {isPossibleBreak && (
-          <div className="possible-break-warning" onClick={(e) => e.stopPropagation()}>
-            <span className="warning-label">CAUTION:</span> Reduced distance breaks can lead to equipment damage and/or bodily injury.
-          </div>
-        )}
-      </div>
+          {/* Tip messages at bottom of power bar frame */}
+          {hasExcessiveOvercharge && (
+            <div
+              className={`overcharge-warning ${
+                isMobile ? "mobile-clickable" : ""
+              }`}
+              onClick={(e) => {
+                if (isMobile) {
+                  e.stopPropagation();
+                  setOverchargeWarningExpanded(!overchargeWarningExpanded);
+                }
+              }}>
+              {isMobile && !overchargeWarningExpanded ? (
+                <div className="overcharge-short">
+                  <strong>WARNING!</strong>
+                  <br />
+                  Overcharge Possible
+                </div>
+              ) : (
+                <>
+                  <strong>WARNING!</strong> Excessive overcharge capability
+                  detected. Rock overcharge and premature fracture could easily
+                  occur. Approach with caution or reduce the number of lasers
+                  used.
+                </>
+              )}
+            </div>
+          )}
+
+          {((result.powerMarginPercent >= -15 &&
+            result.powerMarginPercent < 0) ||
+            (result.powerMarginPercent > 0 &&
+              result.powerMarginPercent <= 10)) && (
+            <div className="distance-tip" onClick={(e) => e.stopPropagation()}>
+              <span className="warning-label">TIP:</span> Reducing laser
+              distance may increase chances of a successful break.
+            </div>
+          )}
+
+          {isPossibleBreak && (
+            <div
+              className="possible-break-warning"
+              onClick={(e) => e.stopPropagation()}>
+              <span className="warning-label">CAUTION:</span> Reduced distance
+              breaks can lead to equipment damage and/or bodily injury.
+            </div>
+          )}
+        </div>
       )}
 
       {/* Stats grid - inline on desktop, in drawer on mobile */}
@@ -2130,8 +2559,7 @@ export default function ResultDisplay({
           side="bottom"
           title="Data"
           tabLabel="DATA"
-          tabImage={dataLabelHorizontal}
-        >
+          tabImage={dataLabelHorizontal}>
           <div className="stats-grid mobile-drawer-stats">
             <div className="stat-card">
               <div className="stat-label">Total Laser Power</div>
@@ -2148,15 +2576,32 @@ export default function ResultDisplay({
               <div className="stat-subtitle">
                 {result.resistanceContext ? (
                   <>
-                    Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+                    Base × modifier ={" "}
+                    {result.resistanceContext.derivedBaseValue.toFixed(2)} ×{" "}
+                    {result.resistanceContext.appliedModifier.toFixed(3)}
                   </>
                 ) : (
                   <>
-                    Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+                    Base × modifier = {rock.resistance} ×{" "}
+                    {result.totalResistModifier.toFixed(3)}
                   </>
                 )}
               </div>
             </div>
+
+            {/* Instability card - only show if rock has instability value */}
+            {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+              <div className="stat-card">
+                <div className="stat-label">Adjusted Instability</div>
+                <div className="stat-value">
+                  {result.adjustedInstability.toFixed(2)}
+                </div>
+                <div className="stat-subtitle">
+                  Base × modifier = {rock.instability} ×{" "}
+                  {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+                </div>
+              </div>
+            )}
 
             <div className="stat-card">
               <div className="stat-label">Laser Power Required</div>
@@ -2197,6 +2642,18 @@ export default function ResultDisplay({
               <span>Total Resist Modifier:</span>
               <span>{result.totalResistModifier.toFixed(3)}x</span>
             </div>
+            {rock.instability !== undefined && (
+              <>
+                <div className="detail-row">
+                  <span>Base Instability:</span>
+                  <span>{rock.instability.toFixed(1)}</span>
+                </div>
+                <div className="detail-row">
+                  <span>Total Instability Modifier:</span>
+                  <span>{(result.totalInstabilityModifier ?? 1).toFixed(3)}x</span>
+                </div>
+              </>
+            )}
             <div className="detail-row">
               <span>Formula:</span>
               <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
@@ -2227,15 +2684,32 @@ export default function ResultDisplay({
             <div className="stat-subtitle">
               {result.resistanceContext ? (
                 <>
-                  Base × modifier = {result.resistanceContext.derivedBaseValue.toFixed(2)} × {result.resistanceContext.appliedModifier.toFixed(3)}
+                  Base × modifier ={" "}
+                  {result.resistanceContext.derivedBaseValue.toFixed(2)} ×{" "}
+                  {result.resistanceContext.appliedModifier.toFixed(3)}
                 </>
               ) : (
                 <>
-                  Base × modifier = {rock.resistance} × {result.totalResistModifier.toFixed(3)}
+                  Base × modifier = {rock.resistance} ×{" "}
+                  {result.totalResistModifier.toFixed(3)}
                 </>
               )}
             </div>
           </div>
+
+          {/* Instability card - only show if rock has instability value */}
+          {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+            <div className="stat-card">
+              <div className="stat-label">Adjusted Instability</div>
+              <div className="stat-value">
+                {result.adjustedInstability.toFixed(2)}
+              </div>
+              <div className="stat-subtitle">
+                Base × modifier = {rock.instability} ×{" "}
+                {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+              </div>
+            </div>
+          )}
 
           <div className="stat-card">
             <div className="stat-label">Laser Power Required</div>
@@ -2279,6 +2753,18 @@ export default function ResultDisplay({
             <span>Total Resist Modifier:</span>
             <span>{result.totalResistModifier.toFixed(3)}x</span>
           </div>
+          {rock.instability !== undefined && (
+            <>
+              <div className="detail-row">
+                <span>Base Instability:</span>
+                <span>{rock.instability.toFixed(1)}</span>
+              </div>
+              <div className="detail-row">
+                <span>Total Instability Modifier:</span>
+                <span>{(result.totalInstabilityModifier ?? 1).toFixed(3)}x</span>
+              </div>
+            </>
+          )}
           <div className="detail-row">
             <span>Formula:</span>
             <span>(Mass / (1 - (Resist × 0.01))) / 5</span>
@@ -2288,18 +2774,35 @@ export default function ResultDisplay({
 
       {/* Mobile Ship Control Modal */}
       <MobileShipControlModal
-        key={miningGroup
-          ? `group-${mobileModalShip?.id}-${JSON.stringify(miningGroup.ships.find(s => s.id === mobileModalShip?.id)?.config.lasers.map(l => ({ m: l.isManned, a: l.moduleActive })))}`
-          : `single-${JSON.stringify(config?.lasers.map(l => ({ m: l.isManned, a: l.moduleActive })))}`
+        key={
+          miningGroup
+            ? `group-${mobileModalShip?.id}-${JSON.stringify(
+                miningGroup.ships
+                  .find((s) => s.id === mobileModalShip?.id)
+                  ?.config.lasers.map((l) => ({
+                    m: l.isManned,
+                    a: l.moduleActive,
+                  }))
+              )}`
+            : `single-${JSON.stringify(
+                config?.lasers.map((l) => ({
+                  m: l.isManned,
+                  a: l.moduleActive,
+                }))
+              )}`
         }
         isOpen={showMobileModal}
         onClose={() => {
           setShowMobileModal(false);
           setMobileModalShip(null);
         }}
-        shipInstance={miningGroup && mobileModalShip ? miningGroup.ships.find(s => s.id === mobileModalShip.id) : undefined}
+        shipInstance={
+          miningGroup && mobileModalShip
+            ? miningGroup.ships.find((s) => s.id === mobileModalShip.id)
+            : undefined
+        }
         singleShipConfig={!miningGroup ? config : undefined}
-        shipName={!miningGroup ? (configName || selectedShip?.name) : undefined}
+        shipName={!miningGroup ? configName || selectedShip?.name : undefined}
         shipId={!miningGroup ? selectedShip?.id : undefined}
         isSingleShipMode={!miningGroup}
         rock={rock}
@@ -2313,17 +2816,29 @@ export default function ResultDisplay({
             onToggleLaser?.(shipIdOrLaserIndex as string, laserIndex!);
           }
         }}
-        onToggleModule={(shipIdOrLaserIndex, laserIndexOrModuleIndex, moduleIndex) => {
+        onToggleModule={(
+          shipIdOrLaserIndex,
+          laserIndexOrModuleIndex,
+          moduleIndex
+        ) => {
           if (!miningGroup) {
             // Single ship mode
-            onToggleModule?.(shipIdOrLaserIndex as number, laserIndexOrModuleIndex);
+            onToggleModule?.(
+              shipIdOrLaserIndex as number,
+              laserIndexOrModuleIndex
+            );
           } else {
             // Group mode
-            onGroupToggleModule?.(shipIdOrLaserIndex as string, laserIndexOrModuleIndex, moduleIndex!);
+            onGroupToggleModule?.(
+              shipIdOrLaserIndex as string,
+              laserIndexOrModuleIndex,
+              moduleIndex!
+            );
           }
         }}
         onSetScanningShip={onSetScanningShip}
       />
+
     </div>
   );
 }

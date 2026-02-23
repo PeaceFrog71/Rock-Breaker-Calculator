@@ -1,0 +1,495 @@
+/* Profile Modal Styles */
+
+.profile-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.profile-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 420px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
+              0 0 80px rgba(0, 217, 255, 0.1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.profile-modal h2 {
+  color: var(--accent-cyan);
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+  text-align: center;
+}
+
+/* Avatar Display */
+.profile-avatar-display {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.profile-avatar-img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: contain;
+  border: 2px solid var(--accent-cyan);
+  box-shadow: 0 0 12px rgba(0, 217, 255, 0.3);
+}
+
+.profile-avatar-initial {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(0, 217, 255, 0.15);
+  border: 2px solid var(--accent-cyan);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  box-shadow: 0 0 12px rgba(0, 217, 255, 0.3);
+}
+
+/* Avatar Selection */
+.profile-avatar-section {
+  margin-bottom: 1.25rem;
+}
+
+.profile-avatar-label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.profile-avatar-options {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.profile-avatar-option {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.profile-avatar-option:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+}
+
+.profile-avatar-option.selected {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+  background: rgba(0, 217, 255, 0.1);
+}
+
+.profile-avatar-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.profile-avatar-option .avatar-initial-option {
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+.profile-avatar-option .avatar-default-icon {
+  color: var(--accent-cyan);
+}
+
+.profile-avatar-option.upload-option {
+  border-style: dashed;
+  font-size: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.profile-avatar-option.upload-option:hover {
+  color: var(--accent-cyan);
+}
+
+/* Sections */
+.profile-section {
+  border-top: 1px solid var(--border);
+  padding-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.profile-field label {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-field input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  outline: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-field input:focus {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 8px rgba(0, 217, 255, 0.2);
+}
+
+.profile-field input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+/* Footer */
+.profile-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.profile-save-btn {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1.5rem;
+  color: var(--bg-dark);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-save-btn:hover:not(:disabled) {
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+}
+
+.profile-save-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.profile-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.6rem 1.5rem;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.profile-cancel-btn:hover:not(:disabled) {
+  border-color: var(--text-primary);
+  color: var(--text-primary);
+}
+
+.profile-cancel-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Messages */
+.profile-error {
+  background: rgba(255, 51, 102, 0.1);
+  border: 1px solid rgba(255, 51, 102, 0.3);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--danger);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem 0;
+}
+
+.profile-success {
+  background: rgba(0, 255, 136, 0.1);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: var(--success);
+  font-size: 0.85rem;
+  margin: 0 0 0.75rem 0;
+}
+
+/* Close button (shared with auth modal) */
+.profile-modal .close-button {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-modal .close-button:hover {
+  color: var(--text-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .profile-modal {
+    padding: 1.5rem;
+    width: 95%;
+  }
+
+  .profile-modal h2 {
+    font-size: 1.3rem;
+  }
+}
+
+/* ─── Tab Navigation ──────────────────────────────────────────────────────── */
+
+.profile-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 1.25rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.profile-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 0.5rem 1rem;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.profile-tab:hover { color: var(--text-primary); }
+
+.profile-tab.active {
+  color: var(--accent-cyan);
+  border-bottom-color: var(--accent-cyan);
+}
+
+.profile-tab-badge {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  display: inline-block;
+}
+
+/* ─── Integrations Tab ────────────────────────────────────────────────────── */
+
+.profile-integrations {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.integration-card {
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.integration-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.integration-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.integration-name {
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-transform: uppercase;
+}
+
+.integration-status {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.integration-status.connected {
+  background: rgba(0, 255, 136, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.integration-status.disconnected {
+  background: rgba(168, 181, 199, 0.1);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.integration-desc {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.integration-desc a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+
+.integration-desc a:hover { text-decoration: underline; }
+
+/* ─── Regolith Storage Choice ─────────────────────────────────────────────── */
+
+.regolith-storage-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.regolith-storage-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.regolith-storage-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.regolith-storage-option:hover { border-color: var(--accent-blue); }
+
+.regolith-storage-option.selected {
+  border-color: var(--accent-cyan);
+  background: rgba(0, 217, 255, 0.05);
+}
+
+.regolith-storage-option.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.regolith-storage-option input[type="radio"] {
+  margin-top: 0.2rem;
+  accent-color: var(--accent-cyan);
+  flex-shrink: 0;
+}
+
+.regolith-storage-option strong {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.regolith-storage-option ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.regolith-storage-option ul li {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
+}
+
+.regolith-requires-login {
+  font-size: 0.72rem;
+  color: var(--warning);
+  margin-left: 0.25rem;
+}

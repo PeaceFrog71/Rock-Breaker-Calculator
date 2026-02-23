@@ -10,6 +10,19 @@
   gap: 0.75rem;
 }
 
+/* Mining group library: import button gets top padding */
+.mining-group-manager .config-actions {
+  padding-top: 0.5rem;
+}
+
+.import-action {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.5rem;
+}
+
 .btn-primary,
 .btn-secondary {
   padding: 0.75rem 1.25rem;
@@ -211,9 +224,16 @@
   white-space: nowrap;
 }
 
+/* Desktop: show text, hide emoji */
+.btn-load .btn-emoji,
+.btn-export .btn-emoji,
+.btn-delete .btn-emoji {
+  display: none;
+}
+
 .btn-load {
-  font-size: 1.25rem;
-  font-weight: 700;
+  color: var(--accent-cyan);
+  border-color: var(--accent-cyan);
   min-width: 40px;
   min-height: 34px;
 }
@@ -226,14 +246,54 @@
   box-shadow: 0 2px 8px rgba(0, 255, 204, 0.3);
 }
 
+.btn-export {
+  color: var(--accent-gold);
+  border-color: var(--accent-gold);
+}
+
 .btn-export:hover {
-  background: var(--accent-cyan);
-  border-color: var(--accent-cyan);
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: var(--bg-dark);
+}
+
+.btn-delete {
+  color: var(--danger);
+  border-color: var(--danger);
 }
 
 .btn-delete:hover {
   background: var(--danger);
   border-color: var(--danger);
+  color: white;
+}
+
+/* Import button - styled as label for file input */
+.btn-import {
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  border: 2px solid var(--accent-cyan);
+  background: var(--bg-medium);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.btn-import:hover {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: var(--bg-dark);
+}
+
+/* Desktop: hide emoji for import */
+.btn-import .btn-emoji {
+  display: none;
 }
 
 /* Scrollbar for configs list */
@@ -255,7 +315,7 @@
   background: var(--accent-cyan);
 }
 
-/* Phone: smaller Save/Import button sizes */
+/* Phone: smaller Save/Import button sizes, show emoji instead of text */
 @media (max-width: 767px) and (pointer: coarse) {
   .btn-primary,
   .btn-secondary {
@@ -265,5 +325,31 @@
 
   .btn-icon {
     font-size: 0.9rem;
+  }
+
+  /* Mobile: show emoji, hide text */
+  .btn-load .btn-text,
+  .btn-export .btn-text,
+  .btn-delete .btn-text {
+    display: none;
+  }
+
+  .btn-load .btn-emoji,
+  .btn-export .btn-emoji,
+  .btn-delete .btn-emoji {
+    display: inline;
+  }
+
+  .btn-load .btn-emoji {
+    font-size: 1.25rem;
+  }
+
+  /* Mobile: show emoji, hide text for import */
+  .btn-import .btn-text {
+    display: none;
+  }
+
+  .btn-import .btn-emoji {
+    display: inline;
   }
 }

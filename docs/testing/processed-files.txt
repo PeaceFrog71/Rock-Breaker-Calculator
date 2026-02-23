@@ -1,0 +1,230 @@
+# Processed Screenshots Log
+# Format: filename | status | notes
+# Status: MANUAL (hand-transcribed), PROCESSED (OCR+merge), CORRECTED (OCR+manual fix), SKIPPED
+#
+# Session 1 (2026-01-25) - Original 28 manually transcribed
+#
+Screenshot 2026-01-26 044343.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 044705.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 044753.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 044940.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045107.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045235.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045339.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045440.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045517.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045619.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045756.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 045930.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 050213.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 050317.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 050515.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 050857.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 051055.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 051349.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 051404.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 051423.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 051610.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052010.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052036.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052342.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052518.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052651.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052857.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 052936.png | MANUAL | Session 1 - hand-transcribed to CSV
+Screenshot 2026-01-26 100602.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 100623.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 100634.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 100654.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 100716.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 100833.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 100855.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 100923.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 100941.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 100959.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101317.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101337.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101355.png | CORRECTED (GARBLED MASS)
+Screenshot 2026-01-26 101422.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101655.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101728.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101753.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 101812.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-26 101846G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 102207.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 102250.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 102309.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 102333.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 102536.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 154920.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 154931.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-26 154942.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-26 154959.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 155016.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 155029.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 155045.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 155100.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 155129G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 155153.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 155213.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 160822G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 160846G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 160857G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 160911G.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 161255G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 161310G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 161350.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 161607.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 161639.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 161947G.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-26 162001G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 162023.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-26 162040.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 162056.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 162109.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 162128.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 162137.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 164752.png | CORRECTED (GARBLED INSTAB)
+Screenshot 2026-01-26 164820.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 164831.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 164847.png | CORRECTED (GARBLED MASS)
+Screenshot 2026-01-26 164901.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 165428G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 165439.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 165452G.png | CORRECTED (GARBLED MASS)
+Screenshot 2026-01-26 165505G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170147.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170201.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170224.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170611.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170935.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 170949.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171004.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171023.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171404.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171528.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171540.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171552.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171608.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 171718G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190605.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 190619.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190650.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190730.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190748.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190929G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 190944G.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-26 191002G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 191032G.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 191110G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 191230G.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 191303G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 191320.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-26 191454.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 192417G.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-26 192618G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 192629G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-26 192649G.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-26 192704G.png | CORRECTED (GARBLED INSTAB)
+Screenshot 2026-01-26 192722.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 002944.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 002958.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 003012.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 003031.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003105.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003122.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003150.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003252G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003313G.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 003534G.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 003547G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003610G.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 003632G.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 003826G.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 003844G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003930.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 003943.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 003958.png | CORRECTED (NO RESIST)
+Screenshot 2026-01-27 004021.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004208G.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 004221G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004233G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004250.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 004314G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004331G.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004450.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004501.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 004550.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 005450.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 005839.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 010007.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010020.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 010049.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010104.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010155.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010220.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010440.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010452.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010511.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010522.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010548.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 010628.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 010903.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 010943.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011032.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011055.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011128.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011220.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011301.png | CORRECTED (NO ELEMENTS)
+Screenshot 2026-01-27 011406.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011436.png | CORRECTED (GARBLED RESIST)
+Screenshot 2026-01-27 011457.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011523.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011543.png | SKIPPED (no image)
+Screenshot 2026-01-27 011551.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 011622.png | CORRECTED (GARBLED RESIST)
+Screenshot 2026-01-27 011647.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011713.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011741.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011801.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 011832.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012036.png | CORRECTED (GARBLED RESIST)
+Screenshot 2026-01-27 012055.png | CORRECTED (PARTIAL)
+Screenshot 2026-01-27 012113.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012126.png | CORRECTED (GARBLED MASS)
+Screenshot 2026-01-27 012146.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012159.png | CORRECTED (GARBLED INSTAB)
+Screenshot 2026-01-27 012210.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012222.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012258.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012343.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012404.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012632.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012646.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012705.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 012749.png | CORRECTED (GARBLED INSTAB)
+Screenshot 2026-01-27 012805.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 012824.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 013837.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 013849.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 013905.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 013920.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 013935.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 013955.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014011.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014036.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014050.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014116.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014144.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014344.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014404.png | CORRECTED (GARBLED INSTAB)
+Screenshot 2026-01-27 014424.png | CORRECTED (NO INSTAB)
+Screenshot 2026-01-27 014446.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014500.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 014602.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015438.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015458.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015518.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015537.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015559.png | PROCESSED | OCR scanner + merge script
+Screenshot 2026-01-27 015642.png | PROCESSED | OCR scanner + merge script

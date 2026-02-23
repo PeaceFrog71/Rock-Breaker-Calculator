@@ -88,18 +88,18 @@ export const SHIP_IMAGE_CONFIG_PHONE: Record<string, ShipImageConfig> = {
  */
 export const SHIP_IMAGE_CONFIG_PORTRAIT: Record<string, ShipImageConfig> = {
   golem: {
-    width: "14vw",
-    height: "9.1vw",
+    width: "11vw",
+    height: "7vw",
     alt: "GOLEM",
   },
   mole: {
-    width: "24vw",
-    height: "15.6vw",
+    width: "17vw",
+    height: "11vw",
     alt: "MOLE",
   },
   prospector: {
-    width: "17vw",
-    height: "11vw",
+    width: "14vw",
+    height: "9vw",
     alt: "Prospector",
   },
 };

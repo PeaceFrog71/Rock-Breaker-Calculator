@@ -5,23 +5,55 @@
     <link rel="icon" type="image/x-icon" href="/peacefrog-favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
     <title>Rock Breaker Calculator - Star Citizen Mining Tool</title>
+    <meta name="description" content="Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration." />
+    <meta name="theme-color" content="#0a0e27" />
+
+    <!-- SEO meta tags -->
+    <link rel="canonical" href="https://rockbreaker.peacefroggaming.com/" />
+    <meta name="keywords" content="Star Citizen, mining calculator, rock breaker, mass, resistance, mining laser, Prospector, MOLE, Orion" />
+    <meta name="author" content="PeaceFrog Gaming" />
+    <meta name="robots" content="index, follow" />
 
     <!-- Open Graph / Social Media Preview -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://peacefrog71.github.io/BreakIt-Calculator/" />
-    <meta property="og:title" content="PeaceFrog's Rock Breaker Calculator" />
+    <meta property="og:url" content="https://rockbreaker.peacefroggaming.com/" />
+    <meta property="og:title" content="Rock Breaker Calculator - Star Citizen" />
     <meta property="og:description" content="Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration." />
-    <meta property="og:image" content="https://peacefrog71.github.io/BreakIt-Calculator/og-image.png" />
+    <meta property="og:image" content="https://rockbreaker.peacefroggaming.com/og-image.png" />
     <meta property="og:site_name" content="PeaceFrog Gaming" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="PeaceFrog's Rock Breaker Calculator" />
+    <meta name="twitter:title" content="Rock Breaker Calculator - Star Citizen" />
     <meta name="twitter:description" content="Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration." />
-    <meta name="twitter:image" content="https://peacefrog71.github.io/BreakIt-Calculator/og-image.png" />
+    <meta name="twitter:image" content="https://rockbreaker.peacefroggaming.com/og-image.png" />
 
-    <!-- General Meta -->
-    <meta name="description" content="Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration." />
+    <!-- PWA manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/og-image.png" />
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Rock Breaker Calculator",
+      "description": "Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration",
+      "url": "https://rockbreaker.peacefroggaming.com/",
+      "applicationCategory": "GameApplication",
+      "operatingSystem": "Web Browser",
+      "author": {
+        "@type": "Organization",
+        "name": "PeaceFrog Gaming",
+        "url": "https://peacefroggaming.com"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
 
     <!-- RSI-style fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -139,6 +171,23 @@
           display: none !important;
         }
       }
+      /* Tablet portrait: Ko-fi button on right, clickable (opens in new tab) */
+      @media (orientation: portrait) and (pointer: coarse) and (min-width: 768px) {
+        .floatingchat-container-wrap,
+        .floatingchat-container-wrap-mobi,
+        [class*="floatingchat-container-wrap"] {
+          display: none !important;  /* Hide widget on tablets */
+        }
+        .kofi-overlay-btn {
+          left: auto !important;
+          right: 10px !important;
+          transform: scale(0.7, 0.85) !important; /* narrower to match content */
+          transform-origin: right bottom !important;
+          pointer-events: auto !important;  /* Make clickable on tablets */
+          text-decoration: none;
+          cursor: pointer;
+        }
+      }
       /* Tablet landscape: Ko-fi button on right, clickable (opens in new tab) */
       @media (orientation: landscape) and (pointer: coarse) and (min-height: 600px) and (min-width: 768px) {
         .floatingchat-container-wrap,
@@ -160,7 +209,7 @@
     <!-- Ko-fi button: overlay on desktop (clicks pass through), direct link on tablet -->
     <a class="kofi-overlay-btn" href="https://ko-fi.com/peacefroggaming" target="_blank" rel="noopener noreferrer">
       <img src="/rieger-icon.png" alt="" />
-      <span>Buy me a Rieger-C3<br />on KO-FI</span>
+      <span>Support Us<br />on Ko-fi</span>
     </a>
   </body>
 </html>
