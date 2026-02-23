@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User, Session, AuthError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured, initSessionSync } from '../lib/supabase';
+import { decryptFromSupabase } from '../utils/apiKeyCrypto';
 
 interface AuthState {
   user: User | null;
@@ -44,12 +45,24 @@ export function getAvatarUrl(user: User | null): string | null {
 }
 
 /**
- * Get the Regolith API key from user metadata (Supabase storage path).
- * Returns null if no key is stored in the account.
+ * Check whether a Regolith API key is stored in user metadata (Supabase path).
+ * Synchronous — safe to call during render for connection-status checks.
  */
-export function getRegolithApiKeySupabase(user: User | null): string | null {
+export function hasRegolithApiKeySupabase(user: User | null): boolean {
+  if (!user) return false;
+  return !!user.user_metadata?.regolith_api_key;
+}
+
+/**
+ * Get the Regolith API key from user metadata (Supabase storage path).
+ * Async — decrypts the stored ciphertext using the user's ID as part of the key.
+ * Returns null if no key is stored or decryption fails.
+ */
+export async function getRegolithApiKeySupabase(user: User | null): Promise<string | null> {
   if (!user) return null;
-  return user.user_metadata?.regolith_api_key || null;
+  const stored = user.user_metadata?.regolith_api_key as string | null | undefined;
+  if (!stored) return null;
+  return decryptFromSupabase(stored, user.id);
 }
 
 /**

@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useAuth, getDisplayName, getAvatarUrl, getAvatarId, getCustomAvatarUrl, getRegolithApiKeySupabase } from '../contexts/AuthContext';
+import { useAuth, getDisplayName, getAvatarUrl, getAvatarId, getCustomAvatarUrl, hasRegolithApiKeySupabase } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { AVATAR_OPTIONS, getAvatarSrc } from '../utils/avatarMap';
 import { getRegolithApiKeyLocal, saveRegolithApiKeyLocal, clearRegolithApiKeyLocal } from '../utils/storage';
 import { validateApiKey } from '../utils/regolith';
+import { encryptForSupabase } from '../utils/apiKeyCrypto';
 import './ProfileModal.css';
 
 interface ProfileModalProps {
@@ -77,9 +78,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
   const [regolithSuccess, setRegolithSuccess] = useState('');
 
   const localKey = getRegolithApiKeyLocal();
-  const accountKey = user ? getRegolithApiKeySupabase(user) : null;
-  const isRegolithConnected = !!(localKey || accountKey);
-  const regolithStorageLabel = accountKey ? 'PeaceFrog Gaming account' : localKey ? 'This browser' : null;
+  const hasAccountKey = hasRegolithApiKeySupabase(user);
+  const isRegolithConnected = !!(localKey || hasAccountKey);
+  const regolithStorageLabel = hasAccountKey ? 'PeaceFrog Gaming account' : localKey ? 'This browser' : null;
 
   // Populate fields when modal opens; reset tab to default on each open
   useEffect(() => {
@@ -264,8 +265,9 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     }
 
     if (regolithStorage === 'account' && user) {
+      const encrypted = await encryptForSupabase(regolithKeyInput.trim(), user.id);
       const { error: saveError } = await supabase.auth.updateUser({
-        data: { regolith_api_key: regolithKeyInput.trim() },
+        data: { regolith_api_key: encrypted },
       });
       if (saveError) {
         setRegolithError(saveError.message);
@@ -541,7 +543,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         <ul>
                           <li>✅ Follows you across devices</li>
                           <li>✅ Tied to your PeaceFrog Gaming login</li>
-                          <li>⚠️ Stored securely in your PeaceFrog Gaming account profile</li>
+                          <li>✅ Encrypted — PeaceFrog Gaming cannot view it in our database</li>
                         </ul>
                       </div>
                     </label>

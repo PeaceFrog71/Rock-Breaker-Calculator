@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Rock } from '../types';
-import { useAuth, getRegolithApiKeySupabase } from '../contexts/AuthContext';
+import { useAuth, getRegolithApiKeySupabase, hasRegolithApiKeySupabase } from '../contexts/AuthContext';
 import { getRegolithApiKeyLocal } from '../utils/storage';
 import { fetchActiveSessionId, fetchSessionRocks } from '../utils/regolith';
 import type { RegolithClusterFind, RegolithShipRock } from '../utils/regolith';
@@ -44,9 +44,8 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
       return;
     }
 
-    const apiKey = (user ? getRegolithApiKeySupabase(user) : null) || getRegolithApiKeyLocal();
-
-    if (!apiKey) {
+    // Sync check: if no key is stored anywhere, skip the loading state entirely
+    if (!hasRegolithApiKeySupabase(user) && !getRegolithApiKeyLocal()) {
       setState('no-key');
       return;
     }
@@ -54,6 +53,12 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
     setState('loading');
 
     const load = async () => {
+      // Decrypt the account key (async) or fall back to localStorage
+      const apiKey = (user ? await getRegolithApiKeySupabase(user) : null) || getRegolithApiKeyLocal();
+      if (!apiKey) {
+        setState('no-key');
+        return;
+      }
       try {
         const sessionId = await fetchActiveSessionId(apiKey);
         if (!sessionId) {

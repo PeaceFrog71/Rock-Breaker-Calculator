@@ -1,11 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import {
   getRegolithApiKeySupabase,
+  hasRegolithApiKeySupabase,
   getDisplayName,
   getAvatarUrl,
   getAvatarId,
   getCustomAvatarUrl,
 } from './AuthContext';
+import { encryptForSupabase } from '../utils/apiKeyCrypto';
 import type { User } from '@supabase/supabase-js';
 
 // Minimal User fixture — only the fields our helpers read
@@ -20,26 +22,60 @@ function makeUser(metadata: Record<string, unknown> = {}): User {
   } as unknown as User;
 }
 
-// ─── getRegolithApiKeySupabase ─────────────────────────────────────────────────
+// ─── hasRegolithApiKeySupabase ────────────────────────────────────────────────
+
+describe('hasRegolithApiKeySupabase', () => {
+  it('returns false when user is null', () => {
+    expect(hasRegolithApiKeySupabase(null)).toBe(false);
+  });
+
+  it('returns false when no regolith_api_key in metadata', () => {
+    expect(hasRegolithApiKeySupabase(makeUser({ display_name: 'Drew' }))).toBe(false);
+  });
+
+  it('returns true when regolith_api_key is present', () => {
+    expect(hasRegolithApiKeySupabase(makeUser({ regolith_api_key: 'some-ciphertext' }))).toBe(true);
+  });
+
+  it('returns false when regolith_api_key is explicitly null', () => {
+    expect(hasRegolithApiKeySupabase(makeUser({ regolith_api_key: null }))).toBe(false);
+  });
+});
+
+// ─── getRegolithApiKeySupabase ────────────────────────────────────────────────
 
 describe('getRegolithApiKeySupabase', () => {
-  it('returns null when user is null', () => {
-    expect(getRegolithApiKeySupabase(null)).toBeNull();
+  it('returns null when user is null', async () => {
+    expect(await getRegolithApiKeySupabase(null)).toBeNull();
   });
 
-  it('returns null when no regolith_api_key in metadata', () => {
+  it('returns null when no regolith_api_key in metadata', async () => {
     const user = makeUser({ display_name: 'Drew' });
-    expect(getRegolithApiKeySupabase(user)).toBeNull();
+    expect(await getRegolithApiKeySupabase(user)).toBeNull();
   });
 
-  it('returns the stored API key', () => {
-    const user = makeUser({ regolith_api_key: 'my-regolith-key' });
-    expect(getRegolithApiKeySupabase(user)).toBe('my-regolith-key');
-  });
-
-  it('returns null when regolith_api_key is explicitly null', () => {
+  it('returns null when regolith_api_key is explicitly null', async () => {
     const user = makeUser({ regolith_api_key: null });
-    expect(getRegolithApiKeySupabase(user)).toBeNull();
+    expect(await getRegolithApiKeySupabase(user)).toBeNull();
+  });
+
+  it('decrypts and returns a previously encrypted key', async () => {
+    const plaintext = 'my-regolith-key-abc123';
+    const userId = 'user-123'; // matches makeUser id
+    const encrypted = await encryptForSupabase(plaintext, userId);
+    const user = makeUser({ regolith_api_key: encrypted });
+    expect(await getRegolithApiKeySupabase(user)).toBe(plaintext);
+  });
+
+  it('returns null for malformed ciphertext (no dot separator)', async () => {
+    const user = makeUser({ regolith_api_key: 'notvalidciphertext' });
+    expect(await getRegolithApiKeySupabase(user)).toBeNull();
+  });
+
+  it('returns null when encrypted with a different userId (wrong key)', async () => {
+    const encrypted = await encryptForSupabase('secret', 'different-user-id');
+    const user = makeUser({ regolith_api_key: encrypted }); // user.id = 'user-123'
+    expect(await getRegolithApiKeySupabase(user)).toBeNull();
   });
 });
 
