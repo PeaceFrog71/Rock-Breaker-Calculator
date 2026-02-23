@@ -262,7 +262,7 @@ describe('regolith.ts', () => {
       await expect(fetchSessionRocks('key', 'session-abc')).rejects.toThrow();
     });
 
-    it('includes the sessionId in the GraphQL query body', async () => {
+    it('passes sessionId as a GraphQL variable (not string-interpolated)', async () => {
       const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
         ok: true,
         json: async () => ({ data: { session: { scouting: { items: [] } } } }),
@@ -272,7 +272,9 @@ describe('regolith.ts', () => {
 
       const [, init] = spy.mock.calls[0];
       const body = JSON.parse(init?.body as string);
-      expect(body.query).toContain('my-session-id');
+      // sessionId must be in variables, not hard-coded in the query string
+      expect(body.variables?.sessionId).toBe('my-session-id');
+      expect(body.query).not.toContain('my-session-id');
     });
 
     it('queries for ores and state fields', async () => {

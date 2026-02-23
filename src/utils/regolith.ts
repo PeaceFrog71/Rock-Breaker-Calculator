@@ -27,14 +27,14 @@ export interface RegolithClusterFind {
   shipRocks: RegolithShipRock[];
 }
 
-async function gql<T>(apiKey: string, query: string): Promise<T> {
+async function gql<T>(apiKey: string, query: string, variables?: Record<string, unknown>): Promise<T> {
   const response = await fetch(REGOLITH_API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
     },
-    body: JSON.stringify({ query }),
+    body: JSON.stringify({ query, ...(variables ? { variables } : {}) }),
   });
 
   if (!response.ok) {
@@ -100,36 +100,38 @@ export async function fetchSessionRocks(
   apiKey: string,
   sessionId: string
 ): Promise<RegolithClusterFind[]> {
-  const query = `{
-    session(sessionId: "${sessionId}") {
-      scouting {
-        items {
-          ... on ShipClusterFind {
-            scoutingFindId
-            gravityWell
-            state
-            clusterCount
-            score
-            rawScore
-            surveyBonus
-            createdAt
-            version
-            shipRocks {
-              mass
-              res
-              inst
-              rockType
+  const query = `
+    query FetchSession($sessionId: String!) {
+      session(sessionId: $sessionId) {
+        scouting {
+          items {
+            ... on ShipClusterFind {
+              scoutingFindId
+              gravityWell
               state
-              ores {
-                ore
-                percent
+              clusterCount
+              score
+              rawScore
+              surveyBonus
+              createdAt
+              version
+              shipRocks {
+                mass
+                res
+                inst
+                rockType
+                state
+                ores {
+                  ore
+                  percent
+                }
               }
             }
           }
         }
       }
     }
-  }`;
+  `;
 
   type SessionResponse = {
     session: {
@@ -150,7 +152,7 @@ export async function fetchSessionRocks(
     } | null;
   };
 
-  const data = await gql<SessionResponse>(apiKey, query);
+  const data = await gql<SessionResponse>(apiKey, query, { sessionId });
   const items = data.session?.scouting?.items ?? [];
 
   // Filter to only active ShipClusterFinds — must have shipRocks and not be abandoned/depleted
