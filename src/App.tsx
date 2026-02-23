@@ -22,6 +22,7 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import MiningGroupManager from "./components/MiningGroupManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
@@ -62,7 +63,8 @@ function App() {
   );
   const [currentConfigName, setCurrentConfigName] = useState<string | undefined>(undefined);
   // Cache ship configs per ship type during session (for #189 - retain config when swapping ships)
-  const [shipConfigs, setShipConfigs] = useState<Record<string, MiningConfiguration>>({});
+  // Includes name so it persists across ship switches (#204)
+  const [shipConfigs, setShipConfigs] = useState<Record<string, { config: MiningConfiguration; name?: string }>>({});
   // Save dialog state (controlled from ShipSelector header for #190)
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   // Load rock from active slot in localStorage (or default if not found)
@@ -441,23 +443,23 @@ function App() {
   };
 
   const handleShipChange = (ship: Ship) => {
-    // Cache current config before switching (for #189 - retain config when swapping ships)
+    // Cache current config + name before switching (for #189/#204 - retain config & name when swapping ships)
     setShipConfigs(prev => ({
       ...prev,
-      [selectedShip.id]: config
+      [selectedShip.id]: { config, name: currentConfigName }
     }));
 
     setSelectedShip(ship);
 
-    // Restore cached config if exists, otherwise initialize defaults
-    const cachedConfig = shipConfigs[ship.id];
-    if (cachedConfig) {
-      setConfig(cachedConfig);
+    // Restore cached config + name if exists, otherwise initialize defaults
+    const cached = shipConfigs[ship.id];
+    if (cached) {
+      setConfig(cached.config);
+      setCurrentConfigName(cached.name);
     } else {
       setConfig(initializeDefaultLasersForShip(ship));
+      setCurrentConfigName(undefined);
     }
-
-    setCurrentConfigName(undefined); // Clear config name when switching ships
   };
 
   const handleLoadConfiguration = (
@@ -468,12 +470,19 @@ function App() {
     setSelectedShip(ship);
     setConfig(loadedConfig);
     setCurrentConfigName(name);
+    // Auto-open laser setup panel so user can see the loaded config (#204)
+    setOpenPanel('lasers');
   };
 
   // Clear config to defaults (for #190 - Clear button in ShipSelector header)
   const handleClearConfig = () => {
     setConfig(initializeDefaultLasersForShip(selectedShip));
     setCurrentConfigName(undefined);
+    // Clear cache so switching ships and back doesn't restore old config
+    setShipConfigs(prev => ({
+      ...prev,
+      [selectedShip.id]: { config: initializeDefaultLasersForShip(selectedShip), name: undefined }
+    }));
   };
 
   // Open save dialog (for #190 - Save button in ShipSelector header)
@@ -800,8 +809,6 @@ function App() {
                     currentConfigName={currentConfigName}
                     onLoad={handleLoadConfiguration}
                     onAfterLoad={() => setLibraryDrawerOpen(false)}
-                    showSaveDialog={showSaveDialog}
-                    onShowSaveDialogChange={setShowSaveDialog}
                     hideSaveButton={true}
                   />
                 </MobileDrawer>
@@ -964,8 +971,6 @@ function App() {
                         currentConfig={config}
                         currentConfigName={currentConfigName}
                         onLoad={handleLoadConfiguration}
-                        showSaveDialog={showSaveDialog}
-                        onShowSaveDialogChange={setShowSaveDialog}
                         hideSaveButton={true}
                       />
                     </CollapsiblePanel>
@@ -979,6 +984,14 @@ function App() {
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => { setShowAuthModal(false); setAuthModalView(undefined); clearPasswordRecovery(); }} initialView={authModalView} />
+      <SaveShipModal
+        isOpen={showSaveDialog}
+        onClose={() => setShowSaveDialog(false)}
+        currentShip={selectedShip}
+        currentConfig={config}
+        currentConfigName={currentConfigName}
+        onSaved={handleLoadConfiguration}
+      />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (
