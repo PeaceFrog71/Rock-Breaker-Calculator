@@ -22,6 +22,7 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import MiningGroupManager from "./components/MiningGroupManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
 import RegolithImportModal from "./components/RegolithImportModal";
@@ -139,6 +140,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
   const [showRegolithModal, setShowRegolithModal] = useState(false);
@@ -639,7 +641,13 @@ function App() {
               HELP
             </button>
           </div>
-          <span className="version-tag">v{version}</span>
+          <button
+            className="version-tag version-tag--clickable"
+            onClick={() => setShowChangelogModal(true)}
+            title="What's New"
+          >
+            v{version}
+          </button>
         </div>
         <div className="header-controls">
           {isAuthConfigured && (
@@ -993,6 +1001,7 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+      <ChangelogModal isOpen={showChangelogModal} onClose={() => setShowChangelogModal(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => { setShowAuthModal(false); setAuthModalView(undefined); clearPasswordRecovery(); }} initialView={authModalView} />
       <SaveShipModal
         isOpen={showSaveDialog}
@@ -1010,11 +1019,19 @@ function App() {
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (
-        <img
-          src={communityLogo}
-          alt="Made by the Community"
-          className={`community-logo ${isMobile ? 'tablet' : ''}`}
-        />
+        <a
+          href="https://www.robertsspaceindustries.com/enlist?referral=STAR-YVCT-KPSV"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Join Star Citizen"
+          className={`community-logo-link ${isMobile ? 'tablet' : ''}`}
+        >
+          <img
+            src={communityLogo}
+            alt="Made by the Community"
+            className="community-logo"
+          />
+        </a>
       )}
     </div>
   );
