@@ -321,7 +321,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
         {/* Avatar Display */}
         <div className="profile-avatar-display">
           {displayedAvatar ? (
-            <img className="profile-avatar-img" src={displayedAvatar} alt="" />
+            <img className="profile-avatar-img" src={displayedAvatar} alt="" referrerPolicy="no-referrer" />
           ) : (
             <span className="profile-avatar-initial">
               <svg viewBox="0 0 24 24" width="32" height="32" fill="none">
@@ -343,7 +343,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
               disabled={saving}
             >
               {googleAvatarUrl ? (
-                <img src={googleAvatarUrl} alt="" />
+                <img src={googleAvatarUrl} alt="" referrerPolicy="no-referrer" />
               ) : (
                 <svg className="avatar-default-icon" viewBox="0 0 24 24" width="32" height="32" fill="none">
                   <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/>
