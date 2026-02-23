@@ -1511,21 +1511,33 @@ button, .btn-primary, .btn-secondary {
 }
 
 /* Community Logo - Desktop: lower right, Tablet: lower left */
-.community-logo {
+.community-logo-link {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
-  width: clamp(80px, 8vw, 120px);
-  height: auto;
-  opacity: 0.6;
   z-index: 50;  /* Below drawers (1000+) and data tab */
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  display: block;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.community-logo-link:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.5));
 }
 
 /* Tablet: move to lower left */
-.community-logo.tablet {
+.community-logo-link.tablet {
   right: auto;
   left: 1rem;
+}
+
+.community-logo {
+  width: clamp(80px, 8vw, 120px);
+  height: auto;
+  display: block;
+}
+
+.community-logo-link.tablet .community-logo {
   width: clamp(64px, 10vw, 100px);
 }

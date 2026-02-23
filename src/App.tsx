@@ -995,11 +995,19 @@ function App() {
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (
-        <img
-          src={communityLogo}
-          alt="Made by the Community"
-          className={`community-logo ${isMobile ? 'tablet' : ''}`}
-        />
+        <a
+          href="https://www.robertsspaceindustries.com/enlist?referral=STAR-YVCT-KPSV"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Join Star Citizen"
+          className={`community-logo-link ${isMobile ? 'tablet' : ''}`}
+        >
+          <img
+            src={communityLogo}
+            alt="Made by the Community"
+            className="community-logo"
+          />
+        </a>
       )}
     </div>
   );
