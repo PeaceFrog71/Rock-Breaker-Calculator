@@ -26,6 +26,7 @@ import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
 import RegolithImportModal from "./components/RegolithImportModal";
+import ProfileModal from "./components/ProfileModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
 import GadgetsPanel from "./components/GadgetsPanel";
@@ -144,6 +145,8 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
   const [showRegolithModal, setShowRegolithModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'connections'>('profile');
   const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
 
   // Auto-open auth modal when user clicks password reset link from email
@@ -651,7 +654,7 @@ function App() {
         </div>
         <div className="header-controls">
           {isAuthConfigured && (
-            <UserMenu onSignInClick={() => setShowAuthModal(true)} />
+            <UserMenu onSignInClick={() => setShowAuthModal(true)} onProfileClick={() => { setProfileInitialTab('profile'); setShowProfileModal(true); }} />
           )}
           {!isMobile && (
             <a
@@ -1015,6 +1018,16 @@ function App() {
         isOpen={showRegolithModal}
         onClose={() => setShowRegolithModal(false)}
         onImport={handleRegolithImport}
+        onOpenIntegrations={() => {
+          setShowRegolithModal(false);
+          setProfileInitialTab('connections');
+          setShowProfileModal(true);
+        }}
+      />
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        initialTab={profileInitialTab}
       />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
