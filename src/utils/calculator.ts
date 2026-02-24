@@ -347,6 +347,43 @@ export interface InstabilityResult {
 }
 
 /**
+ * Calculate equipment instability modifier for a single mining configuration.
+ * Multiplies instability modifiers from all active/manned lasers.
+ */
+export function calculateConfigInstabilityModifier(
+  config: MiningConfiguration,
+  shipId?: string
+): number {
+  let modifier = 1;
+  config.lasers.forEach((laser) => {
+    if (laser.laserHead) {
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          modifier *= calculateLaserInstabilityModifier(laser);
+        }
+      } else {
+        modifier *= calculateLaserInstabilityModifier(laser);
+      }
+    }
+  });
+  return modifier;
+}
+
+/**
+ * Calculate instability modifier from gadgets.
+ * Gadget instability modifiers multiply together.
+ */
+export function calculateGadgetInstabilityModifier(gadgets: (Gadget | null)[]): number {
+  let modifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      modifier *= gadget.instabilityModifier;
+    }
+  });
+  return modifier;
+}
+
+/**
  * Calculate instability for a mining configuration
  * Separate from breakability as instability is a distinct mining concern
  *
@@ -361,33 +398,10 @@ export function calculateInstability(
   gadgets: (Gadget | null)[] = [],
   shipId?: string
 ): InstabilityResult {
-  // Calculate total instability modifier from lasers
-  let equipmentModifier = 1;
-  config.lasers.forEach((laser) => {
-    if (laser.laserHead) {
-      // For MOLE in single ship mode, only count manned lasers
-      if (shipId === 'mole') {
-        if (laser.isManned !== false) {
-          equipmentModifier *= calculateLaserInstabilityModifier(laser);
-        }
-      } else {
-        equipmentModifier *= calculateLaserInstabilityModifier(laser);
-      }
-    }
-  });
-
-  // Calculate gadget instability modifier
-  let gadgetModifier = 1;
-  gadgets.forEach((gadget) => {
-    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
-      gadgetModifier *= gadget.instabilityModifier;
-    }
-  });
-
-  // Combined modifier
+  const equipmentModifier = calculateConfigInstabilityModifier(config, shipId);
+  const gadgetModifier = calculateGadgetInstabilityModifier(gadgets);
   const totalModifier = equipmentModifier * gadgetModifier;
 
-  // Calculate adjusted instability if rock has instability value
   const adjustedInstability = rock.instability !== undefined
     ? rock.instability * totalModifier
     : undefined;
@@ -485,21 +499,9 @@ export function calculateGroupBreakability(
 
     allResistModifiers.push(shipResistMod);
 
-    // Calculate this ship's instability modifier from lasers
-    let shipInstabilityMod = 1;
-    config.lasers.forEach((laser) => {
-      if (laser.laserHead) {
-        // For MOLE, only count manned lasers
-        if (shipInstance.ship.id === 'mole') {
-          if (laser.isManned !== false) {
-            shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
-          }
-        } else {
-          shipInstabilityMod *= calculateLaserInstabilityModifier(laser);
-        }
-      }
-    });
-    allInstabilityModifiers.push(shipInstabilityMod);
+    allInstabilityModifiers.push(
+      calculateConfigInstabilityModifier(config, shipInstance.ship.id)
+    );
   });
 
   // Multi-ship mining uses multiplicative stacking: all ship resistance modifiers multiply together
@@ -531,15 +533,8 @@ export function calculateGroupBreakability(
     }
   });
 
-  // Apply gadget instability modifiers
-  let gadgetInstabilityModifier = 1;
-  gadgets.forEach((gadget) => {
-    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
-      gadgetInstabilityModifier *= gadget.instabilityModifier;
-    }
-  });
-
   // Calculate total instability modifier
+  const gadgetInstabilityModifier = calculateGadgetInstabilityModifier(gadgets);
   const totalInstabilityModifier = equipmentInstabilityModifier * gadgetInstabilityModifier;
 
   // Multi-ship instability penalty: base instability doubles for each additional ship WITH LASERS ON
