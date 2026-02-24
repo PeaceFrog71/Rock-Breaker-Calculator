@@ -267,11 +267,13 @@ function App() {
     return hasEquipmentModifiers;
   }, [rock.resistance, rock.includeGadgetsInScan, config.lasers, gadgets]);
 
-  // Resistance mode handlers
+  // Scan mode handler — toggles both resistance and instability mode together
   const handleResistanceModeToggle = () => {
+    const newMode = rock.resistanceMode === 'base' ? 'modified' : 'base';
     setRock({
       ...rock,
-      resistanceMode: rock.resistanceMode === 'base' ? 'modified' : 'base',
+      resistanceMode: newMode,
+      instabilityMode: newMode,
     });
   };
 
