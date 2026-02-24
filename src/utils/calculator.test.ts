@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBreakability, calculateGroupBreakability, calculateLaserPower, calculateLaserInstabilityModifier, calculateInstability } from './calculator';
+import { calculateBreakability, calculateGroupBreakability, calculateLaserPower, calculateLaserInstabilityModifier, calculateInstability, calculateEffectiveInstability } from './calculator';
 import { LASER_HEADS, MODULES, GADGETS, SHIPS } from '../types';
 import type { MiningConfiguration, Rock, MiningGroup, ShipInstance, LaserConfiguration } from '../types';
 
@@ -2022,6 +2022,164 @@ describe('Instability Calculations - Issue #11', () => {
       // No ships = no penalty returned
       expect(result.multiShipInstabilityPenalty).toBeUndefined();
       expect(result.adjustedInstability).toBeUndefined();
+    });
+  });
+
+  describe('Instability Back-Calculation - Issue #229', () => {
+    it('should use calculateEffectiveInstability to derive base from modified instability', () => {
+      // Arbor MH1 has instabilityModifier = 0.65
+      // User scans instability while laser is on rock: true base = 40, displayed = 40 × 0.65 = 26
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 26,
+        instabilityMode: 'modified',
+      };
+
+      const result = calculateEffectiveInstability(rock, 0.65, 1, 0.65);
+      // derivedBase = 26 / 0.65 = 40
+      expect(result.derivedBase).toBeCloseTo(40, 1);
+      // effectiveInstability = 40 × 0.65 = 26
+      expect(result.effectiveInstability).toBeCloseTo(26, 1);
+    });
+
+    it('should return no derivedBase in base mode', () => {
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 40,
+        instabilityMode: 'base',
+      };
+
+      const result = calculateEffectiveInstability(rock, 0.65, 1);
+      expect(result.derivedBase).toBeUndefined();
+      expect(result.effectiveInstability).toBeCloseTo(26, 1); // 40 × 0.65
+    });
+
+    it('should handle gadgets in scan for instability back-calculation', () => {
+      // Gadget instability modifier = 0.7 (OptiMax)
+      // Laser instability modifier = 0.65 (Arbor MH1)
+      // True base = 40
+      // Scanned with laser + gadget: 40 × 0.65 × 0.7 = 18.2
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 18.2,
+        instabilityMode: 'modified',
+        includeGadgetsInScan: true,
+      };
+
+      const result = calculateEffectiveInstability(rock, 0.65, 0.7, 0.65, 0.7);
+      // derivedBase = 18.2 / (0.65 × 0.7) = 18.2 / 0.455 = 40
+      expect(result.derivedBase).toBeCloseTo(40, 1);
+      // effectiveInstability = 40 × 0.65 × 0.7 = 18.2
+      expect(result.effectiveInstability).toBeCloseTo(18.2, 1);
+    });
+
+    it('should back-calculate instability in single-ship calculateBreakability', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // instabilityModifier = 0.65
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: arborMH1, modules: [null] },
+        ],
+      };
+
+      // True base instability = 40, user sees 40 × 0.65 = 26 with laser on
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 26,
+        instabilityMode: 'modified',
+        scannedByLaserIndex: 0,
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null], 'prospector');
+
+      // Should derive base = 26 / 0.65 = 40
+      expect(result.instabilityContext?.derivedBaseValue).toBeCloseTo(40, 1);
+      // Adjusted = 40 × 0.65 = 26
+      expect(result.adjustedInstability).toBeCloseTo(26, 1);
+    });
+
+    it('should back-calculate instability in multi-ship with penalty', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // instabilityModifier = 0.65
+      const lancetMH1 = LASER_HEADS.find(l => l.id === 'lancet-mh1')!; // instabilityModifier = 0.9
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+
+      const ship1: ShipInstance = {
+        id: 'ship1', ship: prospector, name: 'Ship 1', isActive: true,
+        config: { lasers: [{ laserHead: arborMH1, modules: [null] }] },
+      };
+      const ship2: ShipInstance = {
+        id: 'ship2', ship: prospector, name: 'Ship 2', isActive: true,
+        config: { lasers: [{ laserHead: lancetMH1, modules: [null] }] },
+      };
+
+      const group: MiningGroup = { ships: [ship1, ship2] };
+
+      // Ship1 scanned with Arbor MH1 (0.65 instability modifier)
+      // True base = 40, displayed = 40 × 0.65 = 26
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 26,
+        instabilityMode: 'modified',
+        scannedByShipId: 'ship1',
+        scannedByLaserIndex: 0,
+      };
+
+      const result = calculateGroupBreakability(group, rock, [null, null, null]);
+
+      // derivedBase = 26 / 0.65 = 40
+      expect(result.instabilityContext?.derivedBaseValue).toBeCloseTo(40, 1);
+      // Equipment modifier: 0.65 × 0.9 = 0.585
+      // Multi-ship penalty: 2^(2-1) = 2
+      // Adjusted = 40 × 0.585 × 2 = 46.8
+      expect(result.adjustedInstability).toBeCloseTo(46.8, 1);
+      expect(result.multiShipInstabilityPenalty).toBe(2);
+    });
+
+    it('should fall back to total modifier when scannedByLaserIndex is not set for instability', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!; // instabilityModifier = 0.65
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: arborMH1, modules: [null] },
+        ],
+      };
+
+      // Modified mode but no scanning laser index
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 26,
+        instabilityMode: 'modified',
+        // no scannedByLaserIndex
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null], 'prospector');
+
+      // Falls back to using equipment modifier (0.65) for reverse
+      // derivedBase = 26 / 0.65 = 40
+      expect(result.instabilityContext?.derivedBaseValue).toBeCloseTo(40, 1);
+      expect(result.adjustedInstability).toBeCloseTo(26, 1);
+    });
+
+    it('should not produce instabilityContext in base mode', () => {
+      const arborMH1 = LASER_HEADS.find(l => l.id === 'arbor-mh1')!;
+
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: arborMH1, modules: [null] },
+        ],
+      };
+
+      const rock: Rock = {
+        mass: 1000, resistance: 20,
+        instability: 40,
+        instabilityMode: 'base',
+      };
+
+      const result = calculateBreakability(config, rock, [null, null, null], 'prospector');
+
+      expect(result.instabilityContext).toBeUndefined();
+      // Adjusted = 40 × 0.65 = 26
+      expect(result.adjustedInstability).toBeCloseTo(26, 1);
     });
   });
 });

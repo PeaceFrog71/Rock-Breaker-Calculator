@@ -57,21 +57,12 @@ export default function RockPropertiesPanel({
         mode={rock.resistanceMode || 'base'}
         includeGadgets={rock.includeGadgetsInScan || false}
         showHint={showResistanceHint}
+        instability={rock.instability}
         onChange={onResistanceChange}
         onModeToggle={onResistanceModeToggle}
         onGadgetToggle={onGadgetInclusionToggle}
+        onInstabilityChange={(value) => onRockChange({ ...rock, instability: value })}
       />
-      <div className="compact-form-group">
-        <label>Instability</label>
-        <input
-          type="number"
-          inputMode="decimal"
-          value={rock.instability == null ? '' : rock.instability}
-          onChange={(e) => onRockChange({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-          min="0"
-          step="0.1"
-        />
-      </div>
       {onRegolithImport && (
         <button
           className="regolith-import-button"
