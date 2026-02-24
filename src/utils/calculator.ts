@@ -107,6 +107,23 @@ export function calculateEffectiveInstability(
 }
 
 /**
+ * Calculate instability modifier from gadgets marked "In Scan" (for reverse calculation).
+ * Returns undefined if no scanGadgets provided, or the combined instability modifier.
+ */
+export function calculateScanGadgetInstabilityModifier(
+  scanGadgets?: (Gadget | null)[]
+): number | undefined {
+  if (!scanGadgets) return undefined;
+  let modifier = 1;
+  scanGadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
+      modifier *= gadget.instabilityModifier;
+    }
+  });
+  return modifier;
+}
+
+/**
  * Calculate power for a single laser with its modules
  *
  * Stacking logic:
@@ -331,16 +348,7 @@ export function calculateBreakability(
     }
   }
 
-  // Calculate scan gadget instability modifier (for reverse calculation)
-  let scanGadgetInstabilityModifier: number | undefined;
-  if (scanGadgets) {
-    scanGadgetInstabilityModifier = 1;
-    scanGadgets.forEach((gadget) => {
-      if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
-        scanGadgetInstabilityModifier! *= gadget.instabilityModifier;
-      }
-    });
-  }
+  const scanGadgetInstabilityModifier = calculateScanGadgetInstabilityModifier(scanGadgets);
 
   // Calculate instability using the dedicated calculator
   const instabilityResult = calculateInstability(
@@ -654,16 +662,7 @@ export function calculateGroupBreakability(
     }
   }
 
-  // Calculate scan gadget instability modifier (for reverse calculation)
-  let scanGadgetInstabilityModifier: number | undefined;
-  if (scanGadgets) {
-    scanGadgetInstabilityModifier = 1;
-    scanGadgets.forEach((gadget) => {
-      if (gadget && gadget.id !== 'none' && gadget.instabilityModifier !== undefined) {
-        scanGadgetInstabilityModifier! *= gadget.instabilityModifier;
-      }
-    });
-  }
+  const scanGadgetInstabilityModifier = calculateScanGadgetInstabilityModifier(scanGadgets);
 
   // Calculate effective instability using back-calculation if in modified mode
   const { effectiveInstability, derivedBase: instabilityDerivedBase } = calculateEffectiveInstability(

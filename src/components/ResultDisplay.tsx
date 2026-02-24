@@ -2619,6 +2619,12 @@ export default function ResultDisplay({
                       {(result.totalInstabilityModifier ?? 1).toFixed(3)}
                     </>
                   )}
+                  {result.multiShipInstabilityPenalty != null && result.multiShipInstabilityPenalty > 1 && (
+                    <>
+                      <br />
+                      Multi-ship penalty: ×{result.multiShipInstabilityPenalty}
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -2735,6 +2741,12 @@ export default function ResultDisplay({
                   <>
                     Base × modifier = {rock.instability} ×{" "}
                     {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+                  </>
+                )}
+                {result.multiShipInstabilityPenalty != null && result.multiShipInstabilityPenalty > 1 && (
+                  <>
+                    <br />
+                    Multi-ship penalty: ×{result.multiShipInstabilityPenalty}
                   </>
                 )}
               </div>
