@@ -94,7 +94,7 @@ export default function RockPropertiesPanel({
             key={index}
             className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
             onClick={() => onRockSlotSwitch(index)}
-            title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
+            title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${parseFloat(slot.resistance.toFixed(2))}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
             aria-label={`Rock slot ${index + 1}`}
             aria-pressed={index === activeRockSlot}
           >
@@ -104,7 +104,7 @@ export default function RockPropertiesPanel({
       </div>
       <a
         className="regolith-attribution"
-        href="https://regolith.rocks"
+        href="https://regolith.rocks/dashboard/sessions"
         target="_blank"
         rel="noopener noreferrer"
       >

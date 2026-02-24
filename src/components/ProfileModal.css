@@ -392,6 +392,7 @@
   padding: 0.15rem 0.5rem;
   border-radius: 12px;
   font-weight: 600;
+  text-align: center;
 }
 
 .integration-status.connected {
@@ -492,4 +493,8 @@
   font-size: 0.72rem;
   color: var(--warning);
   margin-left: 0.25rem;
+}
+
+.regolith-key-input {
+  -webkit-text-security: disc;
 }
