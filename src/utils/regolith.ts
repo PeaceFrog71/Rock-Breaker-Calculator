@@ -1,5 +1,13 @@
 const REGOLITH_API_URL = 'https://api.regolith.rocks';
 
+export interface RegolithSession {
+  sessionId: string;
+  name: string | null;
+  state: string;
+  createdAt: number;           // epoch ms
+  ownerScName: string | null;  // session owner's Star Citizen handle
+}
+
 export interface RegolithShipRockOre {
   ore: string;    // ShipOreEnum: 'QUANTANIUM', 'BEXALITE', 'INERTMATERIAL', etc.
   percent: number; // 0–1 scale (0.65 = 65%)
@@ -67,25 +75,70 @@ export async function validateApiKey(apiKey: string): Promise<boolean> {
 }
 
 /**
- * Fetch the session ID of the user's active Regolith session.
- * Uses profile.mySessions to find the first ACTIVE session.
- * Returns null if no active session exists.
+ * Fetch all active Regolith sessions the user participates in (owned or joined).
+ * Returns sessions sorted by createdAt descending (newest first).
+ * Returns empty array on error.
  */
-export async function fetchActiveSessionId(apiKey: string): Promise<string | null> {
+export async function fetchActiveSessions(apiKey: string): Promise<RegolithSession[]> {
   try {
+    const sessionFields = 'sessionId state name createdAt owner { scName }';
     const data = await gql<{
       profile: {
         mySessions: {
-          items: Array<{ sessionId: string; state: string }>;
+          items: Array<{
+            sessionId: string;
+            state: string;
+            name?: string | null;
+            createdAt?: number | null;
+            owner?: { scName?: string | null } | null;
+          }>;
+        };
+        joinedSessions: {
+          items: Array<{
+            sessionId: string;
+            state: string;
+            name?: string | null;
+            createdAt?: number | null;
+            owner?: { scName?: string | null } | null;
+          }>;
         };
       };
-    }>(apiKey, '{ profile { mySessions { items { sessionId state } } } }');
+    }>(apiKey, `{ profile { mySessions { items { ${sessionFields} } } joinedSessions { items { ${sessionFields} } } } }`);
 
-    const sessions = data.profile?.mySessions?.items ?? [];
-    return sessions.find((s) => s.state === 'ACTIVE')?.sessionId ?? null;
+    const owned = data.profile?.mySessions?.items ?? [];
+    const joined = data.profile?.joinedSessions?.items ?? [];
+
+    // Deduplicate by sessionId (in case a session appears in both lists)
+    const seen = new Set<string>();
+    const all = [...owned, ...joined].filter((s) => {
+      if (seen.has(s.sessionId)) return false;
+      seen.add(s.sessionId);
+      return true;
+    });
+
+    return all
+      .filter((s) => s.state === 'ACTIVE')
+      .map((s) => ({
+        sessionId: s.sessionId,
+        name: s.name ?? null,
+        state: s.state,
+        createdAt: s.createdAt ?? 0,
+        ownerScName: s.owner?.scName ?? null,
+      }))
+      .sort((a, b) => b.createdAt - a.createdAt);
   } catch {
-    return null;
+    return [];
   }
+}
+
+/**
+ * Fetch the session ID of the user's first active Regolith session.
+ * Convenience wrapper around fetchActiveSessions().
+ * Returns null if no active session exists.
+ */
+export async function fetchActiveSessionId(apiKey: string): Promise<string | null> {
+  const sessions = await fetchActiveSessions(apiKey);
+  return sessions.length > 0 ? sessions[0].sessionId : null;
 }
 
 /**
