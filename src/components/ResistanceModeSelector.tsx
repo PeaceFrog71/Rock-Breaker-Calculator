@@ -43,7 +43,7 @@ export default function ResistanceModeSelector({
       <input
         type="number"
         inputMode="decimal"
-        value={value === 0 ? '' : value}
+        value={value === 0 ? '' : parseFloat(value.toFixed(2))}
         onChange={(e) => onChange(
           e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
         )}

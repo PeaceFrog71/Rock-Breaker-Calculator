@@ -11,6 +11,7 @@ interface RegolithImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (rock: Partial<Rock>) => void;
+  onOpenIntegrations?: () => void;
 }
 
 type ModalState = 'loading' | 'no-key' | 'no-session' | 'error' | 'ready';
@@ -27,7 +28,7 @@ function formatOreName(ore: string): string {
   return ore.charAt(0) + ore.slice(1).toLowerCase();
 }
 
-export default function RegolithImportModal({ isOpen, onClose, onImport }: RegolithImportModalProps) {
+export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenIntegrations }: RegolithImportModalProps) {
   const { user } = useAuth();
 
   const [state, setState] = useState<ModalState>('loading');
@@ -140,8 +141,15 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
         {state === 'no-key' && (
           <div className="regolith-modal-status">
             <p className="regolith-modal-hint">
-              No Regolith API key found. Add your key in{' '}
-              <strong>Profile → Integrations</strong>.
+              No Regolith API key found.
+              <br />
+              Add your key in{' '}
+              <button
+                className="regolith-link-btn"
+                onClick={onOpenIntegrations}
+              >
+                Profile → Connections
+              </button>.
             </p>
           </div>
         )}
@@ -150,7 +158,17 @@ export default function RegolithImportModal({ isOpen, onClose, onImport }: Regol
           <div className="regolith-modal-status">
             <p className="regolith-modal-hint">
               No active Regolith session found, or no rock scans in the current session.
-              Start a session in Regolith and scan some rocks first.
+              <br />
+              Start a session in{' '}
+              <a
+                href="https://regolith.rocks/dashboard/sessions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="regolith-link-btn"
+              >
+                Regolith
+              </a>{' '}
+              and scan some rocks first.
             </p>
           </div>
         )}

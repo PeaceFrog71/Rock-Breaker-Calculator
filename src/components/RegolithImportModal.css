@@ -76,6 +76,23 @@
   margin: 0;
 }
 
+.regolith-link-btn {
+  background: none;
+  border: none;
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s;
+}
+
+.regolith-link-btn:hover {
+  color: var(--text-primary);
+}
+
 .regolith-modal-error {
   font-size: 0.85rem;
   color: #ff6b6b;
