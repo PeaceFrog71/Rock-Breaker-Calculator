@@ -75,7 +75,7 @@ export default function ChangelogModal({ isOpen, onClose }: ChangelogModalProps)
 
         <p className="changelog-footer">
           <a
-            href="https://github.com/PeaceFrog71/BreakIt-Calculator/releases"
+            href="https://github.com/PeaceFrog71/Rock-Breaker-Calculator/releases"
             target="_blank"
             rel="noopener noreferrer"
           >

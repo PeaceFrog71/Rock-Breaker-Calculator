@@ -1,6 +1,6 @@
-# Contributing to BreakIt Calculator
+# Contributing to Rock Breaker Calculator
 
-Thank you for contributing to the BreakIt Calculator!
+Thank you for contributing to the Rock Breaker Calculator!
 
 ## Quick Start
 
