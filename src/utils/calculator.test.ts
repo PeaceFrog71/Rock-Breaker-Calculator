@@ -2012,16 +2012,17 @@ describe('Instability Calculations - Issue #11', () => {
       expect(result.adjustedInstability).toBeCloseTo(10.14, 1);
     });
 
-    it('should return undefined instability penalty when no active ships', () => {
+    it('should return unmodified instability when no active ships', () => {
       const group: MiningGroup = { ships: [] };
       const gadgets = [null, null, null];
       const rock: Rock = { mass: 10000, resistance: 20, instability: 40 };
 
       const result = calculateGroupBreakability(group, rock, gadgets);
 
-      // No ships = no penalty returned
+      // No ships = no penalty, raw rock instability returned
       expect(result.multiShipInstabilityPenalty).toBeUndefined();
-      expect(result.adjustedInstability).toBeUndefined();
+      expect(result.totalInstabilityModifier).toBe(1);
+      expect(result.adjustedInstability).toBe(40);
     });
   });
 

@@ -527,7 +527,7 @@ export function calculateGroupBreakability(
   const activeShips = miningGroup.ships.filter(ship => ship.isActive !== false);
 
   if (activeShips.length === 0) {
-    // No active ships in group, return empty result
+    // No active ships in group, return unmodified rock values
     const baseLPNeeded = (rock.mass / (1 - (rock.resistance * 0.01))) / 5;
     return {
       totalLaserPower: 0,
@@ -538,6 +538,8 @@ export function calculateGroupBreakability(
       canBreak: false,
       powerMargin: 0,
       powerMarginPercent: 0,
+      totalInstabilityModifier: 1,
+      adjustedInstability: rock.instability,
     };
   }
 
