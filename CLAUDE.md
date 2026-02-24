@@ -1,14 +1,14 @@
-# BreakIt Calculator - Project Memory
+# Rock Breaker Calculator - Project Memory
 
-This document provides Claude with persistent context about the BreakIt Calculator project.
+This document provides Claude with persistent context about the Rock Breaker Calculator project.
 
 ## Project Overview
 
-**BreakIt Calculator** is a Star Citizen mining power calculator that helps miners determine if they can break asteroids with their current equipment configuration.
+**Rock Breaker Calculator** is a Star Citizen mining power calculator that helps miners determine if they can break asteroids with their current equipment configuration.
 
 - **Version**: See `package.json` for current version
 - **Tech Stack**: React 19 + TypeScript + Vite
-- **Repository**: PeaceFrog71/BreakIt-Calculator
+- **Repository**: PeaceFrog71/Rock-Breaker-Calculator
 
 ## Deployment
 

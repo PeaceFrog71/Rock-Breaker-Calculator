@@ -1,5 +1,5 @@
 /**
- * BreakIt Calculator changelog — update this file with each release to main.
+ * Rock Breaker Calculator changelog — update this file with each release to main.
  *
  * Adding a new release:
  *   1. Add a new entry at the TOP of the array (newest first)
@@ -43,7 +43,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     version: '2.16.0',
     date: '2026-02-15',
     new: [
-      'RSI community logo links to the BreakIt Calculator community page',
+      'RSI community logo links to the Rock Breaker Calculator community page',
     ],
   },
   {
