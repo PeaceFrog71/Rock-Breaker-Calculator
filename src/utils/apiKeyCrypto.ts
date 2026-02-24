@@ -12,7 +12,7 @@
  */
 
 function getSalt(): string {
-  return (import.meta.env.VITE_ENCRYPTION_SALT as string | undefined) ?? 'pfg-breakit-regolith-default';
+  return (import.meta.env.VITE_ENCRYPTION_SALT as string | undefined) ?? 'pfg-rockbreaker-regolith-default';
 }
 
 async function deriveKey(userId: string): Promise<CryptoKey> {

@@ -170,14 +170,14 @@ Respond to all open review comments (from Copilot or human reviewers) on a PR.
 replying to the review thread — silence looks like the comments were missed.
 
 Workflow:
-1. Fetch all comments: `gh api repos/PeaceFrog71/BreakIt-Calculator/pulls/<pr>/comments`
+1. Fetch all comments: `gh api repos/PeaceFrog71/Rock-Breaker-Calculator/pulls/<pr>/comments`
 2. For each comment, determine the outcome:
    - **Fixed** → reply explaining exactly what changed
    - **Won't fix** → reply explaining why (design decision, not applicable, etc.)
    - **Deferred** → reply noting it's tracked as a follow-up issue
 3. Post replies using:
    ```bash
-   gh api repos/PeaceFrog71/BreakIt-Calculator/pulls/<pr>/comments/<id>/replies \
+   gh api repos/PeaceFrog71/Rock-Breaker-Calculator/pulls/<pr>/comments/<id>/replies \
      --method POST --field body="<response>"
    ```
 4. Push the fix commits first, then reply so the reply references accurate code
