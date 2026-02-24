@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Rock } from '../types';
 import { useAuth, getRegolithApiKeySupabase, hasRegolithApiKeySupabase } from '../contexts/AuthContext';
 import { getRegolithApiKeyLocal } from '../utils/storage';
-import { fetchActiveSessionId, fetchSessionRocks } from '../utils/regolith';
-import type { RegolithClusterFind, RegolithShipRock } from '../utils/regolith';
+import { fetchActiveSessions, fetchSessionRocks } from '../utils/regolith';
+import type { RegolithSession, RegolithClusterFind, RegolithShipRock } from '../utils/regolith';
 import { logRockImport } from '../utils/rockDataLogger';
 import './RegolithImportModal.css';
 
@@ -14,7 +14,7 @@ interface RegolithImportModalProps {
   onOpenIntegrations?: () => void;
 }
 
-type ModalState = 'loading' | 'no-key' | 'no-session' | 'error' | 'ready';
+type ModalState = 'loading' | 'no-key' | 'no-session' | 'error' | 'select-session' | 'loading-rocks' | 'no-rocks' | 'ready';
 
 interface RockEntry {
   find: RegolithClusterFind;
@@ -28,20 +28,58 @@ function formatOreName(ore: string): string {
   return ore.charAt(0) + ore.slice(1).toLowerCase();
 }
 
+/** Format session name for display, with fallback to truncated ID */
+function formatSessionName(session: RegolithSession): string {
+  return session.name || `Session ${session.sessionId.slice(0, 6)}...`;
+}
+
 export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenIntegrations }: RegolithImportModalProps) {
   const { user } = useAuth();
 
   const [state, setState] = useState<ModalState>('loading');
+  const [sessions, setSessions] = useState<RegolithSession[]>([]);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [rocks, setRocks] = useState<RockEntry[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
-  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Cache API key across session switches so we don't re-decrypt each time
+  const apiKeyRef = useRef<string | null>(null);
+
+  const loadRocksForSession = useCallback(async (apiKey: string, sessionId: string) => {
+    setState('loading-rocks');
+    setSelectedSessionId(sessionId);
+    try {
+      const finds = await fetchSessionRocks(apiKey, sessionId);
+      const entries: RockEntry[] = [];
+
+      finds.forEach((find) => {
+        find.shipRocks.forEach((rock, i) => {
+          if (rock.state !== 'READY') return;
+          entries.push({ find, rockIndex: i, rock });
+        });
+      });
+
+      if (entries.length === 0) {
+        setState('no-rocks');
+        return;
+      }
+
+      setRocks(entries);
+      setState('ready');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
+      setState('error');
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) {
       // Reset state so stale results don't flash on next open
       setRocks([]);
+      setSessions([]);
+      setSelectedSessionId(null);
       setErrorMsg('');
-      setSessionId(null);
+      apiKeyRef.current = null;
       return;
     }
 
@@ -60,31 +98,24 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
         setState('no-key');
         return;
       }
+      apiKeyRef.current = apiKey;
+
       try {
-        const sessionId = await fetchActiveSessionId(apiKey);
-        if (!sessionId) {
+        const activeSessions = await fetchActiveSessions(apiKey);
+        if (activeSessions.length === 0) {
           setState('no-session');
           return;
         }
 
-        const finds = await fetchSessionRocks(apiKey, sessionId);
-        setSessionId(sessionId);
-        const entries: RockEntry[] = [];
+        setSessions(activeSessions);
 
-        finds.forEach((find) => {
-          find.shipRocks.forEach((rock, i) => {
-            if (rock.state !== 'READY') return;
-            entries.push({ find, rockIndex: i, rock });
-          });
-        });
-
-        if (entries.length === 0) {
-          setState('no-session');
-          return;
+        if (activeSessions.length === 1) {
+          // Single session — skip the picker, go straight to rocks
+          await loadRocksForSession(apiKey, activeSessions[0].sessionId);
+        } else {
+          // Multiple sessions — let user pick
+          setState('select-session');
         }
-
-        setRocks(entries);
-        setState('ready');
       } catch (err) {
         setErrorMsg(err instanceof Error ? err.message : 'Unknown error');
         setState('error');
@@ -92,7 +123,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
     };
 
     load();
-  }, [isOpen, user]);
+  }, [isOpen, user, loadRocksForSession]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -102,6 +133,18 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const handleSessionSelect = (sessionId: string) => {
+    if (!apiKeyRef.current) return;
+    setRocks([]);
+    loadRocksForSession(apiKeyRef.current, sessionId);
+  };
+
+  const handleBackToSessions = () => {
+    setRocks([]);
+    setSelectedSessionId(null);
+    setState('select-session');
+  };
 
   const handleSelect = (entry: RockEntry) => {
     const { rock, find, rockIndex } = entry;
@@ -113,11 +156,13 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
       name: rock.rockType ?? undefined,
     });
     // Log to Supabase for global analytics — fire-and-forget
-    if (sessionId) {
-      logRockImport({ find, rock, rockIndex, sessionId, user });
+    if (selectedSessionId) {
+      logRockImport({ find, rock, rockIndex, sessionId: selectedSessionId, user });
     }
     onClose();
   };
+
+  const selectedSession = sessions.find(s => s.sessionId === selectedSessionId);
 
   return (
     <div
@@ -157,7 +202,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
         {state === 'no-session' && (
           <div className="regolith-modal-status">
             <p className="regolith-modal-hint">
-              No active Regolith session found, or no rock scans in the current session.
+              No active Regolith session found.
               <br />
               Start a session in{' '}
               <a
@@ -181,11 +226,68 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
           </div>
         )}
 
+        {state === 'select-session' && (
+          <>
+            <p className="regolith-modal-subtitle">
+              You have {sessions.length} active sessions. Select one to import rocks from.
+            </p>
+            <div className="regolith-session-list">
+              {sessions.map((session) => (
+                <button
+                  key={session.sessionId}
+                  className="regolith-session-item"
+                  onClick={() => handleSessionSelect(session.sessionId)}
+                >
+                  <span className="regolith-session-name">
+                    {formatSessionName(session)}
+                  </span>
+                  <div className="regolith-session-meta">
+                    {session.ownerScName && (
+                      <span>Owner: {session.ownerScName}</span>
+                    )}
+                    {session.createdAt > 0 && (
+                      <span>{new Date(session.createdAt).toLocaleDateString()}</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {state === 'loading-rocks' && (
+          <div className="regolith-modal-status">
+            <div className="regolith-spinner" />
+            <p>Loading rocks...</p>
+          </div>
+        )}
+
+        {state === 'no-rocks' && (
+          <div className="regolith-modal-status">
+            <p className="regolith-modal-hint">
+              No rock scans found in this session.
+            </p>
+            {sessions.length > 1 && (
+              <button className="regolith-back-btn" onClick={handleBackToSessions}>
+                &larr; Back to sessions
+              </button>
+            )}
+          </div>
+        )}
+
         {state === 'ready' && (
           <>
             <p className="regolith-modal-subtitle">
-              Select a rock from your active session to import.
+              {sessions.length > 1
+                ? (<>Rocks from "{formatSessionName(selectedSession!)}"<br />Select rock to import.</>)
+                : (<>Active session.<br />Select rock to import.</>)
+              }
             </p>
+            {sessions.length > 1 && (
+              <button className="regolith-back-btn" onClick={handleBackToSessions}>
+                &larr; Back to sessions
+              </button>
+            )}
             <div className="regolith-rock-list">
               {rocks.map((entry, i) => (
                   <button
