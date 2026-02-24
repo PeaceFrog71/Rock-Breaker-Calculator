@@ -277,17 +277,17 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
 
         {state === 'ready' && (
           <>
+            <p className="regolith-modal-subtitle">
+              {sessions.length > 1
+                ? (<>Rocks from "{formatSessionName(selectedSession!)}"<br />Select rock to import.</>)
+                : (<>Active session.<br />Select rock to import.</>)
+              }
+            </p>
             {sessions.length > 1 && (
               <button className="regolith-back-btn" onClick={handleBackToSessions}>
                 &larr; Back to sessions
               </button>
             )}
-            <p className="regolith-modal-subtitle">
-              {sessions.length > 1
-                ? `Rocks from "${formatSessionName(selectedSession!)}" \u2014 select one to import.`
-                : 'Select a rock from your active session to import.'
-              }
-            </p>
             <div className="regolith-rock-list">
               {rocks.map((entry, i) => (
                   <button
