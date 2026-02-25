@@ -81,9 +81,9 @@ function App() {
         if (slots[activeIndex]) {
           const slot = slots[activeIndex];
           // Migrate legacy "name" field to "type" (#236)
-          if ('name' in slot && !('type' in slot)) {
-            slot.type = slot.name;
-            delete slot.name;
+          if (slot && typeof slot === 'object' && 'name' in slot && !('type' in slot)) {
+            const { name, ...rest } = slot;
+            return { ...rest, type: name };
           }
           return { ...slot };
         }
@@ -195,14 +195,14 @@ function App() {
         // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
         // Also migrate legacy "name" field to "type" (#236)
         const slots = parsed.map((slot: Rock | null) => {
-          if (!slot) return { ...DEFAULT_ROCK };
+          if (!slot || typeof slot !== 'object') return { ...DEFAULT_ROCK };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const s = slot as any;
           if ('name' in s && !('type' in s)) {
-            s.type = s.name;
-            delete s.name;
+            const { name, ...rest } = s;
+            return { ...rest, type: name } as Rock;
           }
-          return s as Rock;
+          return { ...s } as Rock;
         });
         while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
         return slots.slice(0, ROCK_SLOT_COUNT);
@@ -326,7 +326,7 @@ function App() {
     return rock.mass === DEFAULT_ROCK.mass &&
       rock.resistance === DEFAULT_ROCK.resistance &&
       (rock.instability ?? DEFAULT_ROCK.instability) === DEFAULT_ROCK.instability &&
-      rock.type === DEFAULT_ROCK.type &&
+      (rock.type ?? DEFAULT_ROCK.type) === DEFAULT_ROCK.type &&
       rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
       rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
   }, [rock]);
