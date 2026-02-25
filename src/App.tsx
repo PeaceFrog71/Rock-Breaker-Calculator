@@ -50,7 +50,7 @@ const DEFAULT_ROCK: Rock = {
   mass: 25000,
   resistance: 30,
   instability: 50,
-  name: "The Rock",
+  type: "",
   resistanceMode: 'base',
   includeGadgetsInScan: false,
 };
@@ -79,7 +79,13 @@ function App() {
         const slots = JSON.parse(savedSlots);
         const activeIndex = parseInt(savedActiveSlot, 10);
         if (slots[activeIndex]) {
-          return { ...slots[activeIndex] };
+          const slot = slots[activeIndex];
+          // Migrate legacy "name" field to "type" (#236)
+          if (slot && typeof slot === 'object' && 'name' in slot && !('type' in slot)) {
+            const { name, ...rest } = slot;
+            return { ...rest, type: name };
+          }
+          return { ...slot };
         }
       }
       return { ...DEFAULT_ROCK };
@@ -187,7 +193,17 @@ function App() {
       if (saved) {
         const parsed: (Rock | null)[] = JSON.parse(saved);
         // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
-        const slots = parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
+        // Also migrate legacy "name" field to "type" (#236)
+        const slots = parsed.map((slot: Rock | null) => {
+          if (!slot || typeof slot !== 'object') return { ...DEFAULT_ROCK };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const s = slot as any;
+          if ('name' in s && !('type' in s)) {
+            const { name, ...rest } = s;
+            return { ...rest, type: name } as Rock;
+          }
+          return { ...s } as Rock;
+        });
         while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
         return slots.slice(0, ROCK_SLOT_COUNT);
       }
@@ -310,7 +326,7 @@ function App() {
     return rock.mass === DEFAULT_ROCK.mass &&
       rock.resistance === DEFAULT_ROCK.resistance &&
       (rock.instability ?? DEFAULT_ROCK.instability) === DEFAULT_ROCK.instability &&
-      rock.name === DEFAULT_ROCK.name &&
+      (rock.type ?? DEFAULT_ROCK.type) === DEFAULT_ROCK.type &&
       rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
       rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
   }, [rock]);
@@ -323,7 +339,7 @@ function App() {
         mass: 0,
         resistance: 0,
         instability: undefined,
-        name: '',
+        type: '',
         resistanceMode: 'base',
         includeGadgetsInScan: false,
         originalScannedValue: undefined,

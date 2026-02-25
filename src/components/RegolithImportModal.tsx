@@ -153,7 +153,7 @@ export default function RegolithImportModal({ isOpen, onClose, onImport, onOpenI
       mass: rock.mass,
       resistance: rock.res != null ? rock.res * 100 : undefined,
       instability: rock.inst ?? 0,
-      name: rock.rockType ?? undefined,
+      type: rock.rockType ?? undefined,
     });
     // Log to Supabase for global analytics — fire-and-forget
     if (selectedSessionId) {
