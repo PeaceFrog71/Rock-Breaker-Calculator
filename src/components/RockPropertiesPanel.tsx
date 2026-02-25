@@ -33,12 +33,12 @@ export default function RockPropertiesPanel({
   return (
     <>
       <div className="compact-form-group">
-        <label>Name</label>
+        <label>Type</label>
         <input
           type="text"
-          value={rock.name || ''}
-          onChange={(e) => onRockChange({ ...rock, name: e.target.value })}
-          placeholder="Rock name"
+          value={rock.type || ''}
+          onChange={(e) => onRockChange({ ...rock, type: e.target.value })}
+          placeholder="Rock type"
         />
       </div>
       <div className="compact-form-group">
@@ -85,7 +85,7 @@ export default function RockPropertiesPanel({
             key={index}
             className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
             onClick={() => onRockSlotSwitch(index)}
-            title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${parseFloat(slot.resistance.toFixed(2))}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
+            title={`${slot.type || 'Rock'}: ${slot.mass}kg, ${parseFloat(slot.resistance.toFixed(2))}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
             aria-label={`Rock slot ${index + 1}`}
             aria-pressed={index === activeRockSlot}
           >

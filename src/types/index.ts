@@ -68,7 +68,7 @@ export interface Rock {
   resistance: number;
   instability?: number; // For future use
   instabilityMode?: 'base' | 'modified'; // Whether instability is base (cockpit scan) or modified (laser scan)
-  name?: string;
+  type?: string;
   resistanceMode?: 'base' | 'modified'; // Whether resistance is base (cockpit scan) or modified (laser scan)
   originalScannedValue?: number; // Store the original scanned value for reference
   includeGadgetsInScan?: boolean; // Whether gadgets were active during the scan
