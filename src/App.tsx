@@ -500,7 +500,7 @@ function App() {
     }));
   };
 
-  // Called after SaveShipModal completes a save — collapse laser panel (#231)
+  // Called after SaveShipModal completes a save — collapse all panels (#231)
   const handleSaveComplete = (
     ship: Ship,
     savedConfig: MiningConfiguration,
@@ -509,7 +509,7 @@ function App() {
     setSelectedShip(ship);
     setConfig(savedConfig);
     setCurrentConfigName(name);
-    // Collapse laser setup panel to signal save is complete (#231)
+    // Collapse all panels to signal save is complete (#231)
     setOpenPanel(null);
   };
 
