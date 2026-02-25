@@ -500,6 +500,19 @@ function App() {
     }));
   };
 
+  // Called after SaveShipModal completes a save — collapse all panels (#231)
+  const handleSaveComplete = (
+    ship: Ship,
+    savedConfig: MiningConfiguration,
+    name: string
+  ) => {
+    setSelectedShip(ship);
+    setConfig(savedConfig);
+    setCurrentConfigName(name);
+    // Collapse all panels to signal save is complete (#231)
+    setOpenPanel(null);
+  };
+
   // Open save dialog (for #190 - Save button in ShipSelector header)
   const handleOpenSaveDialog = () => {
     setShowSaveDialog(true);
@@ -1014,7 +1027,7 @@ function App() {
         currentShip={selectedShip}
         currentConfig={config}
         currentConfigName={currentConfigName}
-        onSaved={handleLoadConfiguration}
+        onSaved={handleSaveComplete}
       />
       <RegolithImportModal
         isOpen={showRegolithModal}
