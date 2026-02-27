@@ -47,15 +47,14 @@ import resultsBackground from "./assets/Results Background.jpg";
 import shipSetupBackground from "./assets/Ship Setup Background.jpg";
 import { version } from "../package.json";
 
-// Default rock values for reset functionality
-const DEFAULT_ROCK: Rock = {
-  mass: 25000,
-  resistance: 30,
-  instability: 50,
-  type: "",
-  resistanceMode: 'base',
-  includeGadgetsInScan: false,
-};
+// Default rock values per save slot (slot 0-3)
+// Slot 1: large rock, Slot 2: medium, Slot 3: small, Slot 4: very small
+const DEFAULT_ROCKS: Rock[] = [
+  { mass: 50000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
+  { mass: 30000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
+  { mass: 10000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
+  { mass: 5000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
+];
 
 function App() {
   // Load saved state or use defaults
@@ -90,9 +89,9 @@ function App() {
     try {
       const savedSlots = localStorage.getItem('rockbreaker-rock-slots');
       const savedActiveSlot = localStorage.getItem('rockbreaker-active-rock-slot');
-      if (savedSlots && savedActiveSlot) {
+      const activeIndex = savedActiveSlot ? parseInt(savedActiveSlot, 10) : 0;
+      if (savedSlots) {
         const slots = JSON.parse(savedSlots);
-        const activeIndex = parseInt(savedActiveSlot, 10);
         if (slots[activeIndex]) {
           const slot = slots[activeIndex];
           // Migrate legacy "name" field to "type" (#236)
@@ -103,9 +102,9 @@ function App() {
           return { ...slot };
         }
       }
-      return { ...DEFAULT_ROCK };
+      return { ...DEFAULT_ROCKS[activeIndex] };
     } catch {
-      return { ...DEFAULT_ROCK };
+      return { ...DEFAULT_ROCKS[0] };
     }
   });
   const [miningGroup, setMiningGroup] = useState<MiningGroup>(() => {
@@ -201,17 +200,17 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Rock save slots (4 slots for quick save/load, pre-filled with defaults)
-  const ROCK_SLOT_COUNT = 4;
+  // Rock save slots (4 slots for quick save/load, pre-filled with per-slot defaults)
+  const ROCK_SLOT_COUNT = DEFAULT_ROCKS.length;
   const [rockSlots, setRockSlots] = useState<Rock[]>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-rock-slots');
       if (saved) {
         const parsed: (Rock | null)[] = JSON.parse(saved);
-        // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
+        // Migrate old null slots to per-slot defaults, and pad if needed
         // Also migrate legacy "name" field to "type" (#236)
-        const slots = parsed.map((slot: Rock | null) => {
-          if (!slot || typeof slot !== 'object') return { ...DEFAULT_ROCK };
+        const slots = parsed.map((slot: Rock | null, i: number) => {
+          if (!slot || typeof slot !== 'object') return { ...DEFAULT_ROCKS[i] ?? DEFAULT_ROCKS[0] };
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const s = slot as any;
           if ('name' in s && !('type' in s)) {
@@ -220,12 +219,12 @@ function App() {
           }
           return { ...s } as Rock;
         });
-        while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
+        while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCKS[slots.length] ?? DEFAULT_ROCKS[0] });
         return slots.slice(0, ROCK_SLOT_COUNT);
       }
-      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
+      return DEFAULT_ROCKS.map(r => ({ ...r }));
     } catch {
-      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
+      return DEFAULT_ROCKS.map(r => ({ ...r }));
     }
   });
 
@@ -337,15 +336,16 @@ function App() {
     }
   };
 
-  // Check if rock values match defaults
+  // Check if rock values match the current slot's defaults
   const isRockAtDefaults = useMemo(() => {
-    return rock.mass === DEFAULT_ROCK.mass &&
-      rock.resistance === DEFAULT_ROCK.resistance &&
-      (rock.instability ?? DEFAULT_ROCK.instability) === DEFAULT_ROCK.instability &&
-      (rock.type ?? DEFAULT_ROCK.type) === DEFAULT_ROCK.type &&
-      rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
-      rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
-  }, [rock]);
+    const slotDefault = DEFAULT_ROCKS[activeRockSlot] ?? DEFAULT_ROCKS[0];
+    return rock.mass === slotDefault.mass &&
+      rock.resistance === slotDefault.resistance &&
+      (rock.instability ?? slotDefault.instability) === slotDefault.instability &&
+      (rock.type ?? slotDefault.type) === slotDefault.type &&
+      rock.resistanceMode === slotDefault.resistanceMode &&
+      rock.includeGadgetsInScan === slotDefault.includeGadgetsInScan;
+  }, [rock, activeRockSlot]);
 
   // Toggle between Reset (to defaults) and Clear (to empty)
   const handleRockResetClear = () => {
@@ -363,8 +363,8 @@ function App() {
         scannedByLaserIndex: undefined,
       });
     } else {
-      // Custom or cleared values → Reset to defaults
-      setRock({ ...DEFAULT_ROCK });
+      // Custom or cleared values → Reset to this slot's defaults
+      setRock({ ...(DEFAULT_ROCKS[activeRockSlot] ?? DEFAULT_ROCKS[0]) });
     }
   };
 

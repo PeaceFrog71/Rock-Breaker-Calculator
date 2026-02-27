@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.27.1',
+    date: '2026-02-27',
+    improved: [
+      'Rock save slots now start with different default sizes — 50k, 30k, 10k, and 5k — for a better out-of-the-box experience',
+    ],
+  },
+  {
     version: '2.27.0',
     date: '2026-02-27',
     new: [

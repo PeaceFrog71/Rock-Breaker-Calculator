@@ -63,6 +63,7 @@ src/
 - `src/types/index.ts` - Equipment database (lasers, modules, gadgets, ships)
 - `src/utils/calculator.ts` - Core mining calculation formulas
 - `src/utils/calculator.test.ts` - Unit tests for calculations
+- `src/data/changelog.ts` - Dev notes / changelog entries (update before every PR)
 
 ### Supported Ships
 1. **MISC Prospector** - 1 laser, Size 1
@@ -95,10 +96,19 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 - Issue-based workflow ("If it's not in an issue, it doesn't exist")
 - Branch naming: `feat/<issue#>-<desc>`, `fix/<issue#>-<desc>`, `chore/<issue#>-<desc>`
 - Semantic versioning (patch for dev work, minor for releases to main)
+- **Dev notes before PR** — changelog entry in `src/data/changelog.ts` required before PR creation
 - PR workflow: feature → dev → main
 - **NEVER push directly to main**
 
 See `.claude/commands/vc.md` for full Victor documentation.
+
+### Dev Notes (Changelog)
+Write changelog entries **before creating the PR** — while the work is fresh.
+- **File**: `src/data/changelog.ts`
+- **Format**: `{ version, date, new?, improved?, fixed? }` — newest entry at TOP of array
+- **When**: `feat/*` and `fix/*` always; `chore/*` only if user-facing
+- **Language**: User-facing (what changed for the user, not implementation details)
+- Victor enforces this at commit and PR time (see Rule 8 in vc.md)
 
 ## Git Learning Mode
 

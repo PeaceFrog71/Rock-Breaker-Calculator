@@ -89,7 +89,44 @@ All PRs require review before merging:
 
 Victor MUST add Copilot as a reviewer when creating any PR.
 
-### Rule 8: Branch Cleanup
+### Rule 8: Dev Notes (Changelog)
+> "Write the notes while the work is fresh"
+
+Every feature or fix branch MUST include a changelog entry **before the PR is created**.
+This ensures dev notes are written when context is top of mind, not batched later.
+
+**File:** `src/data/changelog.ts`
+
+**When to add an entry:**
+- `feat/*` branches — always (new feature for users)
+- `fix/*` branches — always (bug fix users will notice)
+- `chore/*` branches — only if user-facing (e.g., data updates, UI tweaks); skip for internal-only changes
+
+**Entry format:**
+```typescript
+{
+  version: '<current package.json version after PATCH bump>',
+  date: '<YYYY-MM-DD>',
+  new: ['...'],      // New features (omit if none)
+  improved: ['...'], // Enhancements (omit if none)
+  fixed: ['...'],    // Bug fixes (omit if none)
+}
+```
+
+**Rules:**
+- Add new entries at the **TOP** of the `CHANGELOG` array (newest first)
+- Version must match `package.json` (after the PATCH bump from Rule 6)
+- Use clear, user-facing language (what changed for the user, not implementation details)
+- Omit empty categories entirely
+- For dev → main release PRs: entries already exist from feature branches; just bump MINOR version on the top entry
+
+**Before creating a PR, Victor MUST:**
+1. Check if a changelog entry exists for the current version
+2. If missing, prompt: "Hey, we need dev notes before this PR. What changed for users?"
+3. Add the entry to `src/data/changelog.ts`
+4. Include the changelog update in the commit
+
+### Rule 9: Branch Cleanup
 After a PR is merged, clean up the branch:
 - Delete the local branch: `git branch -d <branch-name>`
 - Delete the remote branch: `git push origin --delete <branch-name>`
@@ -137,11 +174,14 @@ Stage and commit with proper attribution:
 1. **Bump version first** — PATCH for all feature/fix branches:
    - `fix/*` → `npm version patch --no-git-tag-version`
    - `feat/*` → `npm version patch --no-git-tag-version`
-2. Stage all changes (`git add .`)
-3. Include co-author attribution
-4. Reference issue number if detectable from branch name
-5. Include version bump in commit message (e.g., "Bump version to 1.2.1")
-6. Format: `<message> (#<issue>)` + attribution
+2. **Add dev notes** — ensure `src/data/changelog.ts` has an entry for this version (Rule 8)
+   - If missing, prompt Drew for user-facing summary before proceeding
+   - For `chore/*` branches, only add if the change is user-facing
+3. Stage all changes (`git add .`)
+4. Include co-author attribution
+5. Reference issue number if detectable from branch name
+6. Include version bump in commit message (e.g., "Bump version to 1.2.1")
+7. Format: `<message> (#<issue>)` + attribution
 
 ### `/vc push`
 Push current branch to origin:
@@ -155,6 +195,7 @@ Create a pull request:
 - Auto-detect issue number from branch name
 - Include `Fixes #<issue>` in PR body
 - Validate branch name before creating PR
+- **Check for dev notes** — verify `src/data/changelog.ts` has an entry for the current version (Rule 8)
 - **Add Copilot as reviewer** (`gh pr edit --add-reviewer copilot`)
 
 **After Copilot (or anyone) reviews and you push fixes:**
