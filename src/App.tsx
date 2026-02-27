@@ -13,6 +13,7 @@ import { toggleModuleActive } from "./utils/moduleHelpers";
 import {
   saveCurrentConfiguration,
   loadCurrentConfiguration,
+  saveShipConfig,
 } from "./utils/storage";
 import ShipSelector from "./components/ShipSelector";
 import LasersSetup from "./components/LasersSetup";
@@ -377,6 +378,9 @@ function App() {
   // In single ship mode: replaces current config
   // In mining group mode: adds ship to group
   const handleRegolithShipImport = (ship: Ship, importedConfig: MiningConfiguration, name: string, unmapped: string[]) => {
+    // Auto-save imported loadout to Ship Library
+    saveShipConfig(name, ship, importedConfig);
+
     if (useMiningGroup) {
       if (miningGroup.ships.length >= 4) {
         setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
