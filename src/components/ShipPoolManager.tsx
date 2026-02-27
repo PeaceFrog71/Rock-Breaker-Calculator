@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import type { MiningGroup, ShipInstance } from '../types';
+import { useState, useEffect } from 'react';
+import type { MiningGroup, ShipInstance, Ship, MiningConfiguration } from '../types';
 import ShipConfigModal from './ShipConfigModal';
-import { saveShipConfig, updateShipConfig, getSavedShipConfigs, saveMiningGroup, getSavedMiningGroups, updateMiningGroup } from '../utils/storage';
+import SaveShipModal from './SaveShipModal';
+import { getSavedMiningGroups, saveMiningGroup, updateMiningGroup } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
 import './ShipPoolManager.css';
 import './ConfigManager.css';
@@ -9,62 +10,96 @@ import './ConfigManager.css';
 interface ShipPoolManagerProps {
   miningGroup: MiningGroup;
   onChange: (miningGroup: MiningGroup) => void;
+  onOpenLibrary?: () => void;
 }
 
-export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManagerProps) {
+export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }: ShipPoolManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShip, setEditingShip] = useState<ShipInstance | undefined>(undefined);
+  const [showAddChoice, setShowAddChoice] = useState(false);
+  const [savingShip, setSavingShip] = useState<ShipInstance | null>(null);
+  const [showSaveGroup, setShowSaveGroup] = useState(false);
+  const [groupNameInput, setGroupNameInput] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  // Close choice modal on Escape
+  useEffect(() => {
+    if (!showAddChoice) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowAddChoice(false);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [showAddChoice]);
 
   const handleAddShip = () => {
-    // Check max ships limit
     if (miningGroup.ships.length >= 4) {
-      alert('Maximum of 4 ships allowed in mining group');
+      setConfirmDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.', onConfirm: () => setConfirmDialog(null) });
       return;
     }
+    setShowAddChoice(true);
+  };
 
-    // Open modal to configure new ship
+  const handleAddNewShip = () => {
+    setShowAddChoice(false);
     setEditingShip(undefined);
     setIsModalOpen(true);
   };
 
+  const handleAddFromLibrary = () => {
+    setShowAddChoice(false);
+    onOpenLibrary?.();
+  };
+
   const handleClearGroup = () => {
     if (miningGroup.ships.length === 0 && !miningGroup.name) return;
-    if (confirm('Remove all ships and reset group name?')) {
-      onChange({ ships: [], name: undefined });
-    }
+    setConfirmDialog({
+      title: 'Clear Group',
+      message: 'Remove all ships and reset group name?',
+      onConfirm: () => {
+        onChange({ ships: [], name: undefined });
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const handleSaveGroup = () => {
     if (miningGroup.ships.length === 0) {
-      alert('Add at least one ship before saving the group');
+      setConfirmDialog({ title: 'No Ships', message: 'Add at least one ship before saving the group.', onConfirm: () => setConfirmDialog(null) });
       return;
     }
+    setGroupNameInput(miningGroup.name || '');
+    setShowSaveGroup(true);
+  };
 
-    const currentName = miningGroup.name || '';
-    const name = prompt('Enter a name for this mining group:', currentName);
-    if (!name || !name.trim()) return;
+  const handleSaveGroupConfirm = () => {
+    const trimmedName = groupNameInput.trim();
+    if (!trimmedName) return;
 
-    const trimmedName = name.trim();
     const savedGroups = getSavedMiningGroups();
     const existing = savedGroups.find(
       (g) => g.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
     if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      const updated = updateMiningGroup(existing.id, trimmedName, miningGroup);
-      if (!updated) {
-        alert('Failed to update the existing group. Saving as a new group instead.');
-        saveMiningGroup(trimmedName, miningGroup);
-      }
+      setShowSaveGroup(false);
+      setConfirmDialog({
+        title: 'Overwrite Group',
+        message: `"${existing.name}" already exists. Overwrite?`,
+        onConfirm: () => {
+          const updated = updateMiningGroup(existing.id, trimmedName, miningGroup);
+          if (!updated) {
+            saveMiningGroup(trimmedName, miningGroup);
+          }
+          onChange({ ...miningGroup, name: trimmedName });
+          setConfirmDialog(null);
+        },
+      });
     } else {
       saveMiningGroup(trimmedName, miningGroup);
+      onChange({ ...miningGroup, name: trimmedName });
+      setShowSaveGroup(false);
     }
-
-    // Update the group name in state
-    onChange({ ...miningGroup, name: trimmedName });
   };
 
   const handleEditShip = (ship: ShipInstance) => {
@@ -88,18 +123,15 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
     let updatedShips: ShipInstance[];
 
     if (editingShip) {
-      // Update existing ship
       updatedShips = miningGroup.ships.map((s) =>
         s.id === shipInstance.id ? shipInstance : s
       );
     } else {
-      // Add new ship (max 4 ships)
       if (miningGroup.ships.length >= 4) {
-        alert('Maximum of 4 ships allowed in mining group');
+        setConfirmDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.', onConfirm: () => setConfirmDialog(null) });
         return;
       }
-
-      shipInstance.isActive = true; // New ships are active by default
+      shipInstance.isActive = true;
       updatedShips = [...miningGroup.ships, shipInstance];
     }
 
@@ -107,33 +139,17 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
   };
 
   const handleSaveShipToLibrary = (ship: ShipInstance) => {
-    const name = prompt('Enter a name for this ship configuration:', ship.name);
-    if (!name || !name.trim()) return;
+    setSavingShip(ship);
+  };
 
-    const trimmedName = name.trim();
-    const savedConfigs = getSavedShipConfigs();
-    const existing = savedConfigs.find(
-      (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
-    );
-
-    if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      const updated = updateShipConfig(existing.id, trimmedName, ship.ship, ship.config);
-      if (!updated) {
-        alert('Failed to update the existing ship configuration. Saving as a new configuration instead.');
-        saveShipConfig(trimmedName, ship.ship, ship.config);
-      }
-    } else {
-      saveShipConfig(trimmedName, ship.ship, ship.config);
+  const handleSaveShipComplete = (_ship: Ship, _config: MiningConfiguration, name: string) => {
+    if (savingShip) {
+      const updatedShips = miningGroup.ships.map((s) =>
+        s.id === savingShip.id ? { ...s, name } : s
+      );
+      onChange({ ...miningGroup, ships: updatedShips });
     }
-
-    // Update the ship's name in the mining group to match saved name
-    const updatedShips = miningGroup.ships.map((s) =>
-      s.id === ship.id ? { ...s, name: trimmedName } : s
-    );
-    onChange({ ...miningGroup, ships: updatedShips });
+    setSavingShip(null);
   };
 
   return (
@@ -201,10 +217,10 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                       })}
                     {(() => {
                       const activeLasers = ship.config.lasers.filter(l => l.laserHead && l.laserHead.id !== 'none');
-                      if (activeLasers.length <= 1) return null; // Only show sum for multi-laser ships (Mole)
+                      if (activeLasers.length <= 1) return null;
                       const totalPower = activeLasers.reduce((sum, laser) => sum + calculateLaserPower(laser, true), 0);
                       return totalPower > 0 ? (
-                        <span className="config-box stats-box">Σ {totalPower.toFixed(0)}</span>
+                        <span className="config-box stats-box">&Sigma; {totalPower.toFixed(0)}</span>
                       ) : null;
                     })()}
                   </div>
@@ -216,7 +232,7 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     title="Edit ship configuration"
                   >
                     <span className="btn-text">Edit</span>
-                    <span className="btn-emoji">✏️</span>
+                    <span className="btn-emoji">&#x270F;&#xFE0F;</span>
                   </button>
                   <button
                     className="save-library-button"
@@ -224,7 +240,7 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     title="Save to Ship Library"
                   >
                     <span className="btn-text">Save</span>
-                    <span className="btn-emoji">💾</span>
+                    <span className="btn-emoji">&#x1F4BE;</span>
                   </button>
                   <button
                     className="remove-button"
@@ -232,7 +248,7 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
                     title="Remove ship from group"
                   >
                     <span className="btn-text">Remove</span>
-                    <span className="btn-emoji">🗑️</span>
+                    <span className="btn-emoji">&#x1F5D1;&#xFE0F;</span>
                   </button>
                 </div>
               </div>
@@ -250,6 +266,74 @@ export default function ShipPoolManager({ miningGroup, onChange }: ShipPoolManag
         onSave={handleSaveShip}
         editingShip={editingShip}
       />
+
+      {savingShip && (
+        <SaveShipModal
+          isOpen={true}
+          onClose={() => setSavingShip(null)}
+          currentShip={savingShip.ship}
+          currentConfig={savingShip.config}
+          currentConfigName={savingShip.name}
+          onSaved={handleSaveShipComplete}
+        />
+      )}
+
+      {showAddChoice && (
+        <div className="add-choice-overlay" onClick={() => setShowAddChoice(false)}>
+          <div className="add-choice-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Add Ship</h3>
+            <p className="add-choice-subtitle">How would you like to add a ship?</p>
+            <div className="add-choice-buttons">
+              <button className="add-choice-btn new-ship" onClick={handleAddNewShip}>
+                <span className="add-choice-btn-icon">+</span>
+                <span className="add-choice-btn-label">New Ship</span>
+                <span className="add-choice-btn-desc">Configure from scratch</span>
+              </button>
+              <button className="add-choice-btn from-library" onClick={handleAddFromLibrary}>
+                <span className="add-choice-btn-icon">&#x1F4CB;</span>
+                <span className="add-choice-btn-label">Ship Library</span>
+                <span className="add-choice-btn-desc">Load a saved configuration</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showSaveGroup && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setShowSaveGroup(false)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Save Group</h3>
+            <input
+              type="text"
+              placeholder="Enter group name..."
+              value={groupNameInput}
+              onChange={(e) => setGroupNameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveGroupConfirm();
+                if (e.key === 'Escape') setShowSaveGroup(false);
+              }}
+              autoFocus
+            />
+            <div className="save-ship-modal-actions">
+              <button onClick={handleSaveGroupConfirm} className="btn-primary">Save</button>
+              <button onClick={() => setShowSaveGroup(false)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -928,6 +928,7 @@ function App() {
                     <ShipPoolManager
                       miningGroup={miningGroup}
                       onChange={setMiningGroup}
+                      onOpenLibrary={() => setShipLibraryDrawerOpen(true)}
                     />
                   ) : (
                     <CollapsiblePanel
@@ -938,6 +939,7 @@ function App() {
                       <ShipPoolManager
                         miningGroup={miningGroup}
                         onChange={setMiningGroup}
+                        onOpenLibrary={() => setOpenPanel('shipLibrary')}
                       />
                     </CollapsiblePanel>
                   )}
