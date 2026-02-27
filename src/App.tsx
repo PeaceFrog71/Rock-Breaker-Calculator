@@ -72,6 +72,17 @@ function App() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   // Themed alert dialog (replaces native alert for fleet full, etc.)
   const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+
+  // Close alert dialog on Escape
+  useEffect(() => {
+    if (!alertDialog) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAlertDialog(null);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [alertDialog]);
+
   // Load rock from active slot in localStorage (or default if not found)
   const [rock, setRock] = useState<Rock>(() => {
     try {
@@ -1082,9 +1093,9 @@ function App() {
         </a>
       )}
       {alertDialog && (
-        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setAlertDialog(null)}>
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-alert-title" onClick={() => setAlertDialog(null)}>
           <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{alertDialog.title}</h3>
+            <h3 id="app-alert-title">{alertDialog.title}</h3>
             <p className="save-ship-modal-message">{alertDialog.message}</p>
             <div className="save-ship-modal-actions">
               <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>

@@ -23,15 +23,21 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
   const [removingShip, setRemovingShip] = useState<ShipInstance | null>(null);
 
-  // Close choice modal on Escape
+  // Close modals on Escape
   useEffect(() => {
-    if (!showAddChoice) return;
+    const activeModal = showAddChoice || confirmDialog || removingShip || showSaveGroup;
+    if (!activeModal) return;
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setShowAddChoice(false);
+      if (e.key === 'Escape') {
+        setShowAddChoice(false);
+        setConfirmDialog(null);
+        setRemovingShip(null);
+        setShowSaveGroup(false);
+      }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [showAddChoice]);
+  }, [showAddChoice, confirmDialog, removingShip, showSaveGroup]);
 
   const handleAddShip = () => {
     if (miningGroup.ships.length >= 4) {
@@ -301,9 +307,9 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
       )}
 
       {showAddChoice && (
-        <div className="add-choice-overlay" onClick={() => setShowAddChoice(false)}>
+        <div className="add-choice-overlay" role="dialog" aria-modal="true" aria-labelledby="add-ship-choice-title" onClick={() => setShowAddChoice(false)}>
           <div className="add-choice-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Add Ship</h3>
+            <h3 id="add-ship-choice-title">Add Ship</h3>
             <p className="add-choice-subtitle">How would you like to add a ship?</p>
             <div className="add-choice-buttons">
               <button className="add-choice-btn new-ship" onClick={handleAddNewShip}>
@@ -322,9 +328,9 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
       )}
 
       {showSaveGroup && (
-        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setShowSaveGroup(false)}>
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="save-group-title" onClick={() => setShowSaveGroup(false)}>
           <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Save Group</h3>
+            <h3 id="save-group-title">Save Group</h3>
             <input
               type="text"
               placeholder="Enter group name..."
@@ -345,9 +351,9 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
       )}
 
       {removingShip && !savingShip && (
-        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setRemovingShip(null)}>
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="remove-ship-title" onClick={() => setRemovingShip(null)}>
           <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>Remove Ship</h3>
+            <h3 id="remove-ship-title">Remove Ship</h3>
             <p className="save-ship-modal-message">Remove &ldquo;{removingShip.name}&rdquo; from the mining group?</p>
             <div className="save-ship-modal-actions">
               <button onClick={handleSaveAndRemove} className="save-group-button" style={{ width: 'auto', height: 'auto', lineHeight: 'normal' }}>Save &amp; Remove</button>
@@ -359,9 +365,9 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
       )}
 
       {confirmDialog && (
-        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDialog(null)}>
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="pool-confirm-title" onClick={() => setConfirmDialog(null)}>
           <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>{confirmDialog.title}</h3>
+            <h3 id="pool-confirm-title">{confirmDialog.title}</h3>
             <p className="save-ship-modal-message">{confirmDialog.message}</p>
             <div className="save-ship-modal-actions">
               <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>

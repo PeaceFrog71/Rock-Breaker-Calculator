@@ -97,7 +97,7 @@ export default function SaveShipModal({
       <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
         {confirmOverwrite ? (
           <>
-            <h3>Overwrite Ship</h3>
+            <h3 id="save-ship-modal-title">Overwrite Ship</h3>
             <p className="save-ship-modal-message">
               &ldquo;{confirmOverwrite.name}&rdquo; already exists. Overwrite?
             </p>
