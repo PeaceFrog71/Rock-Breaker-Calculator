@@ -58,6 +58,16 @@
   text-align: center;
   margin: 0;
   width: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ship-selector .regolith-btn-icon {
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 3px;
+  object-fit: contain;
 }
 
 .ship-selector .regolith-import-button:hover,
@@ -300,26 +310,18 @@
   .ship-selector .regolith-import-button {
     width: 3rem;
     height: 3rem;
-    font-size: 0;  /* Hide text */
-    position: relative;
     padding: 0;
+    justify-content: center;
   }
 
-  .ship-selector .regolith-import-button::after {
-    content: 'R';
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #fbc02d;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    line-height: 1;
+  .ship-selector .regolith-btn-text {
+    display: none;
   }
 
-  .ship-selector .regolith-import-button:hover::after,
-  .ship-selector .regolith-import-button:active::after {
-    color: #000000;
+  .ship-selector .regolith-btn-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 4px;
   }
 
   .save-ship-button {

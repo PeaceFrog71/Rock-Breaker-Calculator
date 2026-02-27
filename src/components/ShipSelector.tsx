@@ -49,7 +49,8 @@ export default function ShipSelector({ selectedShip, onShipChange, configName, o
           <div className="ship-selector-actions">
             {onRegolithShipImport && (
               <button className="regolith-import-button" onClick={onRegolithShipImport} title="Import ship from Regolith">
-                Regolith
+                <img src={`${import.meta.env.BASE_URL}regolith-icon.png`} alt="" className="regolith-btn-icon" />
+                <span className="regolith-btn-text">Regolith</span>
               </button>
             )}
             {onSave && (
