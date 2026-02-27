@@ -21,6 +21,7 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
   const [showSaveGroup, setShowSaveGroup] = useState(false);
   const [groupNameInput, setGroupNameInput] = useState('');
   const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+  const [removingShip, setRemovingShip] = useState<ShipInstance | null>(null);
 
   // Close choice modal on Escape
   useEffect(() => {
@@ -108,8 +109,21 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
   };
 
   const handleRemoveShip = (shipId: string) => {
-    const updatedShips = miningGroup.ships.filter((s) => s.id !== shipId);
+    const ship = miningGroup.ships.find((s) => s.id === shipId);
+    if (ship) setRemovingShip(ship);
+  };
+
+  const handleRemoveConfirm = () => {
+    if (!removingShip) return;
+    const updatedShips = miningGroup.ships.filter((s) => s.id !== removingShip.id);
     onChange({ ...miningGroup, ships: updatedShips });
+    setRemovingShip(null);
+  };
+
+  const handleSaveAndRemove = () => {
+    if (!removingShip) return;
+    setSavingShip(removingShip);
+    // Remove after save completes (handled in handleSaveShipComplete)
   };
 
   const handleToggleActive = (shipId: string) => {
@@ -144,10 +158,18 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
 
   const handleSaveShipComplete = (_ship: Ship, _config: MiningConfiguration, name: string) => {
     if (savingShip) {
-      const updatedShips = miningGroup.ships.map((s) =>
-        s.id === savingShip.id ? { ...s, name } : s
-      );
-      onChange({ ...miningGroup, ships: updatedShips });
+      if (removingShip && removingShip.id === savingShip.id) {
+        // Save & Remove: remove the ship after saving to library
+        const updatedShips = miningGroup.ships.filter((s) => s.id !== savingShip.id);
+        onChange({ ...miningGroup, ships: updatedShips });
+        setRemovingShip(null);
+      } else {
+        // Normal save: update the ship name in the group
+        const updatedShips = miningGroup.ships.map((s) =>
+          s.id === savingShip.id ? { ...s, name } : s
+        );
+        onChange({ ...miningGroup, ships: updatedShips });
+      }
     }
     setSavingShip(null);
   };
@@ -270,7 +292,7 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
       {savingShip && (
         <SaveShipModal
           isOpen={true}
-          onClose={() => setSavingShip(null)}
+          onClose={() => { setSavingShip(null); setRemovingShip(null); }}
           currentShip={savingShip.ship}
           currentConfig={savingShip.config}
           currentConfigName={savingShip.name}
@@ -317,6 +339,20 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
             <div className="save-ship-modal-actions">
               <button onClick={handleSaveGroupConfirm} className="btn-primary">Save</button>
               <button onClick={() => setShowSaveGroup(false)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {removingShip && !savingShip && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setRemovingShip(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>Remove Ship</h3>
+            <p className="save-ship-modal-message">Remove &ldquo;{removingShip.name}&rdquo; from the mining group?</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={handleSaveAndRemove} className="save-group-button" style={{ width: 'auto', height: 'auto', lineHeight: 'normal' }}>Save &amp; Remove</button>
+              <button onClick={handleRemoveConfirm} className="btn-primary">Remove</button>
+              <button onClick={() => setRemovingShip(null)} className="btn-secondary">Cancel</button>
             </div>
           </div>
         </div>
