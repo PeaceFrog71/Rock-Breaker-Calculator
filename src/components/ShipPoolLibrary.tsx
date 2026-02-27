@@ -39,11 +39,18 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
     }
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete saved ship "${name}"?`)) {
-      deleteShipConfig(id);
-      setSavedShips(getSavedShipConfigs());
-    }
+    setConfirmDialog({
+      title: 'Delete Ship',
+      message: `Delete saved ship "${name}"?`,
+      onConfirm: () => {
+        deleteShipConfig(id);
+        setSavedShips(getSavedShipConfigs());
+        setConfirmDialog(null);
+      },
+    });
   };
 
   return (
@@ -112,6 +119,19 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
           ))
         )}
       </div>
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

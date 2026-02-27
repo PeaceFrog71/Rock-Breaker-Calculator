@@ -23,6 +23,8 @@ export default function MiningGroupManager({
   const [savedGroups, setSavedGroups] = useState<SavedMiningGroup[]>(
     getSavedMiningGroups()
   );
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const handleLoad = (id: string) => {
     const group = loadMiningGroup(id);
@@ -34,10 +36,15 @@ export default function MiningGroupManager({
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete mining group "${name}"?`)) {
-      deleteMiningGroup(id);
-      setSavedGroups(getSavedMiningGroups());
-    }
+    setConfirmDialog({
+      title: 'Delete Group',
+      message: `Delete mining group "${name}"?`,
+      onConfirm: () => {
+        deleteMiningGroup(id);
+        setSavedGroups(getSavedMiningGroups());
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const handleExport = (group: SavedMiningGroup) => {
@@ -51,10 +58,10 @@ export default function MiningGroupManager({
     importMiningGroup(file)
       .then((imported) => {
         setSavedGroups(getSavedMiningGroups());
-        alert(`Imported mining group "${imported.name}"`);
+        setAlertDialog({ title: 'Import Successful', message: `Imported mining group "${imported.name}"` });
       })
       .catch((error) => {
-        alert(`Failed to import: ${error.message}`);
+        setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error.message}` });
       });
 
     e.target.value = '';
@@ -147,6 +154,31 @@ export default function MiningGroupManager({
           ))
         )}
       </div>
+
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -70,6 +70,8 @@ function App() {
   const [shipConfigs, setShipConfigs] = useState<Record<string, { config: MiningConfiguration; name?: string }>>({});
   // Save dialog state (controlled from ShipSelector header for #190)
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  // Themed alert dialog (replaces native alert for fleet full, etc.)
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
   // Load rock from active slot in localStorage (or default if not found)
   const [rock, setRock] = useState<Rock>(() => {
     try {
@@ -881,7 +883,7 @@ function App() {
                     <ConfigManager
                       onAddToGroup={(shipInstance) => {
                         if (miningGroup.ships.length >= 4) {
-                          alert('Maximum of 4 ships allowed in mining group');
+                          setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
                           return;
                         }
                         shipInstance.isActive = true;
@@ -963,7 +965,7 @@ function App() {
                         <ConfigManager
                           onAddToGroup={(shipInstance) => {
                             if (miningGroup.ships.length >= 4) {
-                              alert('Maximum of 4 ships allowed in mining group');
+                              setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
                               return;
                             }
                             shipInstance.isActive = true;
@@ -1078,6 +1080,17 @@ function App() {
             className="community-logo"
           />
         </a>
+      )}
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

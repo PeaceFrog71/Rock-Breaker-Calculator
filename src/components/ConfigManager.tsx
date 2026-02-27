@@ -48,10 +48,13 @@ export default function ConfigManager({
   // Internal save dialog state (for legacy Save button when not hidden)
   const [showDialog, setShowDialog] = useState(false);
   const [configName, setConfigName] = useState('');
+  // Themed alert/confirm dialogs (replace native alert/confirm)
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
 
   const handleSave = () => {
     if (!configName.trim()) {
-      alert('Please enter a ship name');
+      setAlertDialog({ title: 'Missing Name', message: 'Please enter a ship name.' });
       return;
     }
 
@@ -64,22 +67,27 @@ export default function ConfigManager({
     );
 
     if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
-    } else {
-      saveShipConfig(trimmedName, currentShip, currentConfig);
+      setConfirmDialog({
+        title: 'Overwrite Ship',
+        message: `"${existing.name}" already exists. Overwrite?`,
+        onConfirm: () => {
+          updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
+          onLoad(currentShip, currentConfig, trimmedName);
+          setSavedConfigs(getSavedShipConfigs());
+          setConfigName('');
+          setShowDialog(false);
+          setConfirmDialog(null);
+          onAfterLoad?.();
+        },
+      });
+      return;
     }
 
-    // Update parent state with the saved name
+    saveShipConfig(trimmedName, currentShip, currentConfig);
     onLoad(currentShip, currentConfig, trimmedName);
-
     setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);
-
-    // Close drawer after save (same callback as after load)
     onAfterLoad?.();
   };
 
@@ -100,10 +108,15 @@ export default function ConfigManager({
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete configuration "${name}"?`)) {
-      deleteShipConfig(id);
-      setSavedConfigs(getSavedShipConfigs());
-    }
+    setConfirmDialog({
+      title: 'Delete Ship',
+      message: `Delete configuration "${name}"?`,
+      onConfirm: () => {
+        deleteShipConfig(id);
+        setSavedConfigs(getSavedShipConfigs());
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const handleExport = (config: SavedShipConfig) => {
@@ -117,10 +130,10 @@ export default function ConfigManager({
     importShipConfig(file)
       .then((imported) => {
         setSavedConfigs(getSavedShipConfigs());
-        alert(`Imported configuration "${imported.name}"`);
+        setAlertDialog({ title: 'Import Successful', message: `Imported configuration "${imported.name}"` });
       })
       .catch((error) => {
-        alert(`Failed to import: ${error.message}`);
+        setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error.message}` });
       });
 
     e.target.value = '';
@@ -244,6 +257,31 @@ export default function ConfigManager({
               style={{ display: 'none' }}
             />
           </label>
+        </div>
+      )}
+
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3>{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>
