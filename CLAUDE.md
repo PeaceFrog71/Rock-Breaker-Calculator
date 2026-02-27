@@ -94,7 +94,7 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 **CRITICAL**: Always use `/vc` (Victor) for all git operations. Victor enforces:
 - Issue-based workflow ("If it's not in an issue, it doesn't exist")
 - Branch naming: `feat/<issue#>-<desc>`, `fix/<issue#>-<desc>`, `chore/<issue#>-<desc>`
-- Semantic versioning (patch for fixes, minor for features)
+- Semantic versioning (patch for dev work, minor for releases to main)
 - PR workflow: feature → dev → main
 - **NEVER push directly to main**
 
