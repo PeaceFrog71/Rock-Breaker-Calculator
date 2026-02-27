@@ -11,9 +11,10 @@ interface ShipPoolManagerProps {
   miningGroup: MiningGroup;
   onChange: (miningGroup: MiningGroup) => void;
   onOpenLibrary?: () => void;
+  onRegolithShipImport?: () => void;
 }
 
-export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }: ShipPoolManagerProps) {
+export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary, onRegolithShipImport }: ShipPoolManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingShip, setEditingShip] = useState<ShipInstance | undefined>(undefined);
   const [showAddChoice, setShowAddChoice] = useState(false);
@@ -56,6 +57,11 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
   const handleAddFromLibrary = () => {
     setShowAddChoice(false);
     onOpenLibrary?.();
+  };
+
+  const handleAddFromRegolith = () => {
+    setShowAddChoice(false);
+    onRegolithShipImport?.();
   };
 
   const handleClearGroup = () => {
@@ -322,6 +328,13 @@ export default function ShipPoolManager({ miningGroup, onChange, onOpenLibrary }
                 <span className="add-choice-btn-label">Ship Library</span>
                 <span className="add-choice-btn-desc">Load a saved configuration</span>
               </button>
+              {onRegolithShipImport && (
+                <button className="add-choice-btn from-regolith" onClick={handleAddFromRegolith}>
+                  <img src={`${import.meta.env.BASE_URL}regolith-icon.png`} alt="" className="add-choice-btn-icon regolith-icon" />
+                  <span className="add-choice-btn-label">Regolith</span>
+                  <span className="add-choice-btn-desc">Import from Regolith</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

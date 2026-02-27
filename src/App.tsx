@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
-import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
+import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget, ShipInstance } from "./types";
 import { SHIPS } from "./types";
 import {
   calculateBreakability,
@@ -26,6 +26,7 @@ import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
 import RegolithImportModal from "./components/RegolithImportModal";
+import RegolithShipImportModal from "./components/RegolithShipImportModal";
 import ProfileModal from "./components/ProfileModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
@@ -164,6 +165,7 @@ function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
   const [showRegolithModal, setShowRegolithModal] = useState(false);
+  const [showRegolithShipModal, setShowRegolithShipModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'connections'>('profile');
   const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
@@ -369,6 +371,36 @@ function App() {
   // Note: modal closes itself via onClose — no need to close it here
   const handleRegolithImport = (imported: Partial<Rock>) => {
     setRock((prev) => ({ ...prev, ...imported }));
+  };
+
+  // Handle ship import from Regolith
+  // In single ship mode: replaces current config
+  // In mining group mode: adds ship to group
+  const handleRegolithShipImport = (ship: Ship, importedConfig: MiningConfiguration, name: string, unmapped: string[]) => {
+    if (useMiningGroup) {
+      if (miningGroup.ships.length >= 4) {
+        setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
+        return;
+      }
+      const shipInstance: ShipInstance = {
+        id: Date.now().toString() + Math.random(),
+        ship,
+        name,
+        config: JSON.parse(JSON.stringify(importedConfig)),
+        isActive: true,
+      };
+      setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
+    } else {
+      setSelectedShip(ship);
+      setConfig(importedConfig);
+      setCurrentConfigName(name);
+    }
+    if (unmapped.length > 0) {
+      setAlertDialog({
+        title: 'Import Warning',
+        message: `Some equipment could not be matched: ${unmapped.join(', ')}`,
+      });
+    }
   };
 
   // Handle rock slot switch: save current to old slot, load new slot
@@ -942,6 +974,7 @@ function App() {
                       miningGroup={miningGroup}
                       onChange={setMiningGroup}
                       onOpenLibrary={() => setShipLibraryDrawerOpen(true)}
+                      onRegolithShipImport={() => setShowRegolithShipModal(true)}
                     />
                   ) : (
                     <CollapsiblePanel
@@ -953,6 +986,7 @@ function App() {
                         miningGroup={miningGroup}
                         onChange={setMiningGroup}
                         onOpenLibrary={() => setOpenPanel('shipLibrary')}
+                        onRegolithShipImport={() => setShowRegolithShipModal(true)}
                       />
                     </CollapsiblePanel>
                   )}
@@ -995,6 +1029,7 @@ function App() {
                     configName={currentConfigName}
                     onSave={handleOpenSaveDialog}
                     onClear={handleClearConfig}
+                    onRegolithShipImport={() => setShowRegolithShipModal(true)}
                   />
 
                   {/* Laser Setup - mobile: always visible, desktop: collapsible accordion */}
@@ -1066,6 +1101,16 @@ function App() {
         onImport={handleRegolithImport}
         onOpenIntegrations={() => {
           setShowRegolithModal(false);
+          setProfileInitialTab('connections');
+          setShowProfileModal(true);
+        }}
+      />
+      <RegolithShipImportModal
+        isOpen={showRegolithShipModal}
+        onClose={() => setShowRegolithShipModal(false)}
+        onImport={handleRegolithShipImport}
+        onOpenIntegrations={() => {
+          setShowRegolithShipModal(false);
           setProfileInitialTab('connections');
           setShowProfileModal(true);
         }}

@@ -43,6 +43,31 @@
   flex-shrink: 0;
 }
 
+.ship-selector .regolith-import-button {
+  background: var(--bg-secondary);
+  color: #fbc02d;
+  border: 1px solid #fbc02d;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  height: 2.5rem;
+  line-height: 1.2;
+  text-align: center;
+  margin: 0;
+  width: auto;
+}
+
+.ship-selector .regolith-import-button:hover,
+.ship-selector .regolith-import-button:active {
+  background: #fbc02d;
+  color: #000000;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(251, 192, 45, 0.4);
+}
+
 .save-ship-button {
   background: var(--bg-secondary);
   color: var(--accent-gold);
@@ -270,8 +295,33 @@
   }
 }
 
-/* Mobile: Convert Save Ship / Clear buttons to icon-only */
+/* Mobile: Convert action buttons to icon-only */
 @media (pointer: coarse) {
+  .ship-selector .regolith-import-button {
+    width: 3rem;
+    height: 3rem;
+    font-size: 0;  /* Hide text */
+    position: relative;
+    padding: 0;
+  }
+
+  .ship-selector .regolith-import-button::after {
+    content: 'R';
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #fbc02d;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    line-height: 1;
+  }
+
+  .ship-selector .regolith-import-button:hover::after,
+  .ship-selector .regolith-import-button:active::after {
+    color: #000000;
+  }
+
   .save-ship-button {
     width: 3rem;
     height: 3rem;
