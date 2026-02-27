@@ -136,7 +136,7 @@
   padding: 1.5rem 2rem;
   text-align: center;
   box-shadow: 0 8px 32px rgba(0, 255, 204, 0.15);
-  max-width: 360px;
+  max-width: 480px;
   width: 90%;
 }
 
@@ -196,9 +196,28 @@
   box-shadow: 0 4px 16px rgba(255, 165, 0, 0.4);
 }
 
+.add-choice-btn.from-regolith {
+  border: 1px solid #fbc02d;
+  color: #fbc02d;
+}
+
+.add-choice-btn.from-regolith:hover {
+  background: #fbc02d;
+  color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(251, 192, 45, 0.4);
+}
+
 .add-choice-btn-icon {
   font-size: 1.8rem;
   line-height: 1;
+}
+
+.add-choice-btn-icon.regolith-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 6px;
+  object-fit: contain;
 }
 
 .add-choice-btn-label {
