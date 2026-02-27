@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useSwipeToClose } from '../hooks/useSwipeToClose';
 import './MobileDrawer.css';
 
 interface MobileDrawerProps {
@@ -22,6 +23,8 @@ export default function MobileDrawer({
   tabImage,
   children,
 }: MobileDrawerProps) {
+  const drawerRef = useSwipeToClose({ side, isOpen, onClose });
+
   return (
     <>
       {/* Edge Tab - visible when drawer is closed */}
@@ -61,7 +64,7 @@ export default function MobileDrawer({
       )}
 
       {/* Drawer Panel */}
-      <div className={`mobile-drawer ${side} ${isOpen ? 'open' : ''}`}>
+      <div ref={drawerRef} className={`mobile-drawer ${side} ${isOpen ? 'open' : ''}`}>
         <div className="mobile-drawer-header">
           <h3>{title}</h3>
           <button

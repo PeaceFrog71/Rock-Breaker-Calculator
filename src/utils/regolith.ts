@@ -142,6 +142,55 @@ export async function fetchActiveSessionId(apiKey: string): Promise<string | nul
 }
 
 /**
+/**
+ * Regolith loadout types (from profile.loadouts query)
+ */
+export interface RegolithActiveLaser {
+  laser: string;
+  laserActive: boolean;
+  modules: string[];
+  modulesActive: boolean[];
+}
+
+export interface RegolithLoadout {
+  loadoutId: string;
+  name: string;
+  ship: string; // "PROSPECTOR" | "MOLE" | "GOLEM" | "ROC"
+  activeLasers: RegolithActiveLaser[];
+}
+
+/**
+ * Fetch all saved ship loadouts from the user's Regolith profile.
+ * Filters out ROC loadouts (not supported by Rock Breaker).
+ */
+export async function fetchShipLoadouts(apiKey: string): Promise<RegolithLoadout[]> {
+  const data = await gql<{
+    profile: {
+      loadouts: Array<{
+        loadoutId: string;
+        name: string;
+        ship: string;
+        activeLasers: Array<{
+          laser: string;
+          laserActive: boolean;
+          modules: string[];
+          modulesActive: boolean[];
+        }>;
+      }>;
+    };
+  }>(apiKey, '{ profile { loadouts { loadoutId name ship activeLasers { laser laserActive modules modulesActive } } } }');
+
+  return (data.profile?.loadouts ?? [])
+    .filter((l) => l.ship !== 'ROC')
+    .map((l) => ({
+      loadoutId: l.loadoutId,
+      name: l.name,
+      ship: l.ship,
+      activeLasers: l.activeLasers ?? [],
+    }));
+}
+
+/**
  * Fetch all ShipClusterFinds (and their rocks) from a Regolith session.
  *
  * Note on scales:

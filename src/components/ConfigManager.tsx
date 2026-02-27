@@ -9,6 +9,8 @@ import {
   loadShipConfig,
   exportShipConfig,
   importShipConfig,
+  importShipConfigWithPicker,
+  supportsFileSystemAccess,
   createShipInstanceFromConfig,
 } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
@@ -45,13 +47,39 @@ export default function ConfigManager({
   useEffect(() => {
     setSavedConfigs(getSavedShipConfigs());
   }, [currentConfigName]);
+
+  // Refresh the ship list periodically to catch saves from other components
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSavedConfigs(getSavedShipConfigs());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Internal save dialog state (for legacy Save button when not hidden)
   const [showDialog, setShowDialog] = useState(false);
   const [configName, setConfigName] = useState('');
+  // Themed alert/confirm dialogs (replace native alert/confirm)
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  // Close alert/confirm dialogs on Escape
+  useEffect(() => {
+    const activeDialog = confirmDialog || alertDialog;
+    if (!activeDialog) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setConfirmDialog(null);
+        setAlertDialog(null);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [alertDialog, confirmDialog]);
 
   const handleSave = () => {
     if (!configName.trim()) {
-      alert('Please enter a ship name');
+      setAlertDialog({ title: 'Missing Name', message: 'Please enter a ship name.' });
       return;
     }
 
@@ -64,22 +92,27 @@ export default function ConfigManager({
     );
 
     if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
-    } else {
-      saveShipConfig(trimmedName, currentShip, currentConfig);
+      setConfirmDialog({
+        title: 'Overwrite Ship',
+        message: `"${existing.name}" already exists. Overwrite?`,
+        onConfirm: () => {
+          updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
+          onLoad(currentShip, currentConfig, trimmedName);
+          setSavedConfigs(getSavedShipConfigs());
+          setConfigName('');
+          setShowDialog(false);
+          setConfirmDialog(null);
+          onAfterLoad?.();
+        },
+      });
+      return;
     }
 
-    // Update parent state with the saved name
+    saveShipConfig(trimmedName, currentShip, currentConfig);
     onLoad(currentShip, currentConfig, trimmedName);
-
     setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);
-
-    // Close drawer after save (same callback as after load)
     onAfterLoad?.();
   };
 
@@ -100,10 +133,15 @@ export default function ConfigManager({
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete configuration "${name}"?`)) {
-      deleteShipConfig(id);
-      setSavedConfigs(getSavedShipConfigs());
-    }
+    setConfirmDialog({
+      title: 'Delete Ship',
+      message: `Delete configuration "${name}"?`,
+      onConfirm: () => {
+        deleteShipConfig(id);
+        setSavedConfigs(getSavedShipConfigs());
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const handleExport = (config: SavedShipConfig) => {
@@ -117,22 +155,33 @@ export default function ConfigManager({
     importShipConfig(file)
       .then((imported) => {
         setSavedConfigs(getSavedShipConfigs());
-        alert(`Imported configuration "${imported.name}"`);
+        setAlertDialog({ title: 'Import Successful', message: `Imported configuration "${imported.name}"` });
       })
       .catch((error) => {
-        alert(`Failed to import: ${error.message}`);
+        setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error.message}` });
       });
 
     e.target.value = '';
+  };
+
+  const handleImportWithPicker = async () => {
+    try {
+      const imported = await importShipConfigWithPicker();
+      setSavedConfigs(getSavedShipConfigs());
+      setAlertDialog({ title: 'Import Successful', message: `Imported configuration "${imported.name}"` });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error instanceof Error ? error.message : 'Unknown error'}` });
+    }
   };
 
   return (
     <div className="config-manager panel">
       <h2>Ship Library</h2>
 
-      {/* Save button - only when not hidden (legacy location) */}
-      {!isGroupMode && currentShip && currentConfig && !hideSaveButton && (
-        <div className="config-actions">
+      <div className="config-actions">
+        {/* Save button - only when not hidden (legacy location) */}
+        {!isGroupMode && currentShip && currentConfig && !hideSaveButton && (
           <button className="btn-primary btn-icon-text" onClick={() => {
             setConfigName(currentConfigName || '');
             setShowDialog(true);
@@ -140,8 +189,23 @@ export default function ConfigManager({
             <span className="btn-icon">💾</span>
             <span className="btn-label">Save Current</span>
           </button>
-        </div>
-      )}
+        )}
+        <label className="btn-import" onClick={(e) => {
+          if (supportsFileSystemAccess()) {
+            e.preventDefault();
+            handleImportWithPicker();
+          }
+        }}>
+          <span className="btn-text">Import</span>
+          <span className="btn-emoji">📥</span>
+          <input
+            type="file"
+            accept=".json"
+            onChange={handleImport}
+            style={{ display: 'none' }}
+          />
+        </label>
+      </div>
 
       {showDialog && (
         <div className="save-dialog">
@@ -231,19 +295,28 @@ export default function ConfigManager({
         )}
       </div>
 
-      {/* Import button at the bottom */}
-      {!isGroupMode && (
-        <div className="import-action">
-          <label className="btn-import">
-            <span className="btn-text">Import</span>
-            <span className="btn-emoji">📥</span>
-            <input
-              type="file"
-              accept=".json"
-              onChange={handleImport}
-              style={{ display: 'none' }}
-            />
-          </label>
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="config-alert-title" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="config-alert-title">{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="config-confirm-title" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="config-confirm-title">{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
         </div>
       )}
     </div>

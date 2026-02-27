@@ -98,6 +98,23 @@ export function saveShipConfig(
 ): SavedShipConfig {
   const ships = getSavedShipConfigs();
 
+  // Prevent duplicates: if a ship with the same name exists, update it instead
+  const existingIndex = ships.findIndex(
+    (s) => s.name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (existingIndex !== -1) {
+    ships[existingIndex] = {
+      ...ships[existingIndex],
+      name,
+      ship,
+      config,
+      updatedAt: Date.now(),
+    };
+    localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(ships));
+    return ships[existingIndex];
+  }
+
   const newShip: SavedShipConfig = {
     id: Date.now().toString(),
     name,
@@ -236,25 +253,54 @@ export function loadCurrentConfiguration(): { ship: Ship; config: MiningConfigur
 }
 
 /**
- * Export ship configuration as JSON file
- * Filename format: shipname_shipmodel_datetime.json
+ * Check if File System Access API is available (Chrome, Edge, Opera).
+ * When available, users can choose save/open location and the browser caches it.
  */
-export function exportShipConfig(savedConfig: SavedShipConfig): void {
-  const dataStr = JSON.stringify(savedConfig, null, 2);
-  const dataBlob = new Blob([dataStr], { type: 'application/json' });
-  const url = URL.createObjectURL(dataBlob);
+export function supportsFileSystemAccess(): boolean {
+  return 'showSaveFilePicker' in window && 'showOpenFilePicker' in window;
+}
 
-  // Format: shipname_shipmodel_YYYY-MM-DD_HH-MM-SS.json
+/**
+ * Export ship configuration as JSON file.
+ * Uses File System Access API when available (user chooses location, browser caches it).
+ * Falls back to download link for unsupported browsers (Firefox, Safari).
+ */
+export async function exportShipConfig(savedConfig: SavedShipConfig): Promise<void> {
+  const dataStr = JSON.stringify(savedConfig, null, 2);
+
   const safeName = savedConfig.name.replace(/[^a-z0-9]/gi, '_');
   const safeShipName = savedConfig.ship.name.replace(/[^a-z0-9]/gi, '_');
-  const now = new Date();
-  const datetime = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+  const filename = `${safeName}_${safeShipName}.json`;
 
+  // Try File System Access API first (user chooses location, browser remembers it)
+  if ('showSaveFilePicker' in window) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handle = await (window as any).showSaveFilePicker({
+        id: 'rockbreaker-ships',
+        suggestedName: filename,
+        types: [{
+          description: 'JSON Files',
+          accept: { 'application/json': ['.json'] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(dataStr);
+      await writable.close();
+      return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+      // Fall through to legacy download method
+    }
+  }
+
+  // Fallback: invisible download link (goes to browser's Downloads folder)
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(dataBlob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${safeName}_${safeShipName}_${datetime}.json`;
+  link.download = filename;
   link.click();
-
   URL.revokeObjectURL(url);
 }
 
@@ -282,6 +328,23 @@ export function importShipConfig(file: File): Promise<SavedShipConfig> {
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsText(file);
   });
+}
+
+/**
+ * Import ship configuration using File System Access API picker.
+ * Browser remembers the last directory used (via id: 'rockbreaker').
+ */
+export async function importShipConfigWithPicker(): Promise<SavedShipConfig> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [fileHandle] = await (window as any).showOpenFilePicker({
+    id: 'rockbreaker-ships',
+    types: [{
+      description: 'JSON Files',
+      accept: { 'application/json': ['.json'] },
+    }],
+  });
+  const file = await fileHandle.getFile();
+  return importShipConfig(file);
 }
 
 /**
@@ -318,6 +381,22 @@ export function getSavedMiningGroups(): SavedMiningGroup[] {
  */
 export function saveMiningGroup(name: string, miningGroup: MiningGroup): SavedMiningGroup {
   const groups = getSavedMiningGroups();
+
+  // Prevent duplicates: if a group with the same name exists, update it instead
+  const existingIndex = groups.findIndex(
+    (g) => g.name.toLowerCase() === name.toLowerCase()
+  );
+
+  if (existingIndex !== -1) {
+    groups[existingIndex] = {
+      ...groups[existingIndex],
+      name,
+      miningGroup,
+      updatedAt: Date.now(),
+    };
+    localStorage.setItem(MINING_GROUPS_KEY, JSON.stringify(groups));
+    return groups[existingIndex];
+  }
 
   const newGroup: SavedMiningGroup = {
     id: Date.now().toString(),
@@ -380,23 +459,42 @@ export function loadMiningGroup(id: string): SavedMiningGroup | null {
 
 /**
  * Export mining group as JSON file download
- * Filename format: groupname_group_datetime.json
+ * Filename format: groupname_group.json
  */
-export function exportMiningGroup(savedGroup: SavedMiningGroup): void {
+export async function exportMiningGroup(savedGroup: SavedMiningGroup): Promise<void> {
   const dataStr = JSON.stringify(savedGroup, null, 2);
+
+  const safeName = savedGroup.name.replace(/[^a-z0-9]/gi, '_');
+  const filename = `${safeName}_group.json`;
+
+  // Try File System Access API first
+  if ('showSaveFilePicker' in window) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const handle = await (window as any).showSaveFilePicker({
+        id: 'rockbreaker-groups',
+        suggestedName: filename,
+        types: [{
+          description: 'JSON Files',
+          accept: { 'application/json': ['.json'] },
+        }],
+      });
+      const writable = await handle.createWritable();
+      await writable.write(dataStr);
+      await writable.close();
+      return;
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return;
+    }
+  }
+
+  // Fallback: invisible download link
   const dataBlob = new Blob([dataStr], { type: 'application/json' });
   const url = URL.createObjectURL(dataBlob);
-
-  // Format: groupname_group_YYYY-MM-DD_HH-MM-SS.json
-  const safeName = savedGroup.name.replace(/[^a-z0-9]/gi, '_');
-  const now = new Date();
-  const datetime = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
-
   const link = document.createElement('a');
   link.href = url;
-  link.download = `${safeName}_group_${datetime}.json`;
+  link.download = filename;
   link.click();
-
   URL.revokeObjectURL(url);
 }
 
@@ -423,6 +521,23 @@ export function importMiningGroup(file: File): Promise<SavedMiningGroup> {
     reader.onerror = () => reject(new Error('Failed to read file'));
     reader.readAsText(file);
   });
+}
+
+/**
+ * Import mining group using File System Access API picker.
+ * Browser remembers the last directory used (via id: 'rockbreaker').
+ */
+export async function importMiningGroupWithPicker(): Promise<SavedMiningGroup> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [fileHandle] = await (window as any).showOpenFilePicker({
+    id: 'rockbreaker-groups',
+    types: [{
+      description: 'JSON Files',
+      accept: { 'application/json': ['.json'] },
+    }],
+  });
+  const file = await fileHandle.getFile();
+  return importMiningGroup(file);
 }
 
 // ===== HELPER FUNCTIONS =====

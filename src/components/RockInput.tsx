@@ -12,11 +12,11 @@ export default function RockInput({ rock, onChange }: RockInputProps) {
       <h2>Rock Properties</h2>
 
       <div className="form-group">
-        <label>Rock Name (optional):</label>
+        <label>Rock Type (optional):</label>
         <input
           type="text"
-          value={rock.name || ""}
-          onChange={(e) => onChange({ ...rock, name: e.target.value })}
+          value={rock.type || ""}
+          onChange={(e) => onChange({ ...rock, type: e.target.value })}
           placeholder="e.g., Quantainium Rock"
         />
       </div>
