@@ -1,22 +1,7 @@
 import { SHIPS, LASER_HEADS, MODULES } from '../types';
 import type { Ship, LaserHead, Module, LaserConfiguration, MiningConfiguration } from '../types';
-
-/**
- * Regolith loadout types (from profile.loadouts query)
- */
-export interface RegolithActiveLaser {
-  laser: string;
-  laserActive: boolean;
-  modules: string[];
-  modulesActive: boolean[];
-}
-
-export interface RegolithLoadout {
-  loadoutId: string;
-  name: string;
-  ship: string; // "PROSPECTOR" | "MOLE" | "GOLEM" | "ROC"
-  activeLasers: RegolithActiveLaser[];
-}
+import type { RegolithActiveLaser, RegolithLoadout } from './regolith';
+export type { RegolithActiveLaser, RegolithLoadout };
 
 /**
  * Result of mapping a Regolith loadout to Rock Breaker types.

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { mapLaserHead, mapModule, mapShip, mapRegolithLoadout } from './regolithMapping';
-import type { RegolithLoadout } from './regolithMapping';
+import type { RegolithLoadout } from './regolith';
 
 describe('mapLaserHead', () => {
   it('maps all known Regolith laser enums', () => {
@@ -148,6 +148,7 @@ describe('mapRegolithLoadout', () => {
     const result = mapRegolithLoadout(loadout);
     expect(result).not.toBeNull();
     expect(result!.unmapped).toContain('ArborMHV');
+    expect(result!.unmapped).toContain('FakeModule (no slot)');
   });
 
   it('returns null for unsupported ships', () => {

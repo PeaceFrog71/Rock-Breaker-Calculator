@@ -142,13 +142,6 @@ export async function fetchActiveSessionId(apiKey: string): Promise<string | nul
 }
 
 /**
- * Fetch all ShipClusterFinds (and their rocks) from a Regolith session.
- *
- * Note on scales:
- * - res: 0–1 (e.g. 0.25 = 25% resistance) — multiply by 100 before use in BreakIt
- * - inst: raw value (e.g. 25 = 25 instability)
- * - ores[].percent: 0–1 (e.g. 0.65 = 65%)
- */
 /**
  * Regolith loadout types (from profile.loadouts query)
  */
@@ -197,6 +190,14 @@ export async function fetchShipLoadouts(apiKey: string): Promise<RegolithLoadout
     }));
 }
 
+/**
+ * Fetch all ShipClusterFinds (and their rocks) from a Regolith session.
+ *
+ * Note on scales:
+ * - res: 0–1 (e.g. 0.25 = 25% resistance) — multiply by 100 before use in BreakIt
+ * - inst: raw value (e.g. 25 = 25 instability)
+ * - ores[].percent: 0–1 (e.g. 0.65 = 65%)
+ */
 export async function fetchSessionRocks(
   apiKey: string,
   sessionId: string
