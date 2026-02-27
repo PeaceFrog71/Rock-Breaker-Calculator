@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { MiningGroup } from '../types';
 import type { SavedMiningGroup } from '../utils/storage';
 import {
@@ -7,6 +7,8 @@ import {
   loadMiningGroup,
   exportMiningGroup,
   importMiningGroup,
+  importMiningGroupWithPicker,
+  supportsFileSystemAccess,
 } from '../utils/storage';
 import { calculateLaserPower } from '../utils/calculator';
 import './ConfigManager.css';
@@ -24,6 +26,31 @@ export default function MiningGroupManager({
     getSavedMiningGroups()
   );
 
+  // Refresh the group list periodically to catch new saves from ShipPoolManager
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSavedGroups(getSavedMiningGroups());
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
+  // Close alert/confirm dialogs on Escape
+  useEffect(() => {
+    const activeDialog = confirmDialog || alertDialog;
+    if (!activeDialog) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setConfirmDialog(null);
+        setAlertDialog(null);
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [alertDialog, confirmDialog]);
+
   const handleLoad = (id: string) => {
     const group = loadMiningGroup(id);
     if (group) {
@@ -34,10 +61,15 @@ export default function MiningGroupManager({
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Delete mining group "${name}"?`)) {
-      deleteMiningGroup(id);
-      setSavedGroups(getSavedMiningGroups());
-    }
+    setConfirmDialog({
+      title: 'Delete Group',
+      message: `Delete mining group "${name}"?`,
+      onConfirm: () => {
+        deleteMiningGroup(id);
+        setSavedGroups(getSavedMiningGroups());
+        setConfirmDialog(null);
+      },
+    });
   };
 
   const handleExport = (group: SavedMiningGroup) => {
@@ -51,13 +83,24 @@ export default function MiningGroupManager({
     importMiningGroup(file)
       .then((imported) => {
         setSavedGroups(getSavedMiningGroups());
-        alert(`Imported mining group "${imported.name}"`);
+        setAlertDialog({ title: 'Import Successful', message: `Imported mining group "${imported.name}"` });
       })
       .catch((error) => {
-        alert(`Failed to import: ${error.message}`);
+        setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error.message}` });
       });
 
     e.target.value = '';
+  };
+
+  const handleImportWithPicker = async () => {
+    try {
+      const imported = await importMiningGroupWithPicker();
+      setSavedGroups(getSavedMiningGroups());
+      setAlertDialog({ title: 'Import Successful', message: `Imported mining group "${imported.name}"` });
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      setAlertDialog({ title: 'Import Failed', message: `Failed to import: ${error instanceof Error ? error.message : 'Unknown error'}` });
+    }
   };
 
   return (
@@ -65,7 +108,12 @@ export default function MiningGroupManager({
       <h2>Mining Group Library</h2>
 
       <div className="config-actions">
-        <label className="btn-import">
+        <label className="btn-import" onClick={(e) => {
+          if (supportsFileSystemAccess()) {
+            e.preventDefault();
+            handleImportWithPicker();
+          }
+        }}>
           <span className="btn-text">Import</span>
           <span className="btn-emoji">📥</span>
           <input
@@ -147,6 +195,31 @@ export default function MiningGroupManager({
           ))
         )}
       </div>
+
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="group-alert-title" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="group-alert-title">{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {confirmDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="group-confirm-title" onClick={() => setConfirmDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="group-confirm-title">{confirmDialog.title}</h3>
+            <p className="save-ship-modal-message">{confirmDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={confirmDialog.onConfirm} className="btn-primary">OK</button>
+              <button onClick={() => setConfirmDialog(null)} className="btn-secondary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

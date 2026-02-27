@@ -115,6 +115,102 @@
   box-shadow: 0 4px 12px rgba(255, 51, 102, 0.4);
 }
 
+/* Add Ship choice modal */
+.add-choice-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.add-choice-modal {
+  background: var(--bg-secondary);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 8px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 255, 204, 0.15);
+  max-width: 360px;
+  width: 90%;
+}
+
+.add-choice-modal h3 {
+  margin: 0 0 0.25rem 0;
+  color: var(--accent-cyan);
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.add-choice-subtitle {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.add-choice-buttons {
+  display: flex;
+  gap: 1rem;
+}
+
+.add-choice-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 1.25rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--bg-tertiary);
+}
+
+.add-choice-btn.new-ship {
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+.add-choice-btn.new-ship:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 255, 204, 0.4);
+}
+
+.add-choice-btn.from-library {
+  border: 1px solid var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+.add-choice-btn.from-library:hover {
+  background: var(--accent-gold);
+  color: var(--bg-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(255, 165, 0, 0.4);
+}
+
+.add-choice-btn-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.add-choice-btn-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.add-choice-btn-desc {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
 .ship-pool-content {
   min-height: 100px;
 }

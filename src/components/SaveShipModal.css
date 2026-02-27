@@ -30,6 +30,7 @@
   margin: 0 0 1rem 0;
   color: var(--accent-cyan);
   font-size: 1.2rem;
+  text-align: center;
 }
 
 .save-ship-modal input {
@@ -50,7 +51,23 @@
   box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
 }
 
+.save-ship-modal-message {
+  color: var(--text-secondary);
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.save-ship-modal-error {
+  color: var(--danger);
+  margin: -0.5rem 0 0.75rem 0;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
 .save-ship-modal-actions {
   display: flex;
+  justify-content: center;
   gap: 0.75rem;
 }
