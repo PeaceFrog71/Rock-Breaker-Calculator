@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { validateApiKey, fetchActiveSessionId, fetchSessionRocks } from './regolith';
+import { validateApiKey, fetchActiveSessionId, fetchSessionRocks, fetchShipLoadouts } from './regolith';
 import type { RegolithClusterFind, RegolithShipRock } from './regolith';
 
 // ─── Fetch mock helpers ────────────────────────────────────────────────────────
@@ -442,6 +442,158 @@ describe('regolith.ts', () => {
       const results = await fetchSessionRocks('key', 'session-abc');
       // The find must be excluded even though the rock says READY
       expect(results).toHaveLength(0);
+    });
+  });
+
+  // ── fetchShipLoadouts ──────────────────────────────────────────────────────
+
+  describe('fetchShipLoadouts', () => {
+    it('returns mapped loadouts from profile', async () => {
+      mockFetchOk({
+        profile: {
+          loadouts: [
+            {
+              loadoutId: 'load-1',
+              name: 'My Prospector',
+              ship: 'PROSPECTOR',
+              activeLasers: [
+                { laser: 'HelixI', laserActive: true, modules: ['RiegerC3', 'Surge'], modulesActive: [true, true] },
+              ],
+            },
+          ],
+        },
+      });
+
+      const results = await fetchShipLoadouts('valid-key');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].loadoutId).toBe('load-1');
+      expect(results[0].name).toBe('My Prospector');
+      expect(results[0].ship).toBe('PROSPECTOR');
+      expect(results[0].activeLasers).toHaveLength(1);
+      expect(results[0].activeLasers[0].laser).toBe('HelixI');
+      expect(results[0].activeLasers[0].modules).toEqual(['RiegerC3', 'Surge']);
+      expect(results[0].activeLasers[0].modulesActive).toEqual([true, true]);
+    });
+
+    it('filters out ROC loadouts', async () => {
+      mockFetchOk({
+        profile: {
+          loadouts: [
+            { loadoutId: 'load-roc', name: 'ROC Build', ship: 'ROC', activeLasers: [] },
+            { loadoutId: 'load-prosp', name: 'Prosp Build', ship: 'PROSPECTOR', activeLasers: [] },
+            { loadoutId: 'load-mole', name: 'MOLE Build', ship: 'MOLE', activeLasers: [] },
+          ],
+        },
+      });
+
+      const results = await fetchShipLoadouts('valid-key');
+
+      expect(results).toHaveLength(2);
+      expect(results.map(r => r.ship)).toEqual(['PROSPECTOR', 'MOLE']);
+    });
+
+    it('returns empty array when profile has no loadouts', async () => {
+      mockFetchOk({ profile: { loadouts: [] } });
+
+      const results = await fetchShipLoadouts('valid-key');
+      expect(results).toEqual([]);
+    });
+
+    it('returns empty array when profile is null', async () => {
+      mockFetchOk({ profile: null });
+
+      const results = await fetchShipLoadouts('valid-key');
+      expect(results).toEqual([]);
+    });
+
+    it('returns empty array when loadouts is undefined', async () => {
+      mockFetchOk({ profile: {} });
+
+      const results = await fetchShipLoadouts('valid-key');
+      expect(results).toEqual([]);
+    });
+
+    it('handles loadouts with null activeLasers', async () => {
+      mockFetchOk({
+        profile: {
+          loadouts: [
+            { loadoutId: 'load-1', name: 'Empty Ship', ship: 'PROSPECTOR', activeLasers: null },
+          ],
+        },
+      });
+
+      const results = await fetchShipLoadouts('valid-key');
+
+      expect(results).toHaveLength(1);
+      expect(results[0].activeLasers).toEqual([]);
+    });
+
+    it('returns multiple loadouts for different ship types', async () => {
+      mockFetchOk({
+        profile: {
+          loadouts: [
+            { loadoutId: 'l1', name: 'Prosp', ship: 'PROSPECTOR', activeLasers: [{ laser: 'HelixI', laserActive: true, modules: [], modulesActive: [] }] },
+            { loadoutId: 'l2', name: 'MOLE', ship: 'MOLE', activeLasers: [
+              { laser: 'HelixII', laserActive: true, modules: ['Surge'], modulesActive: [true] },
+              { laser: 'ArborMH2', laserActive: true, modules: [], modulesActive: [] },
+              { laser: 'LancetMH2', laserActive: false, modules: [], modulesActive: [] },
+            ]},
+            { loadoutId: 'l3', name: 'Golem', ship: 'GOLEM', activeLasers: [{ laser: 'Pitman', laserActive: true, modules: ['Brandt'], modulesActive: [true] }] },
+          ],
+        },
+      });
+
+      const results = await fetchShipLoadouts('valid-key');
+
+      expect(results).toHaveLength(3);
+      expect(results[0].ship).toBe('PROSPECTOR');
+      expect(results[1].ship).toBe('MOLE');
+      expect(results[1].activeLasers).toHaveLength(3);
+      expect(results[2].ship).toBe('GOLEM');
+    });
+
+    it('throws on HTTP error', async () => {
+      mockFetchHttpError(500);
+      await expect(fetchShipLoadouts('valid-key')).rejects.toThrow();
+    });
+
+    it('throws on network failure', async () => {
+      mockFetchNetworkError();
+      await expect(fetchShipLoadouts('valid-key')).rejects.toThrow();
+    });
+
+    it('queries profile.loadouts with correct fields', async () => {
+      const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { profile: { loadouts: [] } } }),
+      } as Response);
+
+      await fetchShipLoadouts('valid-key');
+
+      const [, init] = spy.mock.calls[0];
+      const body = JSON.parse(init?.body as string);
+      expect(body.query).toContain('profile');
+      expect(body.query).toContain('loadouts');
+      expect(body.query).toContain('loadoutId');
+      expect(body.query).toContain('activeLasers');
+      expect(body.query).toContain('laser');
+      expect(body.query).toContain('laserActive');
+      expect(body.query).toContain('modules');
+      expect(body.query).toContain('modulesActive');
+    });
+
+    it('sends the API key in the x-api-key header', async () => {
+      const spy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ data: { profile: { loadouts: [] } } }),
+      } as Response);
+
+      await fetchShipLoadouts('my-ship-key');
+
+      const [, init] = spy.mock.calls[0];
+      const headers = init?.headers as Record<string, string>;
+      expect(headers['x-api-key']).toBe('my-ship-key');
     });
   });
 });
