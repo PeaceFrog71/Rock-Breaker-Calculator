@@ -137,17 +137,19 @@ Write changelog entries **before creating the PR** — while the work is fresh.
 **When to call Tess:**
 
 - `/tess plan <issue#>` — New feature issues with known constraints (TDD: write tests first as guardrails)
-- `/tess <branch>` — Before creating a PR, especially on `fix/*` branches (regression tests are mandatory)
+- `/tess <branch>` — **REQUIRED on `fix/*` branches** before commit. Recommended on `feat/*` branches before PR.
 - `/tess review-reply <pr#>` — After code review, for testing-related comments (Victor handles the rest)
 - `/tess overview` — Periodic health checks on overall test coverage
+
+**CRITICAL: Do NOT write tests without invoking Tess first.** Tess checks existing coverage before writing, preventing duplicates and structural issues. Writing tests inline during a fix (without Tess) is how bugs in the test suite happen. Victor will block commits on fix branches if Tess hasn't been invoked.
 
 **Development workflow:**
 
 ```
 Feature planning  → /tess plan <issue#>  (when constraints are known)
 Development       → build the feature
-Before PR         → /tess <branch>       (coverage check)
-PR + commit       → /vc commit, /vc pr   (Victor handles git)
+Before commit     → /tess <branch>       (REQUIRED for fix/*, recommended for feat/*)
+PR + commit       → /vc commit, /vc pr   (Victor gates on Tess for fix/*)
 After review      → /tess review-reply   (testing comments)
                     /vc review-reply     (everything else)
 ```

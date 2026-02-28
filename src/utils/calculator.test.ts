@@ -2184,3 +2184,49 @@ describe('Instability Calculations - Issue #11', () => {
     });
   });
 });
+
+describe('Regression: Issue #252 - Cleared rock data should not show break result', () => {
+  const helix1 = LASER_HEADS.find(l => l.id === 'helix-1')!;
+
+  const configWithLaser: MiningConfiguration = {
+    lasers: [{
+      laserHead: helix1,
+      modules: [null, null],
+    }],
+  };
+
+  it('should produce Infinity LP needed when raw resistance equals 100', () => {
+    // Arrange: resistance=100 → division by zero in LP formula
+    const rock: Rock = { mass: 5000, resistance: 100 };
+
+    // Act
+    const result = calculateBreakability(configWithLaser, rock, [null, null, null]);
+
+    // Assert: baseLPNeeded = (5000 / (1 - 1.0)) / 5 = Infinity
+    expect(result.baseLPNeeded).toBe(Infinity);
+    // adjustedLPNeeded is capped by MAX_ADJUSTED_RESISTANCE, so it won't be Infinity
+    expect(result.adjustedLPNeeded).not.toBe(Infinity);
+  });
+
+  it('should demonstrate why display guard is needed for group calculations with mass=0', () => {
+    // Arrange: multi-ship group with mass=0
+    const miningGroup: MiningGroup = {
+      ships: [{
+        id: 'ship1',
+        ship: SHIPS.find(s => s.id === 'prospector')!,
+        name: 'Test Ship',
+        config: configWithLaser,
+        isActive: true,
+      }],
+    };
+    const rock: Rock = { mass: 0, resistance: 25 };
+
+    // Act
+    const result = calculateGroupBreakability(miningGroup, rock, [null, null, null]);
+
+    // Assert: calculator produces 0 LP needed, which makes canBreak=true — this is why
+    // the display layer must guard against mass <= 0 (issue #252)
+    expect(result.baseLPNeeded).toBe(0);
+    expect(result.canBreak).toBe(true);
+  });
+});

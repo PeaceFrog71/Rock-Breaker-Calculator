@@ -205,17 +205,24 @@ Create a properly named branch:
 
 Stage and commit with proper attribution:
 
-1. **Bump version first** — PATCH for all feature/fix branches:
+1. **Tess gate (fix branches)** — if on a `fix/*` or `bugfix/*` branch:
+   - Check if test files were modified in staged changes
+   - If yes but `/tess` was not invoked this session: **STOP** and warn:
+     "Hey, I see test changes on a fix branch but Tess hasn't reviewed them. Run `/tess <branch>` first — she checks for duplicates, nesting, and standards compliance."
+   - If no test changes exist: **STOP** and warn:
+     "This is a fix branch — regression tests are mandatory. Run `/tess <branch>` to design coverage before committing."
+   - Only proceed after Tess has been invoked or Drew explicitly overrides
+2. **Bump version** — PATCH for all feature/fix branches:
    - `fix/*` → `npm version patch --no-git-tag-version`
    - `feat/*` → `npm version patch --no-git-tag-version`
-2. **Add dev notes** — ensure `src/data/changelog.ts` has an entry for this version (Rule 8)
+3. **Add dev notes** — ensure `src/data/changelog.ts` has an entry for this version (Rule 8)
    - If missing, prompt Drew for user-facing summary before proceeding
    - For `chore/*` branches, only add if the change is user-facing
-3. Stage all changes (`git add .`)
-4. Include co-author attribution
-5. Reference issue number if detectable from branch name
-6. Include version bump in commit message (e.g., "Bump version to 1.2.1")
-7. Format: `<message> (#<issue>)` + attribution
+4. Stage all changes (`git add .`)
+5. Include co-author attribution
+6. Reference issue number if detectable from branch name
+7. Include version bump in commit message (e.g., "Bump version to 1.2.1")
+8. Format: `<message> (#<issue>)` + attribution
 
 ### `/vc push`
 
@@ -233,7 +240,7 @@ Create a pull request:
 - Auto-detect issue number from branch name
 - Include `Fixes #<issue>` in PR body
 - Validate branch name before creating PR
-- **Check for test coverage** — remind Drew: "Have you run `/tess` on this branch? Especially important for `fix/*` branches where regression tests are mandatory."
+- **Tess review required for fix branches** — if on a `fix/*` or `bugfix/*` branch and `/tess` has not been invoked this session: **STOP** and run `/tess <branch>` before creating the PR. Regression tests are mandatory — this is not a suggestion. For `feat/*` and `chore/*` branches, remind Drew but don't block.
 - **Check for dev notes** — verify `src/data/changelog.ts` has an entry for the current version (Rule 8)
 - **Add Copilot as reviewer** (`gh pr edit --add-reviewer copilot`)
 
