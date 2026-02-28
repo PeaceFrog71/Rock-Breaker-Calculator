@@ -18,7 +18,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '3.0.1',
+    version: '3.1.0',
     date: '2026-02-28',
     new: [
       'Beta site can now be toggled on/off — when off, testers see a styled landing page thanking them for their participation',
