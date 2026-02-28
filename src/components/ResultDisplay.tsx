@@ -480,6 +480,10 @@ export default function ResultDisplay({
   // Combined: block break assessment when any scan info is missing
   const needsScanInfo = needsLaserScanInfo || !!needsGadgetScanInfo;
 
+  // Block break assessment when rock data is insufficient for calculation
+  // Only mass — resistance=0 is valid (rock with no resistance)
+  const hasInsufficientData = !Number.isFinite(rock.mass) || rock.mass <= 0;
+
   const powerPercentage =
     result.adjustedLPNeeded > 0
       ? (result.totalLaserPower / result.adjustedLPNeeded) * 100
@@ -574,7 +578,14 @@ export default function ResultDisplay({
 
   return (
     <div className="result-display">
-      {needsScanInfo ? (
+      {hasInsufficientData ? (
+        <div className="status-indicator need-scan-info">
+          <h2>INSUFFICIENT DATA</h2>
+          <span className="need-scan-subtext">
+            Enter rock mass to calculate
+          </span>
+        </div>
+      ) : needsScanInfo ? (
         <div className="status-indicator need-scan-info">
           <h2>NEED SCAN INFO</h2>
           <span className="need-scan-subtext">
@@ -2589,20 +2600,6 @@ export default function ResultDisplay({
               </div>
             </div>
 
-            {/* Instability card - only show if rock has instability value */}
-            {rock.instability !== undefined && result.adjustedInstability !== undefined && (
-              <div className="stat-card">
-                <div className="stat-label">Adjusted Instability</div>
-                <div className="stat-value">
-                  {result.adjustedInstability.toFixed(2)}
-                </div>
-                <div className="stat-subtitle">
-                  Base × modifier = {rock.instability} ×{" "}
-                  {(result.totalInstabilityModifier ?? 1).toFixed(3)}
-                </div>
-              </div>
-            )}
-
             <div className="stat-card">
               <div className="stat-label">Laser Power Required</div>
               <div className="stat-value">
@@ -2612,6 +2609,36 @@ export default function ResultDisplay({
                 Base: {formatPower(result.baseLPNeeded)}
               </div>
             </div>
+
+            {/* Instability card - only show if rock has instability value */}
+            {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+              <div className="stat-card">
+                <div className="stat-label">Adjusted Instability</div>
+                <div className="stat-value">
+                  {result.adjustedInstability.toFixed(2)}
+                </div>
+                <div className="stat-subtitle">
+                  {result.instabilityContext ? (
+                    <>
+                      Base × modifier ={" "}
+                      {result.instabilityContext.derivedBaseValue.toFixed(2)} ×{" "}
+                      {result.instabilityContext.appliedModifier.toFixed(3)}
+                    </>
+                  ) : (
+                    <>
+                      Base × modifier = {rock.instability} ×{" "}
+                      {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+                    </>
+                  )}
+                  {result.multiShipInstabilityPenalty != null && result.multiShipInstabilityPenalty > 1 && (
+                    <>
+                      <br />
+                      Multi-ship penalty: ×{result.multiShipInstabilityPenalty}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="stat-card">
               <div className="stat-label">Power Difference</div>
@@ -2697,20 +2724,6 @@ export default function ResultDisplay({
             </div>
           </div>
 
-          {/* Instability card - only show if rock has instability value */}
-          {rock.instability !== undefined && result.adjustedInstability !== undefined && (
-            <div className="stat-card">
-              <div className="stat-label">Adjusted Instability</div>
-              <div className="stat-value">
-                {result.adjustedInstability.toFixed(2)}
-              </div>
-              <div className="stat-subtitle">
-                Base × modifier = {rock.instability} ×{" "}
-                {(result.totalInstabilityModifier ?? 1).toFixed(3)}
-              </div>
-            </div>
-          )}
-
           <div className="stat-card">
             <div className="stat-label">Laser Power Required</div>
             <div className="stat-value">
@@ -2720,6 +2733,36 @@ export default function ResultDisplay({
               Base: {formatPower(result.baseLPNeeded)}
             </div>
           </div>
+
+          {/* Instability card - only show if rock has instability value */}
+          {rock.instability !== undefined && result.adjustedInstability !== undefined && (
+            <div className="stat-card">
+              <div className="stat-label">Adjusted Instability</div>
+              <div className="stat-value">
+                {result.adjustedInstability.toFixed(2)}
+              </div>
+              <div className="stat-subtitle">
+                {result.instabilityContext ? (
+                  <>
+                    Base × modifier ={" "}
+                    {result.instabilityContext.derivedBaseValue.toFixed(2)} ×{" "}
+                    {result.instabilityContext.appliedModifier.toFixed(3)}
+                  </>
+                ) : (
+                  <>
+                    Base × modifier = {rock.instability} ×{" "}
+                    {(result.totalInstabilityModifier ?? 1).toFixed(3)}
+                  </>
+                )}
+                {result.multiShipInstabilityPenalty != null && result.multiShipInstabilityPenalty > 1 && (
+                  <>
+                    <br />
+                    Multi-ship penalty: ×{result.multiShipInstabilityPenalty}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="stat-card">
             <div className="stat-label">Power Difference</div>

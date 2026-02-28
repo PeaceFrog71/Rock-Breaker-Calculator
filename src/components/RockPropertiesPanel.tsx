@@ -13,6 +13,7 @@ interface RockPropertiesPanelProps {
   onGadgetInclusionToggle: () => void;
   onRockResetClear: () => void;
   onRockSlotSwitch: (index: number) => void;
+  onRegolithImport?: () => void;
 }
 
 export default function RockPropertiesPanel({
@@ -27,16 +28,17 @@ export default function RockPropertiesPanel({
   onGadgetInclusionToggle,
   onRockResetClear,
   onRockSlotSwitch,
+  onRegolithImport,
 }: RockPropertiesPanelProps) {
   return (
     <>
       <div className="compact-form-group">
-        <label>Name</label>
+        <label>Type</label>
         <input
           type="text"
-          value={rock.name || ''}
-          onChange={(e) => onRockChange({ ...rock, name: e.target.value })}
-          placeholder="Rock name"
+          value={rock.type || ''}
+          onChange={(e) => onRockChange({ ...rock, type: e.target.value })}
+          placeholder="Rock type"
         />
       </div>
       <div className="compact-form-group">
@@ -55,21 +57,21 @@ export default function RockPropertiesPanel({
         mode={rock.resistanceMode || 'base'}
         includeGadgets={rock.includeGadgetsInScan || false}
         showHint={showResistanceHint}
+        instability={rock.instability}
         onChange={onResistanceChange}
         onModeToggle={onResistanceModeToggle}
         onGadgetToggle={onGadgetInclusionToggle}
+        onInstabilityChange={(value) => onRockChange({ ...rock, instability: value })}
       />
-      <div className="compact-form-group">
-        <label>Instability</label>
-        <input
-          type="number"
-          inputMode="decimal"
-          value={!rock.instability ? '' : rock.instability}
-          onChange={(e) => onRockChange({ ...rock, instability: e.target.value === '' ? 0 : parseFloat(e.target.value) })}
-          min="0"
-          step="0.1"
-        />
-      </div>
+      {onRegolithImport && (
+        <button
+          className="regolith-import-button"
+          onClick={onRegolithImport}
+          aria-label="Import rock from Regolith"
+        >
+          Import from Regolith
+        </button>
+      )}
       <button
         className="clear-rock-button"
         onClick={onRockResetClear}
@@ -83,7 +85,7 @@ export default function RockPropertiesPanel({
             key={index}
             className={`rock-slot-button ${index === activeRockSlot ? 'active' : ''}`}
             onClick={() => onRockSlotSwitch(index)}
-            title={`${slot.name || 'Rock'}: ${slot.mass}kg, ${slot.resistance}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
+            title={`${slot.type || 'Rock'}: ${slot.mass}kg, ${parseFloat(slot.resistance.toFixed(2))}%${slot.instability !== undefined ? `, ${slot.instability} instability` : ''}`}
             aria-label={`Rock slot ${index + 1}`}
             aria-pressed={index === activeRockSlot}
           >
@@ -91,6 +93,14 @@ export default function RockPropertiesPanel({
           </button>
         ))}
       </div>
+      <a
+        className="regolith-attribution"
+        href="https://regolith.rocks/dashboard/sessions"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Scan rocks with Regolith.rocks
+      </a>
     </>
   );
 }

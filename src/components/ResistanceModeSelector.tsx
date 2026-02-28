@@ -8,9 +8,11 @@ interface Props {
   mode: 'base' | 'modified';
   includeGadgets: boolean;
   showHint: boolean;
+  instability: number | undefined;
   onChange: (value: number) => void;
   onModeToggle: () => void;
   onGadgetToggle: () => void;
+  onInstabilityChange: (value: number | undefined) => void;
 }
 
 export default function ResistanceModeSelector({
@@ -18,9 +20,11 @@ export default function ResistanceModeSelector({
   mode,
   includeGadgets,
   showHint,
+  instability,
   onChange,
   onModeToggle,
   onGadgetToggle,
+  onInstabilityChange,
 }: Props) {
   const [showHelp, setShowHelp] = useState(false);
   const [showHintHelp, setShowHintHelp] = useState(false);
@@ -43,9 +47,22 @@ export default function ResistanceModeSelector({
       <input
         type="number"
         inputMode="decimal"
-        value={value === 0 ? '' : value}
+        value={value === 0 ? '' : parseFloat(value.toFixed(2))}
         onChange={(e) => onChange(
           e.target.value === '' ? 0 : parseFloat(e.target.value) || 0
+        )}
+        min="0"
+        step="0.1"
+        placeholder="0"
+      />
+
+      <label className="instability-inline-label">Instability</label>
+      <input
+        type="number"
+        inputMode="decimal"
+        value={instability == null ? '' : instability}
+        onChange={(e) => onInstabilityChange(
+          e.target.value === '' ? 0 : parseFloat(e.target.value)
         )}
         min="0"
         step="0.1"
@@ -58,8 +75,8 @@ export default function ResistanceModeSelector({
           onClick={onModeToggle}
           type="button"
           title={mode === 'base'
-            ? "Currently: Base resistance (cockpit scan). Click if from laser scan."
-            : "Currently: Modified resistance (laser scan). Click if from cockpit scan."}
+            ? "Currently: Base values (cockpit scan). Click if from laser scan."
+            : "Currently: Modified values (laser scan). Click if from cockpit scan."}
         >
           {mode === 'base' ? 'Base' : 'Modified'}
         </button>
@@ -114,7 +131,7 @@ export default function ResistanceModeSelector({
               >
                 ×
               </button>
-              <p id="hint-modal-title">Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode for accurate calculations.</p>
+              <p id="hint-modal-title">Your resistance seems low for your equipment. If you scanned while your laser was on the rock, switch to Modified mode so the calculator can back-calculate the true base values for both resistance and instability.</p>
             </div>
           </div>,
           document.body

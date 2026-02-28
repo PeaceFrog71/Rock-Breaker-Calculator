@@ -6,6 +6,7 @@ import {
   saveShipConfig,
   updateShipConfig,
 } from '../utils/storage';
+import { STARTER_CONFIGS } from '../data/starterConfigs';
 import './SaveShipModal.css';
 
 interface SaveShipModalProps {
@@ -26,13 +27,23 @@ export default function SaveShipModal({
   onSaved,
 }: SaveShipModalProps) {
   const [configName, setConfigName] = useState('');
+  const [confirmOverwrite, setConfirmOverwrite] = useState<SavedShipConfig | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Pre-fill with current config name when modal opens
+  // Clear the name if it matches a starter config — force the user to pick a new name
   useEffect(() => {
     if (isOpen) {
-      setConfigName(currentConfigName || '');
+      const isStarterName = currentConfigName && STARTER_CONFIGS.some(
+        (s) => s.name.toLowerCase() === currentConfigName.toLowerCase()
+      );
+      setConfigName(isStarterName ? '' : (currentConfigName || ''));
+      setConfirmOverwrite(null);
+      setErrorMsg('');
     } else {
       setConfigName('');
+      setConfirmOverwrite(null);
+      setErrorMsg('');
     }
   }, [isOpen, currentConfigName]);
 
@@ -40,27 +51,40 @@ export default function SaveShipModal({
 
   const handleSave = () => {
     if (!configName.trim()) {
-      alert('Please enter a ship name');
+      setErrorMsg('Please enter a ship name.');
       return;
     }
 
+    setErrorMsg('');
     const trimmedName = configName.trim();
     const savedConfigs: SavedShipConfig[] = getSavedShipConfigs();
     const existing = savedConfigs.find(
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
-    if (existing) {
-      if (!confirm(`"${existing.name}" already exists. Overwrite?`)) {
-        return;
-      }
-      updateShipConfig(existing.id, trimmedName, currentShip, currentConfig);
-    } else {
-      saveShipConfig(trimmedName, currentShip, currentConfig);
+    if (existing && existing.isStarter) {
+      setErrorMsg('That name is reserved for a starter config — please choose a different name.');
+      return;
     }
 
+    if (existing) {
+      setConfirmOverwrite(existing);
+      return;
+    }
+
+    saveShipConfig(trimmedName, currentShip, currentConfig);
     onSaved(currentShip, currentConfig, trimmedName);
     setConfigName('');
+    onClose();
+  };
+
+  const handleOverwriteConfirm = () => {
+    if (!confirmOverwrite) return;
+    const trimmedName = configName.trim();
+    updateShipConfig(confirmOverwrite.id, trimmedName, currentShip, currentConfig);
+    onSaved(currentShip, currentConfig, trimmedName);
+    setConfigName('');
+    setConfirmOverwrite(null);
     onClose();
   };
 
@@ -81,23 +105,43 @@ export default function SaveShipModal({
       onClick={onClose}
     >
       <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
-        <h3 id="save-ship-modal-title">Save Ship</h3>
-        <input
-          type="text"
-          placeholder="Enter ship name..."
-          value={configName}
-          onChange={(e) => setConfigName(e.target.value)}
-          onKeyDown={handleKeyDown}
-          autoFocus
-        />
-        <div className="save-ship-modal-actions">
-          <button onClick={handleSave} className="btn-primary">
-            Save
-          </button>
-          <button onClick={onClose} className="btn-secondary">
-            Cancel
-          </button>
-        </div>
+        {confirmOverwrite ? (
+          <>
+            <h3 id="save-ship-modal-title">Overwrite Ship</h3>
+            <p className="save-ship-modal-message">
+              &ldquo;{confirmOverwrite.name}&rdquo; already exists. Overwrite?
+            </p>
+            <div className="save-ship-modal-actions">
+              <button onClick={handleOverwriteConfirm} className="btn-primary">
+                Overwrite
+              </button>
+              <button onClick={() => setConfirmOverwrite(null)} className="btn-secondary">
+                Cancel
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 id="save-ship-modal-title">Save Ship</h3>
+            {errorMsg && <p className="save-ship-modal-error">{errorMsg}</p>}
+            <input
+              type="text"
+              placeholder="Enter ship name..."
+              value={configName}
+              onChange={(e) => { setConfigName(e.target.value); setErrorMsg(''); }}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+            <div className="save-ship-modal-actions">
+              <button onClick={handleSave} className="btn-primary">
+                Save
+              </button>
+              <button onClick={onClose} className="btn-secondary">
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

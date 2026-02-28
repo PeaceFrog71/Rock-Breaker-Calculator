@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import "./App.css";
-import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget } from "./types";
+import type { MiningConfiguration, Ship, Rock, MiningGroup, Gadget, ShipInstance } from "./types";
 import { SHIPS } from "./types";
 import {
   calculateBreakability,
@@ -13,6 +13,7 @@ import { toggleModuleActive } from "./utils/moduleHelpers";
 import {
   saveCurrentConfiguration,
   loadCurrentConfiguration,
+  saveShipConfig,
 } from "./utils/storage";
 import ShipSelector from "./components/ShipSelector";
 import LasersSetup from "./components/LasersSetup";
@@ -22,8 +23,12 @@ import ShipPoolManager from "./components/ShipPoolManager";
 import MiningGroupManager from "./components/MiningGroupManager";
 import TabNavigation, { type TabType } from "./components/TabNavigation";
 import HelpModal from "./components/HelpModal";
+import ChangelogModal from "./components/ChangelogModal";
 import SaveShipModal from "./components/SaveShipModal";
 import AuthModal from "./components/AuthModal";
+import RegolithImportModal from "./components/RegolithImportModal";
+import RegolithShipImportModal from "./components/RegolithShipImportModal";
+import ProfileModal from "./components/ProfileModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
 import GadgetsPanel from "./components/GadgetsPanel";
@@ -42,15 +47,7 @@ import resultsBackground from "./assets/Results Background.jpg";
 import shipSetupBackground from "./assets/Ship Setup Background.jpg";
 import { version } from "../package.json";
 
-// Default rock values for reset functionality
-const DEFAULT_ROCK: Rock = {
-  mass: 25000,
-  resistance: 30,
-  instability: 50,
-  name: "The Rock",
-  resistanceMode: 'base',
-  includeGadgetsInScan: false,
-};
+import { DEFAULT_ROCKS, loadRockFromStorage, parseActiveSlotIndex } from './utils/rockDefaults';
 
 function App() {
   // Load saved state or use defaults
@@ -67,23 +64,21 @@ function App() {
   const [shipConfigs, setShipConfigs] = useState<Record<string, { config: MiningConfiguration; name?: string }>>({});
   // Save dialog state (controlled from ShipSelector header for #190)
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  // Themed alert dialog (replaces native alert for fleet full, etc.)
+  const [alertDialog, setAlertDialog] = useState<{ title: string; message: string } | null>(null);
+
+  // Close alert dialog on Escape
+  useEffect(() => {
+    if (!alertDialog) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAlertDialog(null);
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [alertDialog]);
+
   // Load rock from active slot in localStorage (or default if not found)
-  const [rock, setRock] = useState<Rock>(() => {
-    try {
-      const savedSlots = localStorage.getItem('rockbreaker-rock-slots');
-      const savedActiveSlot = localStorage.getItem('rockbreaker-active-rock-slot');
-      if (savedSlots && savedActiveSlot) {
-        const slots = JSON.parse(savedSlots);
-        const activeIndex = parseInt(savedActiveSlot, 10);
-        if (slots[activeIndex]) {
-          return { ...slots[activeIndex] };
-        }
-      }
-      return { ...DEFAULT_ROCK };
-    } catch {
-      return { ...DEFAULT_ROCK };
-    }
-  });
+  const [rock, setRock] = useState<Rock>(() => loadRockFromStorage());
   const [miningGroup, setMiningGroup] = useState<MiningGroup>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-mining-group');
@@ -138,8 +133,13 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [backgroundMode, setBackgroundMode] = useState<'starfield' | 'landscape'>('starfield');
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showChangelogModal, setShowChangelogModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authModalView, setAuthModalView] = useState<'signIn' | 'signUp' | 'forgotPassword' | 'resetPassword' | undefined>(undefined);
+  const [showRegolithModal, setShowRegolithModal] = useState(false);
+  const [showRegolithShipModal, setShowRegolithShipModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileInitialTab, setProfileInitialTab] = useState<'profile' | 'connections'>('profile');
   const { isConfigured: isAuthConfigured, passwordRecovery, clearPasswordRecovery } = useAuth();
 
   // Auto-open auth modal when user clicks password reset link from email
@@ -172,34 +172,37 @@ function App() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Rock save slots (4 slots for quick save/load, pre-filled with defaults)
-  const ROCK_SLOT_COUNT = 4;
+  // Rock save slots (4 slots for quick save/load, pre-filled with per-slot defaults)
+  const ROCK_SLOT_COUNT = DEFAULT_ROCKS.length;
   const [rockSlots, setRockSlots] = useState<Rock[]>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-rock-slots');
       if (saved) {
         const parsed: (Rock | null)[] = JSON.parse(saved);
-        // Migrate old null slots to defaults, and pad to ROCK_SLOT_COUNT if needed
-        const slots = parsed.map((slot: Rock | null) => slot || { ...DEFAULT_ROCK });
-        while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCK });
+        // Migrate old null slots to per-slot defaults, and pad if needed
+        // Also migrate legacy "name" field to "type" (#236)
+        const slots = parsed.map((slot: Rock | null, i: number) => {
+          if (!slot || typeof slot !== 'object') return { ...DEFAULT_ROCKS[i] ?? DEFAULT_ROCKS[0] };
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const s = slot as any;
+          if ('name' in s && !('type' in s)) {
+            const { name, ...rest } = s;
+            return { ...rest, type: name } as Rock;
+          }
+          return { ...s } as Rock;
+        });
+        while (slots.length < ROCK_SLOT_COUNT) slots.push({ ...DEFAULT_ROCKS[slots.length] ?? DEFAULT_ROCKS[0] });
         return slots.slice(0, ROCK_SLOT_COUNT);
       }
-      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
+      return DEFAULT_ROCKS.map(r => ({ ...r }));
     } catch {
-      return Array.from({ length: ROCK_SLOT_COUNT }, () => ({ ...DEFAULT_ROCK }));
+      return DEFAULT_ROCKS.map(r => ({ ...r }));
     }
   });
 
   // Track which rock slot is currently active
   const [activeRockSlot, setActiveRockSlot] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('rockbreaker-active-rock-slot');
-      if (!saved) return 0;
-      const parsed = parseInt(saved, 10);
-      return parsed >= 0 && parsed < ROCK_SLOT_COUNT ? parsed : 0;
-    } catch {
-      return 0;
-    }
+    return parseActiveSlotIndex(localStorage.getItem('rockbreaker-active-rock-slot'));
   });
 
   // Persist rock slots to localStorage
@@ -260,11 +263,13 @@ function App() {
     return hasEquipmentModifiers;
   }, [rock.resistance, rock.includeGadgetsInScan, config.lasers, gadgets]);
 
-  // Resistance mode handlers
+  // Scan mode handler — toggles both resistance and instability mode together
   const handleResistanceModeToggle = () => {
+    const newMode = rock.resistanceMode === 'base' ? 'modified' : 'base';
     setRock({
       ...rock,
-      resistanceMode: rock.resistanceMode === 'base' ? 'modified' : 'base',
+      resistanceMode: newMode,
+      instabilityMode: newMode,
     });
   };
 
@@ -296,15 +301,16 @@ function App() {
     }
   };
 
-  // Check if rock values match defaults
+  // Check if rock values match the current slot's defaults
   const isRockAtDefaults = useMemo(() => {
-    return rock.mass === DEFAULT_ROCK.mass &&
-      rock.resistance === DEFAULT_ROCK.resistance &&
-      (rock.instability ?? DEFAULT_ROCK.instability) === DEFAULT_ROCK.instability &&
-      rock.name === DEFAULT_ROCK.name &&
-      rock.resistanceMode === DEFAULT_ROCK.resistanceMode &&
-      rock.includeGadgetsInScan === DEFAULT_ROCK.includeGadgetsInScan;
-  }, [rock]);
+    const slotDefault = DEFAULT_ROCKS[activeRockSlot] ?? DEFAULT_ROCKS[0];
+    return rock.mass === slotDefault.mass &&
+      rock.resistance === slotDefault.resistance &&
+      (rock.instability ?? slotDefault.instability) === slotDefault.instability &&
+      (rock.type ?? slotDefault.type) === slotDefault.type &&
+      rock.resistanceMode === slotDefault.resistanceMode &&
+      rock.includeGadgetsInScan === slotDefault.includeGadgetsInScan;
+  }, [rock, activeRockSlot]);
 
   // Toggle between Reset (to defaults) and Clear (to empty)
   const handleRockResetClear = () => {
@@ -314,7 +320,7 @@ function App() {
         mass: 0,
         resistance: 0,
         instability: undefined,
-        name: '',
+        type: '',
         resistanceMode: 'base',
         includeGadgetsInScan: false,
         originalScannedValue: undefined,
@@ -322,8 +328,47 @@ function App() {
         scannedByLaserIndex: undefined,
       });
     } else {
-      // Custom or cleared values → Reset to defaults
-      setRock({ ...DEFAULT_ROCK });
+      // Custom or cleared values → Reset to this slot's defaults
+      setRock({ ...(DEFAULT_ROCKS[activeRockSlot] ?? DEFAULT_ROCKS[0]) });
+    }
+  };
+
+  // Handle rock import from Regolith: merge imported fields into current rock
+  // Note: modal closes itself via onClose — no need to close it here
+  const handleRegolithImport = (imported: Partial<Rock>) => {
+    setRock((prev) => ({ ...prev, ...imported }));
+  };
+
+  // Handle ship import from Regolith
+  // In single ship mode: replaces current config
+  // In mining group mode: adds ship to group
+  const handleRegolithShipImport = (ship: Ship, importedConfig: MiningConfiguration, name: string, unmapped: string[]) => {
+    // Auto-save imported loadout to Ship Library
+    saveShipConfig(name, ship, importedConfig);
+
+    if (useMiningGroup) {
+      if (miningGroup.ships.length >= 4) {
+        setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
+        return;
+      }
+      const shipInstance: ShipInstance = {
+        id: Date.now().toString() + Math.random(),
+        ship,
+        name,
+        config: JSON.parse(JSON.stringify(importedConfig)),
+        isActive: true,
+      };
+      setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
+    } else {
+      setSelectedShip(ship);
+      setConfig(importedConfig);
+      setCurrentConfigName(name);
+    }
+    if (unmapped.length > 0) {
+      setAlertDialog({
+        title: 'Import Warning',
+        message: `Some equipment could not be matched: ${unmapped.join(', ')}`,
+      });
     }
   };
 
@@ -485,6 +530,19 @@ function App() {
     }));
   };
 
+  // Called after SaveShipModal completes a save — collapse all panels (#231)
+  const handleSaveComplete = (
+    ship: Ship,
+    savedConfig: MiningConfiguration,
+    name: string
+  ) => {
+    setSelectedShip(ship);
+    setConfig(savedConfig);
+    setCurrentConfigName(name);
+    // Collapse all panels to signal save is complete (#231)
+    setOpenPanel(null);
+  };
+
   // Open save dialog (for #190 - Save button in ShipSelector header)
   const handleOpenSaveDialog = () => {
     setShowSaveDialog(true);
@@ -631,11 +689,17 @@ function App() {
               HELP
             </button>
           </div>
-          <span className="version-tag">v{version}</span>
+          <button
+            className="version-tag version-tag--clickable"
+            onClick={() => setShowChangelogModal(true)}
+            title="What's New"
+          >
+            v{version}
+          </button>
         </div>
         <div className="header-controls">
           {isAuthConfigured && (
-            <UserMenu onSignInClick={() => setShowAuthModal(true)} />
+            <UserMenu onSignInClick={() => setShowAuthModal(true)} onProfileClick={() => { setProfileInitialTab('profile'); setShowProfileModal(true); }} />
           )}
           {!isMobile && (
             <a
@@ -683,6 +747,7 @@ function App() {
                       onGadgetInclusionToggle={handleGadgetInclusionToggle}
                       onRockResetClear={handleRockResetClear}
                       onRockSlotSwitch={handleRockSlotSwitch}
+                      onRegolithImport={() => setShowRegolithModal(true)}
                     />
                   </MobileDrawer>
                   <MobileDrawer
@@ -727,6 +792,7 @@ function App() {
                       onGadgetInclusionToggle={handleGadgetInclusionToggle}
                       onRockResetClear={handleRockResetClear}
                       onRockSlotSwitch={handleRockSlotSwitch}
+                      onRegolithImport={() => setShowRegolithModal(true)}
                     />
                   </div>
                 </div>
@@ -829,7 +895,7 @@ function App() {
                     <ConfigManager
                       onAddToGroup={(shipInstance) => {
                         if (miningGroup.ships.length >= 4) {
-                          alert('Maximum of 4 ships allowed in mining group');
+                          setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
                           return;
                         }
                         shipInstance.isActive = true;
@@ -876,6 +942,8 @@ function App() {
                     <ShipPoolManager
                       miningGroup={miningGroup}
                       onChange={setMiningGroup}
+                      onOpenLibrary={() => setShipLibraryDrawerOpen(true)}
+                      onRegolithShipImport={() => setShowRegolithShipModal(true)}
                     />
                   ) : (
                     <CollapsiblePanel
@@ -886,6 +954,8 @@ function App() {
                       <ShipPoolManager
                         miningGroup={miningGroup}
                         onChange={setMiningGroup}
+                        onOpenLibrary={() => setOpenPanel('shipLibrary')}
+                        onRegolithShipImport={() => setShowRegolithShipModal(true)}
                       />
                     </CollapsiblePanel>
                   )}
@@ -909,7 +979,7 @@ function App() {
                         <ConfigManager
                           onAddToGroup={(shipInstance) => {
                             if (miningGroup.ships.length >= 4) {
-                              alert('Maximum of 4 ships allowed in mining group');
+                              setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
                               return;
                             }
                             shipInstance.isActive = true;
@@ -928,6 +998,7 @@ function App() {
                     configName={currentConfigName}
                     onSave={handleOpenSaveDialog}
                     onClear={handleClearConfig}
+                    onRegolithShipImport={() => setShowRegolithShipModal(true)}
                   />
 
                   {/* Laser Setup - mobile: always visible, desktop: collapsible accordion */}
@@ -983,6 +1054,7 @@ function App() {
       </div>
 
       <HelpModal isOpen={showHelpModal} onClose={() => setShowHelpModal(false)} />
+      <ChangelogModal isOpen={showChangelogModal} onClose={() => setShowChangelogModal(false)} />
       <AuthModal isOpen={showAuthModal} onClose={() => { setShowAuthModal(false); setAuthModalView(undefined); clearPasswordRecovery(); }} initialView={authModalView} />
       <SaveShipModal
         isOpen={showSaveDialog}
@@ -990,16 +1062,60 @@ function App() {
         currentShip={selectedShip}
         currentConfig={config}
         currentConfigName={currentConfigName}
-        onSaved={handleLoadConfiguration}
+        onSaved={handleSaveComplete}
+      />
+      <RegolithImportModal
+        isOpen={showRegolithModal}
+        onClose={() => setShowRegolithModal(false)}
+        onImport={handleRegolithImport}
+        onOpenIntegrations={() => {
+          setShowRegolithModal(false);
+          setProfileInitialTab('connections');
+          setShowProfileModal(true);
+        }}
+      />
+      <RegolithShipImportModal
+        isOpen={showRegolithShipModal}
+        onClose={() => setShowRegolithShipModal(false)}
+        onImport={handleRegolithShipImport}
+        onOpenIntegrations={() => {
+          setShowRegolithShipModal(false);
+          setProfileInitialTab('connections');
+          setShowProfileModal(true);
+        }}
+      />
+      <ProfileModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        initialTab={profileInitialTab}
       />
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (
-        <img
-          src={communityLogo}
-          alt="Made by the Community"
-          className={`community-logo ${isMobile ? 'tablet' : ''}`}
-        />
+        <a
+          href="https://www.robertsspaceindustries.com/enlist?referral=STAR-YVCT-KPSV"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Join Star Citizen"
+          className={`community-logo-link ${isMobile ? 'tablet' : ''}`}
+        >
+          <img
+            src={communityLogo}
+            alt="Made by the Community"
+            className="community-logo"
+          />
+        </a>
+      )}
+      {alertDialog && (
+        <div className="save-ship-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="app-alert-title" onClick={() => setAlertDialog(null)}>
+          <div className="save-ship-modal" onClick={(e) => e.stopPropagation()}>
+            <h3 id="app-alert-title">{alertDialog.title}</h3>
+            <p className="save-ship-modal-message">{alertDialog.message}</p>
+            <div className="save-ship-modal-actions">
+              <button onClick={() => setAlertDialog(null)} className="btn-primary">OK</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

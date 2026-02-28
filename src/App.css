@@ -173,6 +173,19 @@ button, .btn-primary, .btn-secondary {
   right: 0;
 }
 
+.version-tag--clickable {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.version-tag--clickable:hover {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+
 .header-links {
   display: flex;
   align-items: center;
@@ -387,6 +400,27 @@ button, .btn-primary, .btn-secondary {
   box-shadow: 0 0 0 2px rgba(0, 217, 255, 0.1);
 }
 
+.regolith-import-button {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  background: #fbc02d;
+  border: none;
+  border-radius: 6px;
+  color: #000000;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.regolith-import-button:hover {
+  background: #fdd065;
+  box-shadow: 0 2px 8px rgba(251, 192, 45, 0.5);
+}
+
 .clear-rock-button {
   width: 100%;
   margin-top: 0.75rem;
@@ -413,6 +447,29 @@ button, .btn-primary, .btn-secondary {
   gap: 0.25rem;
   justify-content: center;
   margin-top: 0.5rem;
+}
+
+.regolith-attribution {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: transparent;
+  border: 1px solid #fbc02d;
+  border-radius: 6px;
+  color: #fbc02d;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.regolith-attribution:hover {
+  background: rgba(251, 192, 45, 0.1);
+  box-shadow: 0 0 8px rgba(251, 192, 45, 0.3);
 }
 
 .rock-slot-button {
@@ -1511,21 +1568,33 @@ button, .btn-primary, .btn-secondary {
 }
 
 /* Community Logo - Desktop: lower right, Tablet: lower left */
-.community-logo {
+.community-logo-link {
   position: fixed;
   bottom: 1rem;
   right: 1rem;
-  width: clamp(80px, 8vw, 120px);
-  height: auto;
-  opacity: 0.6;
   z-index: 50;  /* Below drawers (1000+) and data tab */
-  pointer-events: none;
-  transition: opacity 0.3s ease;
+  display: block;
+  opacity: 0.7;
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.community-logo-link:hover {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(0, 217, 255, 0.5));
 }
 
 /* Tablet: move to lower left */
-.community-logo.tablet {
+.community-logo-link.tablet {
   right: auto;
   left: 1rem;
+}
+
+.community-logo {
+  width: clamp(80px, 8vw, 120px);
+  height: auto;
+  display: block;
+}
+
+.community-logo-link.tablet .community-logo {
   width: clamp(64px, 10vw, 100px);
 }

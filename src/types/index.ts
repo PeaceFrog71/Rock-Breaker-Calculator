@@ -67,7 +67,8 @@ export interface Rock {
   mass: number;
   resistance: number;
   instability?: number; // For future use
-  name?: string;
+  instabilityMode?: 'base' | 'modified'; // Whether instability is base (cockpit scan) or modified (laser scan)
+  type?: string;
   resistanceMode?: 'base' | 'modified'; // Whether resistance is base (cockpit scan) or modified (laser scan)
   originalScannedValue?: number; // Store the original scanned value for reference
   includeGadgetsInScan?: boolean; // Whether gadgets were active during the scan
@@ -92,6 +93,10 @@ export interface CalculationResult {
   totalInstabilityModifier?: number; // Combined instability modifier from equipment and gadgets
   adjustedInstability?: number; // Rock instability after applying all instability modifiers (equipment + gadgets)
   multiShipInstabilityPenalty?: number; // Penalty multiplier for multi-ship mining (2^(shipCount-1): 1, 2, 4, 8)
+  instabilityContext?: {
+    derivedBaseValue: number; // The derived base instability (for modified mode)
+    appliedModifier: number; // The total modifier applied
+  };
 }
 
 // Mining Group types for multi-ship operations

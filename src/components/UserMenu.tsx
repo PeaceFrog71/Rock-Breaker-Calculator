@@ -1,17 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth, getDisplayName, getAvatarUrl, getAvatarId, getCustomAvatarUrl } from '../contexts/AuthContext';
 import { getAvatarSrc } from '../utils/avatarMap';
-import ProfileModal from './ProfileModal';
 import './UserMenu.css';
 
 interface UserMenuProps {
   onSignInClick: () => void;
+  onProfileClick: () => void;
 }
 
-export default function UserMenu({ onSignInClick }: UserMenuProps) {
+export default function UserMenu({ onSignInClick, onProfileClick }: UserMenuProps) {
   const { user, loading, signOut } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [showProfile, setShowProfile] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on outside click
@@ -36,7 +35,7 @@ export default function UserMenu({ onSignInClick }: UserMenuProps) {
 
   const handleProfileClick = () => {
     setDropdownOpen(false);
-    setShowProfile(true);
+    onProfileClick();
   };
 
   if (!user) {
@@ -59,7 +58,7 @@ export default function UserMenu({ onSignInClick }: UserMenuProps) {
     || googleAvatarUrl;
 
   const avatarElement = avatarSrc ? (
-    <img className="user-avatar-img" src={avatarSrc} alt="" />
+    <img className="user-avatar-img" src={avatarSrc} alt="" referrerPolicy="no-referrer" />
   ) : (
     <span className="user-avatar-initial">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
@@ -70,39 +69,32 @@ export default function UserMenu({ onSignInClick }: UserMenuProps) {
   );
 
   return (
-    <>
-      <div className="user-menu" ref={menuRef}>
-        <button
-          className="user-menu-trigger"
-          onClick={() => setDropdownOpen(!dropdownOpen)}
-          title={user.email ?? 'Account'}
-        >
-          {avatarElement}
-          <span className="user-display-name">{displayName}</span>
-        </button>
+    <div className="user-menu" ref={menuRef}>
+      <button
+        className="user-menu-trigger"
+        onClick={() => setDropdownOpen(!dropdownOpen)}
+        title={user.email ?? 'Account'}
+      >
+        {avatarElement}
+        <span className="user-display-name">{displayName}</span>
+      </button>
 
-        {dropdownOpen && (
-          <div className="user-dropdown">
-            <div className="user-dropdown-header">
-              <div className="user-dropdown-name">{displayName}</div>
-              <div className="user-dropdown-email">{user.email}</div>
-            </div>
-            <div className="user-dropdown-actions">
-              <button className="dropdown-action-btn" onClick={handleProfileClick}>
-                Profile
-              </button>
-              <button className="sign-out-button" onClick={handleSignOut}>
-                Sign Out
-              </button>
-            </div>
+      {dropdownOpen && (
+        <div className="user-dropdown">
+          <div className="user-dropdown-header">
+            <div className="user-dropdown-name">{displayName}</div>
+            <div className="user-dropdown-email">{user.email}</div>
           </div>
-        )}
-      </div>
-
-      <ProfileModal
-        isOpen={showProfile}
-        onClose={() => setShowProfile(false)}
-      />
-    </>
+          <div className="user-dropdown-actions">
+            <button className="dropdown-action-btn" onClick={handleProfileClick}>
+              Profile
+            </button>
+            <button className="sign-out-button" onClick={handleSignOut}>
+              Sign Out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

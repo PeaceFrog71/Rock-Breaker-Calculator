@@ -10,9 +10,10 @@ interface ShipSelectorProps {
   configName?: string;
   onSave?: () => void;
   onClear?: () => void;
+  onRegolithShipImport?: () => void;
 }
 
-export default function ShipSelector({ selectedShip, onShipChange, configName, onSave, onClear }: ShipSelectorProps) {
+export default function ShipSelector({ selectedShip, onShipChange, configName, onSave, onClear, onRegolithShipImport }: ShipSelectorProps) {
   const isMobile = useMobileDetection();
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -44,8 +45,14 @@ export default function ShipSelector({ selectedShip, onShipChange, configName, o
           <span className="select-label">Select Ship</span>
           {configName && <span className="config-name">{configName}</span>}
         </h2>
-        {(onSave || onClear) && (
+        {(onSave || onClear || onRegolithShipImport) && (
           <div className="ship-selector-actions">
+            {onRegolithShipImport && (
+              <button className="regolith-import-button" onClick={onRegolithShipImport} title="Import ship from Regolith">
+                <img src={`${import.meta.env.BASE_URL}regolith-icon.png`} alt="" className="regolith-btn-icon" />
+                <span className="regolith-btn-text">Regolith</span>
+              </button>
+            )}
             {onSave && (
               <button className="save-ship-button" onClick={onSave} title="Save configuration">
                 Save Ship
