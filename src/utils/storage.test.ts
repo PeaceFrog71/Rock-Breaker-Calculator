@@ -13,7 +13,6 @@ import {
 import { STARTER_CONFIGS } from '../data/starterConfigs';
 import { SHIPS } from '../types';
 
-const SHIP_LIBRARY_KEY = 'rock-breaker-ship-library';
 const REGOLITH_KEY = 'regolith-api-key';
 
 const prospector = SHIPS.find(s => s.id === 'prospector')!;

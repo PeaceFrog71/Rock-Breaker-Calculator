@@ -238,7 +238,12 @@ export default function ConfigManager({
         {savedConfigs.length === 0 ? (
           <p className="empty-message">No saved configurations</p>
         ) : (
-          savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
+          [...savedConfigs].sort((a, b) => {
+            // Pin starters first, then alphabetical
+            if (a.isStarter && !b.isStarter) return -1;
+            if (!a.isStarter && b.isStarter) return 1;
+            return a.name.localeCompare(b.name);
+          }).map((config) => (
             <div key={config.id} className={`config-item${config.isStarter ? ' starter' : ''}`}>
               <div className="config-info">
                 <div className="config-name">

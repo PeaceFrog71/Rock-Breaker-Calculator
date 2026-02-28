@@ -125,7 +125,12 @@ export default function ShipPoolLibrary({ onLoadShip }: ShipPoolLibraryProps) {
         {savedShips.length === 0 ? (
           <p className="empty-message">No saved ships. Save ships from Single Ship mode or click "Save to Library" in a ship card.</p>
         ) : (
-          savedShips.sort((a, b) => a.name.localeCompare(b.name)).map((ship) => (
+          [...savedShips].sort((a, b) => {
+            // Pin starters first, then alphabetical
+            if (a.isStarter && !b.isStarter) return -1;
+            if (!a.isStarter && b.isStarter) return 1;
+            return a.name.localeCompare(b.name);
+          }).map((ship) => (
             <div key={ship.id} className={`config-item${ship.isStarter ? ' starter' : ''}`}>
               <div className="config-info">
                 <div className="config-header">

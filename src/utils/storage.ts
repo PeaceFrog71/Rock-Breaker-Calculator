@@ -100,10 +100,6 @@ export function saveShipConfig(
   ship: Ship,
   config: MiningConfiguration
 ): SavedShipConfig {
-  // Work with user configs only (starters are not in localStorage)
-  const data = localStorage.getItem(SHIP_LIBRARY_KEY);
-  const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
-
   // Block saving with a starter config name — UI should catch this first
   const isStarterName = STARTER_CONFIGS.some(
     (s) => s.name.toLowerCase() === name.toLowerCase()
@@ -111,6 +107,10 @@ export function saveShipConfig(
   if (isStarterName) {
     throw new Error('Cannot save with a starter config name. Please choose a different name.');
   }
+
+  // Work with user configs only (starters are not in localStorage)
+  const data = localStorage.getItem(SHIP_LIBRARY_KEY);
+  const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
   const saveName = name;
 
   // Prevent duplicates: if a user config with the same name exists, update it
@@ -158,45 +158,52 @@ export function updateShipConfig(
   // Block updates to starter configs
   if (STARTER_CONFIGS.some(s => s.id === id)) return null;
 
-  // Work with user configs only
-  const data = localStorage.getItem(SHIP_LIBRARY_KEY);
-  const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
-  const index = userConfigs.findIndex((s) => s.id === id);
+  try {
+    // Work with user configs only
+    const data = localStorage.getItem(SHIP_LIBRARY_KEY);
+    const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
+    const index = userConfigs.findIndex((s) => s.id === id);
 
-  if (index === -1) return null;
+    if (index === -1) return null;
 
-  userConfigs[index] = {
-    ...userConfigs[index],
-    name,
-    ship,
-    config,
-    updatedAt: Date.now(),
-  };
+    userConfigs[index] = {
+      ...userConfigs[index],
+      name,
+      ship,
+      config,
+      updatedAt: Date.now(),
+    };
 
-  localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(userConfigs));
-  return userConfigs[index];
+    localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(userConfigs));
+    return userConfigs[index];
+  } catch (error) {
+    console.error('Error updating ship config:', error);
+    return null;
+  }
 }
 
 /**
  * Delete a ship configuration.
- * Starter configs (isStarter: true) cannot be deleted.
+ * Starter configs cannot be deleted (checked by ID against STARTER_CONFIGS).
  */
 export function deleteShipConfig(id: string): boolean {
-  const ships = getSavedShipConfigs();
-  const target = ships.find(s => s.id === id);
+  // Block deletion of starter configs by checking canonical IDs
+  if (STARTER_CONFIGS.some(s => s.id === id)) return false;
 
-  // Block deletion of starter configs
-  if (target?.isStarter) return false;
+  try {
+    // Only filter user configs (starters aren't in localStorage)
+    const data = localStorage.getItem(SHIP_LIBRARY_KEY);
+    const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
+    const filtered = userConfigs.filter((s) => s.id !== id);
 
-  // Only filter user configs (starters aren't in localStorage)
-  const data = localStorage.getItem(SHIP_LIBRARY_KEY);
-  const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
-  const filtered = userConfigs.filter((s) => s.id !== id);
+    if (filtered.length === userConfigs.length) return false;
 
-  if (filtered.length === userConfigs.length) return false;
-
-  localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(filtered));
-  return true;
+    localStorage.setItem(SHIP_LIBRARY_KEY, JSON.stringify(filtered));
+    return true;
+  } catch (error) {
+    console.error('Error deleting ship config:', error);
+    return false;
+  }
 }
 
 /**

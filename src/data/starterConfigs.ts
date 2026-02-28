@@ -1,18 +1,29 @@
 import type { SavedShipConfig } from '../utils/storage';
 import { SHIPS, LASER_HEADS, MODULES } from '../types';
 
-// Equipment lookups — uses real data so tests catch any data drift
-const pitman = LASER_HEADS.find(l => l.id === 'pitman')!;
-const helix1 = LASER_HEADS.find(l => l.id === 'helix-1')!;
-const helix2 = LASER_HEADS.find(l => l.id === 'helix-2')!;
-const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
-const riegerC3 = MODULES.find(m => m.id === 'rieger-c3')!;
-const focus3 = MODULES.find(m => m.id === 'focus-3')!;
-const torrent3 = MODULES.find(m => m.id === 'torrent-3')!;
+/** Look up an item by ID with a clear error if missing (catches data drift at startup). */
+function requireById<T extends { id: string }>(items: T[], itemType: string, id: string): T {
+  const item = items.find(i => i.id === id);
+  if (!item) {
+    throw new Error(
+      `Missing ${itemType} '${id}' required by starterConfigs. Check that the ID exists in the reference data.`
+    );
+  }
+  return item;
+}
 
-const golem = SHIPS.find(s => s.id === 'golem')!;
-const prospector = SHIPS.find(s => s.id === 'prospector')!;
-const mole = SHIPS.find(s => s.id === 'mole')!;
+// Equipment lookups — uses real data so tests catch any data drift
+const pitman = requireById(LASER_HEADS, 'laser head', 'pitman');
+const helix1 = requireById(LASER_HEADS, 'laser head', 'helix-1');
+const helix2 = requireById(LASER_HEADS, 'laser head', 'helix-2');
+const hofstedeS2 = requireById(LASER_HEADS, 'laser head', 'hofstede-s2');
+const riegerC3 = requireById(MODULES, 'module', 'rieger-c3');
+const focus3 = requireById(MODULES, 'module', 'focus-3');
+const torrent3 = requireById(MODULES, 'module', 'torrent-3');
+
+const golem = requireById(SHIPS, 'ship', 'golem');
+const prospector = requireById(SHIPS, 'ship', 'prospector');
+const mole = requireById(SHIPS, 'ship', 'mole');
 
 /**
  * Starter ship configurations for new miners.
