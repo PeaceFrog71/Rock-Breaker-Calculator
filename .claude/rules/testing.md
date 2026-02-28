@@ -1,8 +1,8 @@
-``
---
-
-paths: src/**/*.test.ts, src/**/*.spec.ts
------------------------------------------
+---
+paths:
+  - src/**/*.test.ts
+  - src/**/*.spec.ts
+---
 
 # Testing Rules
 
