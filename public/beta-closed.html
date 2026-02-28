@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0e27">
+  <title>Beta Testing Complete - Rock Breaker Calculator</title>
+  <link rel="icon" type="image/x-icon" href="https://rockbreaker.peacefroggaming.com/peacefrog-favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Electrolize&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #0a0e27;
+      color: #e0e6ed;
+      font-family: 'Electrolize', 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      padding: 2rem;
+      max-width: 560px;
+    }
+
+    .logo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      margin-bottom: 2rem;
+      filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.4));
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 20px rgba(0, 217, 255, 0.4)); }
+      50% { filter: drop-shadow(0 0 30px rgba(0, 217, 255, 0.7)); }
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #00d9ff, #00ffcc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.05em;
+    }
+
+    .message {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: #a8b5c7;
+      margin-bottom: 2rem;
+    }
+
+    .message strong {
+      color: #00ffcc;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 0.9rem 2.4rem;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #0a0e27;
+      background: linear-gradient(135deg, #00d9ff, #00ffcc);
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      letter-spacing: 0.05em;
+      transition: box-shadow 0.3s ease, transform 0.2s ease;
+      box-shadow: 0 0 15px rgba(0, 217, 255, 0.4);
+    }
+
+    .cta-button:hover {
+      box-shadow: 0 0 25px rgba(0, 217, 255, 0.7), 0 0 40px rgba(0, 255, 204, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .footer {
+      margin-top: 2.5rem;
+      font-size: 0.8rem;
+      color: #4a5578;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.1em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="PFlogo_love.png" alt="PeaceFrog Gaming" class="logo">
+    <h1>Beta Testing Complete</h1>
+    <p class="message">
+      This beta testing round has concluded.
+      <strong>Thank you</strong> for taking the time to test, report issues,
+      and share your feedback &mdash; your input directly shapes this tool
+      and makes it better for every miner out there.
+      We truly appreciate your help.
+    </p>
+    <a href="https://rockbreaker.peacefroggaming.com" class="cta-button">
+      Go to Rock Breaker
+    </a>
+    <p class="footer">PeaceFrog Gaming</p>
+  </div>
+</body>
+</html>
