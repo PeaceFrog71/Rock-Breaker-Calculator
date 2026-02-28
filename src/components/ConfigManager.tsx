@@ -234,9 +234,12 @@ export default function ConfigManager({
           <p className="empty-message">No saved configurations</p>
         ) : (
           savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
-            <div key={config.id} className="config-item">
+            <div key={config.id} className={`config-item${config.isStarter ? ' starter' : ''}`}>
               <div className="config-info">
-                <div className="config-name">{config.name}</div>
+                <div className="config-name">
+                  {config.name}
+                  {config.isStarter && <span className="starter-badge">Starter</span>}
+                </div>
                 <div className="config-ship">{config.ship.name}</div>
                 <div className="config-details">
                   {config.config.lasers
@@ -281,14 +284,16 @@ export default function ConfigManager({
                   <span className="btn-text">Export</span>
                   <span className="btn-emoji">📤</span>
                 </button>
-                <button
-                  onClick={() => handleDelete(config.id, config.name)}
-                  className="btn-delete"
-                  title="Delete"
-                >
-                  <span className="btn-text">Delete</span>
-                  <span className="btn-emoji">🗑️</span>
-                </button>
+                {!config.isStarter && (
+                  <button
+                    onClick={() => handleDelete(config.id, config.name)}
+                    className="btn-delete"
+                    title="Delete"
+                  >
+                    <span className="btn-text">Delete</span>
+                    <span className="btn-emoji">🗑️</span>
+                  </button>
+                )}
               </div>
             </div>
           ))

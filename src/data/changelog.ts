@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.27.3',
+    date: '2026-02-28',
+    new: [
+      'Ship Library now includes 3 starter ship configs (Golem, Prospector, MOLE) — recommended builds for new miners',
+    ],
+  },
+  {
     version: '2.27.2',
     date: '2026-02-27',
     fixed: [
