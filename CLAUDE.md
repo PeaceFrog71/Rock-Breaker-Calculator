@@ -100,6 +100,32 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 
 See `.claude/commands/vc.md` for full Victor documentation.
 
+## Testing
+
+**CRITICAL**: Use `/tess` (Tess) for test coverage design, standards enforcement, and PR review responses about testing. Tess enforces:
+- Testing Priority Pyramid — strategic coverage where it matters most
+- 8 testing standards derived from project patterns
+- Regression tests mandatory for all bug fixes
+- Frontend tests only when design specifies strict I/O
+
+**When to call Tess:**
+- `/tess plan <issue#>` — New feature issues with known constraints (TDD: write tests first as guardrails)
+- `/tess <branch>` — Before creating a PR, especially on `fix/*` branches (regression tests are mandatory)
+- `/tess review-reply <pr#>` — After code review, for testing-related comments (Victor handles the rest)
+- `/tess overview` — Periodic health checks on overall test coverage
+
+**Development workflow:**
+```
+Feature planning  → /tess plan <issue#>  (when constraints are known)
+Development       → build the feature
+Before PR         → /tess <branch>       (coverage check)
+PR + commit       → /vc commit, /vc pr   (Victor handles git)
+After review      → /tess review-reply   (testing comments)
+                    /vc review-reply     (everything else)
+```
+
+See `.claude/commands/tess.md` for full Tess documentation.
+
 ## Git Learning Mode
 
 **Note**: This section complements Victor (above). Victor enforces *workflow rules* (issue-based workflow, branch naming, PR process). Learning Mode governs *how Claude teaches* - Drew runs commands himself while Claude explains.
@@ -218,5 +244,6 @@ Equipment data is based on **Star Citizen v4.6** from community mining spreadshe
 - @src/types/index.ts - Equipment database
 - @src/utils/calculator.ts - Calculation formulas
 - @.claude/commands/vc.md - Victor (version control)
+- @.claude/commands/tess.md - Tess (testing director)
 - @docs/kofi-integration.md - Ko-fi button overlay technique
 - @.github/workflows/deploy.yml - Deployment workflow

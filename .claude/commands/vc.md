@@ -155,10 +155,13 @@ Create a pull request:
 - Auto-detect issue number from branch name
 - Include `Fixes #<issue>` in PR body
 - Validate branch name before creating PR
+- **Check for test coverage** — remind Drew: "Have you run `/tess` on this branch? Especially important for `fix/*` branches where regression tests are mandatory."
+- **Check for dev notes** — verify `src/data/changelog.ts` has an entry for the current version (Rule 8)
 - **Add Copilot as reviewer** (`gh pr edit --add-reviewer copilot`)
 
 **After Copilot (or anyone) reviews and you push fixes:**
 - Always run `/vc review-reply <pr-number>` to respond to every open comment
+- **Testing-related review comments** → hand off to Tess: "This one's about test coverage — let's have Tess handle it with `/tess review-reply <pr-number>`"
 - **Silence = ambiguity.** Reviewers (and Drew) can't tell if a comment was seen, ignored, or addressed
 - This applies to Copilot comments too — they count as review feedback
 
