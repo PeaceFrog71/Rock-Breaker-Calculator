@@ -13,26 +13,31 @@ This document provides Claude with persistent context about the Rock Breaker Cal
 ## Deployment
 
 ### Sites
-| Site | URL | Branch | Deploy Method |
-|------|-----|--------|---------------|
-| **Main (Production)** | https://rockbreaker.peacefroggaming.com | `main` | GitHub Actions |
-| **Beta (Testing)** | https://rockbreaker.peacefroggaming.com/beta/ | `beta` | GitHub Actions |
+
+| Site                  | URL                                           | Branch | Deploy Method  |
+| --------------------- | --------------------------------------------- | ------ | -------------- |
+| **Main (Production)** | https://rockbreaker.peacefroggaming.com       | `main` | GitHub Actions |
+| **Beta (Testing)**    | https://rockbreaker.peacefroggaming.com/beta/ | `beta` | GitHub Actions |
 
 ### How Deployment Works
+
 - **GitHub Actions** (`.github/workflows/deploy.yml`) handles all deployments
 - Triggers automatically on push to `main` or `beta` branches
 - Builds both sites and deploys to GitHub Pages
 - Beta is built with `/beta/` base path and served as subdirectory
 
 ### Workflow
+
 1. **Development**: Work on feature branches, merge to `dev`
 2. **Beta Testing**: Merge `dev` → `beta`, auto-deploys to beta site
 3. **Production Release**: Merge `dev` → `main`, auto-deploys to main site
 
 ### Manual Deploy (if needed)
+
 ```bash
 npm run deploy   # Deploys current branch to gh-pages (legacy method)
 ```
+
 Note: Prefer using GitHub Actions by pushing to main/beta branches
 
 ## Quick Commands
@@ -49,6 +54,7 @@ npm run deploy   # Build and deploy to GitHub Pages
 ## Architecture
 
 ### Directory Structure
+
 ```
 src/
 ├── components/     # React components (LaserPanel, ResultDisplay, etc.)
@@ -60,11 +66,14 @@ src/
 ```
 
 ### Key Files
+
 - `src/types/index.ts` - Equipment database (lasers, modules, gadgets, ships)
 - `src/utils/calculator.ts` - Core mining calculation formulas
 - `src/utils/calculator.test.ts` - Unit tests for calculations
+- `src/data/changelog.ts` - Dev notes / changelog entries (update before every PR)
 
 ### Supported Ships
+
 1. **MISC Prospector** - 1 laser, Size 1
 2. **Argo MOLE** - 3 lasers, Size 2
 3. **Drake GOLEM** - 1 laser, Size 1 (fixed equipment)
@@ -72,18 +81,22 @@ src/
 ## Calculation Logic
 
 ### Power Stacking
+
 - Module power percentages **ADD** together (e.g., two +35% = +70%)
 - Combined modifier is then **MULTIPLIED** by laser base power
 - Example: 3600 power × 1.70 modifier = 6120 power
 
 ### Resistance Stacking
+
 - Resistance modifiers **MULTIPLY** together
 - Example: 0.90 × 0.90 = 0.81 (not 0.80)
 
 ### Breakability Formula
+
 ```
 powerMargin = (totalPower - powerNeeded) / powerNeeded
 ```
+
 - **CAN BREAK**: margin >= 20%
 - **LOW MARGIN BREAK (marginal)**: 0% <= margin < 20%
 - **POSSIBLE BREAK**: -15% <= margin < 0%
@@ -92,29 +105,44 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 ## Version Control
 
 **CRITICAL**: Always use `/vc` (Victor) for all git operations. Victor enforces:
+
 - Issue-based workflow ("If it's not in an issue, it doesn't exist")
 - Branch naming: `feat/<issue#>-<desc>`, `fix/<issue#>-<desc>`, `chore/<issue#>-<desc>`
 - Semantic versioning (patch for dev work, minor for releases to main)
+- **Dev notes before PR** — changelog entry in `src/data/changelog.ts` required before PR creation
 - PR workflow: feature → dev → main
 - **NEVER push directly to main**
 
 See `.claude/commands/vc.md` for full Victor documentation.
 
+### Dev Notes (Changelog)
+
+Write changelog entries **before creating the PR** — while the work is fresh.
+
+- **File**: `src/data/changelog.ts`
+- **Format**: `{ version, date, new?, improved?, fixed? }` — newest entry at TOP of array
+- **When**: `feat/*` and `fix/*` always; `chore/*` only if user-facing
+- **Language**: User-facing (what changed for the user, not implementation details)
+- Victor enforces this at commit and PR time (see Rule 8 in vc.md)
+
 ## Testing
 
 **CRITICAL**: Use `/tess` (Tess) for test coverage design, standards enforcement, and PR review responses about testing. Tess enforces:
+
 - Testing Priority Pyramid — strategic coverage where it matters most
 - 8 testing standards derived from project patterns
 - Regression tests mandatory for all bug fixes
 - Frontend tests only when design specifies strict I/O
 
 **When to call Tess:**
+
 - `/tess plan <issue#>` — New feature issues with known constraints (TDD: write tests first as guardrails)
 - `/tess <branch>` — Before creating a PR, especially on `fix/*` branches (regression tests are mandatory)
 - `/tess review-reply <pr#>` — After code review, for testing-related comments (Victor handles the rest)
 - `/tess overview` — Periodic health checks on overall test coverage
 
 **Development workflow:**
+
 ```
 Feature planning  → /tess plan <issue#>  (when constraints are known)
 Development       → build the feature
@@ -128,17 +156,19 @@ See `.claude/commands/tess.md` for full Tess documentation.
 
 ## Git Learning Mode
 
-**Note**: This section complements Victor (above). Victor enforces *workflow rules* (issue-based workflow, branch naming, PR process). Learning Mode governs *how Claude teaches* - Drew runs commands himself while Claude explains.
+**Note**: This section complements Victor (above). Victor enforces _workflow rules_ (issue-based workflow, branch naming, PR process). Learning Mode governs _how Claude teaches_ - Drew runs commands himself while Claude explains.
 
 **IMPORTANT**: Guide Drew through git commands rather than executing them directly.
 
 When git operations are needed:
+
 1. **Explain** what command is needed and why
 2. **Show** the exact command to run
 3. **Wait** for Drew to run it (or confirm he wants Claude to run it)
 4. **Explain** the output if needed
 
 This applies to:
+
 - All git commands (status, add, commit, push, pull, branch, checkout, merge, etc.)
 - GitHub CLI commands (gh pr create, gh issue, etc.)
 
@@ -149,17 +179,20 @@ This is a learning exercise - the goal is git fluency, not speed.
 ## Planning & Session Continuity
 
 ### Plan File Location
+
 - **Active plans**: `docs/plans/` with format `<issue#>-<description>.md`
 - Example: `98-ipad-tablet-layout.md`
 - `docs/plans/` is **local only** (gitignored) - persists on disk for Claude + Drew to reference
 - **NEVER** use `.claude/plans/` - that directory is ephemeral (cleared between sessions)
 
 ### At Session Start / After Compaction
+
 1. **Check for active plans** in `docs/plans/`
 2. **Read the active plan** to restore context
 3. **Continue from where work left off**
 
 ### Plan File Structure
+
 - **Status**: `ACTIVE`, `COMPLETED`, or `ON_HOLD`
 - **Issue**: Link to GitHub issue
 - **Requirements**: What needs to be done
@@ -168,29 +201,37 @@ This is a learning exercise - the goal is git fluency, not speed.
 - **Progress**: What's done, what's next
 
 ### When Planning
+
 1. Create plan file in `docs/plans/<issue#>-<desc>.md`
 2. Mark status as `ACTIVE`
 3. Update progress as work proceeds
 4. Mark `COMPLETED` when done (keep for reference)
 
 ### Plan File Template
+
 ```md
 # Plan: <Title>
+
 **Status**: ACTIVE | COMPLETED | ON_HOLD
 **Issue**: #<number>
 **Branch**: <branch-name>
 
 ## Requirements
+
 - ...
 
 ## Implementation
+
 ### Step 1: ...
+
 ### Step 2: ...
 
 ## Files to Modify
+
 - path/to/file.tsx
 
 ## Progress
+
 - [x] Completed item
 - [ ] Pending item
 ```
@@ -198,21 +239,25 @@ This is a learning exercise - the goal is git fluency, not speed.
 ## Coding Standards
 
 ### TypeScript
+
 - Strict mode enabled
 - Prefer `type` over `interface` for object shapes
 - Export types from `src/types/index.ts`
 
 ### React Components
+
 - Functional components with hooks only
 - Props interface defined above component
 - Keep component files focused - extract utilities to `src/utils/`
 
 ### Testing
+
 - Use Vitest for unit tests
 - Test files co-located: `calculator.test.ts` next to `calculator.ts`
 - Focus on calculation accuracy - verify against in-game values
 
 ### Mobile CSS Guidelines
+
 - **NEVER use fixed pixel values** (px) for sizing in mobile contexts
 - Use `clamp(min, preferred, max)` for touch targets that scale with viewport
 - Use `%` or `vw/vh` for transforms and positional offsets
@@ -221,14 +266,17 @@ This is a learning exercise - the goal is git fluency, not speed.
 - Preferred pattern: `clamp(2.5rem, 8vw, 3.5rem)` scales 40-56px across devices
 
 ### DevTools Testing
+
 **IMPORTANT**: Drew tests mobile/tablet layouts using Chrome DevTools device simulation.
 
 DevTools limitations to be aware of:
+
 - `navigator.maxTouchPoints` returns 0 (no touch emulation by default)
 - `isMobile` detection via touch capability will fail
 - Media queries for viewport size and orientation work correctly
 
 **Best practice**: When detecting mobile/tablet for conditional rendering:
+
 - Use React state that updates on resize/orientation change
 - Combine touch detection (`isMobile`) with viewport-based fallback (`isTabletPortrait`)
 - Example: `(isMobile || isTabletPortrait)` where `isTabletPortrait` uses viewport width + orientation media query
