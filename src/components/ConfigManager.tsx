@@ -91,6 +91,11 @@ export default function ConfigManager({
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
+    if (existing && existing.isStarter) {
+      setAlertDialog({ title: 'Reserved Name', message: 'That name is reserved for a starter config — please choose a different name.' });
+      return;
+    }
+
     if (existing) {
       setConfirmDialog({
         title: 'Overwrite Ship',
@@ -233,10 +238,18 @@ export default function ConfigManager({
         {savedConfigs.length === 0 ? (
           <p className="empty-message">No saved configurations</p>
         ) : (
-          savedConfigs.sort((a, b) => a.name.localeCompare(b.name)).map((config) => (
-            <div key={config.id} className="config-item">
+          [...savedConfigs].sort((a, b) => {
+            // Pin starters first, then alphabetical
+            if (a.isStarter && !b.isStarter) return -1;
+            if (!a.isStarter && b.isStarter) return 1;
+            return a.name.localeCompare(b.name);
+          }).map((config) => (
+            <div key={config.id} className={`config-item${config.isStarter ? ' starter' : ''}`}>
               <div className="config-info">
-                <div className="config-name">{config.name}</div>
+                <div className="config-name">
+                  {config.name}
+                  {config.isStarter && <span className="starter-badge">Starter</span>}
+                </div>
                 <div className="config-ship">{config.ship.name}</div>
                 <div className="config-details">
                   {config.config.lasers
@@ -281,14 +294,16 @@ export default function ConfigManager({
                   <span className="btn-text">Export</span>
                   <span className="btn-emoji">📤</span>
                 </button>
-                <button
-                  onClick={() => handleDelete(config.id, config.name)}
-                  className="btn-delete"
-                  title="Delete"
-                >
-                  <span className="btn-text">Delete</span>
-                  <span className="btn-emoji">🗑️</span>
-                </button>
+                {!config.isStarter && (
+                  <button
+                    onClick={() => handleDelete(config.id, config.name)}
+                    className="btn-delete"
+                    title="Delete"
+                  >
+                    <span className="btn-text">Delete</span>
+                    <span className="btn-emoji">🗑️</span>
+                  </button>
+                )}
               </div>
             </div>
           ))

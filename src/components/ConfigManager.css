@@ -145,6 +145,21 @@
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.starter-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--bg-dark);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
 .config-ship {

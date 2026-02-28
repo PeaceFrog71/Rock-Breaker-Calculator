@@ -6,6 +6,7 @@ import {
   saveShipConfig,
   updateShipConfig,
 } from '../utils/storage';
+import { STARTER_CONFIGS } from '../data/starterConfigs';
 import './SaveShipModal.css';
 
 interface SaveShipModalProps {
@@ -30,9 +31,13 @@ export default function SaveShipModal({
   const [errorMsg, setErrorMsg] = useState('');
 
   // Pre-fill with current config name when modal opens
+  // Clear the name if it matches a starter config — force the user to pick a new name
   useEffect(() => {
     if (isOpen) {
-      setConfigName(currentConfigName || '');
+      const isStarterName = currentConfigName && STARTER_CONFIGS.some(
+        (s) => s.name.toLowerCase() === currentConfigName.toLowerCase()
+      );
+      setConfigName(isStarterName ? '' : (currentConfigName || ''));
       setConfirmOverwrite(null);
       setErrorMsg('');
     } else {
@@ -56,6 +61,11 @@ export default function SaveShipModal({
     const existing = savedConfigs.find(
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
     );
+
+    if (existing && existing.isStarter) {
+      setErrorMsg('That name is reserved for a starter config — please choose a different name.');
+      return;
+    }
 
     if (existing) {
       setConfirmOverwrite(existing);
