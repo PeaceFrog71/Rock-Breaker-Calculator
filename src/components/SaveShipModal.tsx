@@ -57,13 +57,15 @@ export default function SaveShipModal({
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
-    if (existing) {
+    if (existing && !existing.isStarter) {
       setConfirmOverwrite(existing);
       return;
     }
 
-    saveShipConfig(trimmedName, currentShip, currentConfig);
-    onSaved(currentShip, currentConfig, trimmedName);
+    // For starters or new names: saveShipConfig handles starter name collision
+    // (auto-renames to "Name (Custom)") and creates a new user config
+    const saved = saveShipConfig(trimmedName, currentShip, currentConfig);
+    onSaved(currentShip, currentConfig, saved.name);
     setConfigName('');
     onClose();
   };
