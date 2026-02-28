@@ -91,7 +91,12 @@ export default function ConfigManager({
       (c) => c.name.toLowerCase() === trimmedName.toLowerCase()
     );
 
-    if (existing && !existing.isStarter) {
+    if (existing && existing.isStarter) {
+      setAlertDialog({ title: 'Reserved Name', message: 'That name is reserved for a starter config — please choose a different name.' });
+      return;
+    }
+
+    if (existing) {
       setConfirmDialog({
         title: 'Overwrite Ship',
         message: `"${existing.name}" already exists. Overwrite?`,
@@ -108,10 +113,8 @@ export default function ConfigManager({
       return;
     }
 
-    // For starters or new names: saveShipConfig handles starter name collision
-    // (auto-renames to "Name (Custom)") and creates a new user config
-    const saved = saveShipConfig(trimmedName, currentShip, currentConfig);
-    onLoad(currentShip, currentConfig, saved.name);
+    saveShipConfig(trimmedName, currentShip, currentConfig);
+    onLoad(currentShip, currentConfig, trimmedName);
     setSavedConfigs(getSavedShipConfigs());
     setConfigName('');
     setShowDialog(false);

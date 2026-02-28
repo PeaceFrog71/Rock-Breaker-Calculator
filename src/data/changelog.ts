@@ -18,13 +18,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '2.27.4',
+    version: '2.27.5',
     date: '2026-02-28',
     new: [
       'Ship Library now includes 3 starter ship configs (Golem, Prospector, MOLE) — recommended builds for new miners',
     ],
-    fixed: [
-      'Saving a modified starter ship now correctly creates a "(Custom)" copy instead of silently failing',
+    improved: [
+      'Saving a starter ship clears the name field and prompts for a new name — starter names are reserved',
     ],
   },
   {

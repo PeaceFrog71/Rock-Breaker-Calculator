@@ -104,11 +104,14 @@ export function saveShipConfig(
   const data = localStorage.getItem(SHIP_LIBRARY_KEY);
   const userConfigs: SavedShipConfig[] = data ? JSON.parse(data) : [];
 
-  // Check if name collides with a starter config — don't overwrite starters
+  // Block saving with a starter config name — UI should catch this first
   const isStarterName = STARTER_CONFIGS.some(
     (s) => s.name.toLowerCase() === name.toLowerCase()
   );
-  const saveName = isStarterName ? `${name} (Custom)` : name;
+  if (isStarterName) {
+    throw new Error('Cannot save with a starter config name. Please choose a different name.');
+  }
+  const saveName = name;
 
   // Prevent duplicates: if a user config with the same name exists, update it
   const existingIndex = userConfigs.findIndex(

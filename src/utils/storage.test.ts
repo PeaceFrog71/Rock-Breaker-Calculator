@@ -125,12 +125,12 @@ describe('storage.ts — Starter Ship Configs', () => {
   });
 
   describe('saveShipConfig', () => {
-    it('appends "(Custom)" when saving with a starter config name', () => {
-      const saved = saveShipConfig('New Miner Golem', prospector, emptyConfig);
-      expect(saved.name).toBe('New Miner Golem (Custom)');
+    it('throws when saving with a starter config name', () => {
+      expect(() => saveShipConfig('New Miner Golem', prospector, emptyConfig))
+        .toThrow('Cannot save with a starter config name');
     });
 
-    it('does not rename when name does not collide with starter', () => {
+    it('saves normally when name does not collide with starter', () => {
       const saved = saveShipConfig('My Unique Ship', prospector, emptyConfig);
       expect(saved.name).toBe('My Unique Ship');
     });
