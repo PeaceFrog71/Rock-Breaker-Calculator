@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '2.27.2',
+    date: '2026-02-27',
+    fixed: [
+      'Cleared rock mass (empty or zero) no longer shows a misleading break result — now displays "Insufficient Data"',
+    ],
+  },
+  {
     version: '2.27.1',
     date: '2026-02-27',
     improved: [

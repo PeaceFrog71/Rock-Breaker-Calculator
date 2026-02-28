@@ -480,6 +480,10 @@ export default function ResultDisplay({
   // Combined: block break assessment when any scan info is missing
   const needsScanInfo = needsLaserScanInfo || !!needsGadgetScanInfo;
 
+  // Block break assessment when rock data is insufficient for calculation
+  // Only mass — resistance=0 is valid (rock with no resistance)
+  const hasInsufficientData = rock.mass <= 0;
+
   const powerPercentage =
     result.adjustedLPNeeded > 0
       ? (result.totalLaserPower / result.adjustedLPNeeded) * 100
@@ -574,7 +578,14 @@ export default function ResultDisplay({
 
   return (
     <div className="result-display">
-      {needsScanInfo ? (
+      {hasInsufficientData ? (
+        <div className="status-indicator need-scan-info">
+          <h2>INSUFFICIENT DATA</h2>
+          <span className="need-scan-subtext">
+            Enter rock mass to calculate
+          </span>
+        </div>
+      ) : needsScanInfo ? (
         <div className="status-indicator need-scan-info">
           <h2>NEED SCAN INFO</h2>
           <span className="need-scan-subtext">
