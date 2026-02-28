@@ -47,14 +47,7 @@ import resultsBackground from "./assets/Results Background.jpg";
 import shipSetupBackground from "./assets/Ship Setup Background.jpg";
 import { version } from "../package.json";
 
-// Default rock values per save slot (slot 0-3)
-// Slot 1: large rock, Slot 2: medium, Slot 3: small, Slot 4: very small
-const DEFAULT_ROCKS: Rock[] = [
-  { mass: 50000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
-  { mass: 30000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
-  { mass: 10000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
-  { mass: 5000, resistance: 25, instability: 50, type: "", resistanceMode: 'base', includeGadgetsInScan: false },
-];
+import { DEFAULT_ROCKS, loadRockFromStorage, parseActiveSlotIndex } from './utils/rockDefaults';
 
 function App() {
   // Load saved state or use defaults
@@ -85,28 +78,7 @@ function App() {
   }, [alertDialog]);
 
   // Load rock from active slot in localStorage (or default if not found)
-  const [rock, setRock] = useState<Rock>(() => {
-    try {
-      const savedSlots = localStorage.getItem('rockbreaker-rock-slots');
-      const savedActiveSlot = localStorage.getItem('rockbreaker-active-rock-slot');
-      const activeIndex = savedActiveSlot ? parseInt(savedActiveSlot, 10) : 0;
-      if (savedSlots) {
-        const slots = JSON.parse(savedSlots);
-        if (slots[activeIndex]) {
-          const slot = slots[activeIndex];
-          // Migrate legacy "name" field to "type" (#236)
-          if (slot && typeof slot === 'object' && 'name' in slot && !('type' in slot)) {
-            const { name, ...rest } = slot;
-            return { ...rest, type: name };
-          }
-          return { ...slot };
-        }
-      }
-      return { ...DEFAULT_ROCKS[activeIndex] };
-    } catch {
-      return { ...DEFAULT_ROCKS[0] };
-    }
-  });
+  const [rock, setRock] = useState<Rock>(() => loadRockFromStorage());
   const [miningGroup, setMiningGroup] = useState<MiningGroup>(() => {
     try {
       const saved = localStorage.getItem('rockbreaker-mining-group');
@@ -230,14 +202,7 @@ function App() {
 
   // Track which rock slot is currently active
   const [activeRockSlot, setActiveRockSlot] = useState<number>(() => {
-    try {
-      const saved = localStorage.getItem('rockbreaker-active-rock-slot');
-      if (!saved) return 0;
-      const parsed = parseInt(saved, 10);
-      return parsed >= 0 && parsed < ROCK_SLOT_COUNT ? parsed : 0;
-    } catch {
-      return 0;
-    }
+    return parseActiveSlotIndex(localStorage.getItem('rockbreaker-active-rock-slot'));
   });
 
   // Persist rock slots to localStorage
