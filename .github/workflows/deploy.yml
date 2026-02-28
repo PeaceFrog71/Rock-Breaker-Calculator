@@ -26,6 +26,8 @@ jobs:
           path: main
 
       - name: Checkout beta
+        id: checkout-beta
+        if: vars.DEPLOY_BETA == 'true'
         uses: actions/checkout@v4
         with:
           ref: beta
@@ -51,6 +53,7 @@ jobs:
           npm run build
 
       - name: Build beta
+        if: vars.DEPLOY_BETA == 'true' && steps.checkout-beta.outcome == 'success'
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
@@ -64,6 +67,13 @@ jobs:
           # Move beta build to subfolder
           mkdir -p ../main/dist/beta
           cp -r dist/* ../main/dist/beta/
+
+      - name: Deploy beta-closed page
+        if: vars.DEPLOY_BETA != 'true' || steps.checkout-beta.outcome != 'success'
+        run: |
+          mkdir -p main/dist/beta
+          cp main/public/beta-closed.html main/dist/beta/index.html
+          cp main/public/PFlogo_love.png main/dist/beta/PFlogo_love.png
 
       - name: Add CNAME
         run: echo "rockbreaker.peacefroggaming.com" > main/dist/CNAME
