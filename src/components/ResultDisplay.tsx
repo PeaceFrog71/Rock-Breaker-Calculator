@@ -482,7 +482,7 @@ export default function ResultDisplay({
 
   // Block break assessment when rock data is insufficient for calculation
   // Only mass — resistance=0 is valid (rock with no resistance)
-  const hasInsufficientData = rock.mass <= 0;
+  const hasInsufficientData = !Number.isFinite(rock.mass) || rock.mass <= 0;
 
   const powerPercentage =
     result.adjustedLPNeeded > 0
