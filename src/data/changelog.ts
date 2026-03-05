@@ -18,6 +18,13 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.1.1',
+    date: '2026-03-05',
+    new: [
+      'Mining Laser Distances panel — shows optimal and max range for each active laser on the results screen',
+    ],
+  },
+  {
     version: '3.1.0',
     date: '2026-02-28',
     new: [

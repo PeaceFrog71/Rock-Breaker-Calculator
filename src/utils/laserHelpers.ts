@@ -6,6 +6,7 @@
  */
 
 import type { MiningConfiguration, MiningGroup, LaserConfiguration } from '../types';
+import { LASER_HEADS } from '../types';
 
 /**
  * Get all manned lasers from a mining configuration.
@@ -102,19 +103,34 @@ export function calculateLaserYOffset(angleOffset: number, laserLength: number):
 }
 
 /**
- * Optimal distance info for a single active laser.
+ * Distance info for a single active laser.
  */
 export interface LaserDistanceInfo {
   laserName: string;
   shipName?: string;
   laserIndex: number;
-  minDistance: number;
+  optimalDistance: number;
   maxDistance: number;
 }
 
 /**
+ * Look up fresh distance data from LASER_HEADS database by ID.
+ * This avoids stale localStorage data missing new fields.
+ */
+function getDistanceFromDatabase(laserHeadId: string): { optimal: number; max: number } | null {
+  const dbLaser = LASER_HEADS.find(l => l.id === laserHeadId);
+  if (!dbLaser) return null;
+  if (dbLaser.optimalDistance == null || dbLaser.optimalDistanceMax == null) return null;
+  if (dbLaser.optimalDistance === 0 && dbLaser.optimalDistanceMax === 0) return null;
+  return {
+    optimal: dbLaser.optimalDistance,
+    max: dbLaser.optimalDistanceMax,
+  };
+}
+
+/**
  * Get optimal distance ranges for all active lasers in a single-ship config.
- * Filters out 'none' lasers, unmanned MOLE lasers, and lasers without distance data.
+ * Looks up distance data from the LASER_HEADS database to avoid stale localStorage.
  */
 export function getActiveLaserDistances(
   config: MiningConfiguration,
@@ -124,13 +140,13 @@ export function getActiveLaserDistances(
   config.lasers.forEach((laser, index) => {
     if (!laser.laserHead || laser.laserHead.id === 'none') return;
     if (shipId === 'mole' && laser.isManned === false) return;
-    if (laser.laserHead.optimalDistanceMin == null || laser.laserHead.optimalDistanceMax == null) return;
-    if (laser.laserHead.optimalDistanceMin === 0 && laser.laserHead.optimalDistanceMax === 0) return;
+    const dist = getDistanceFromDatabase(laser.laserHead.id);
+    if (!dist) return;
     distances.push({
       laserName: laser.laserHead.name,
       laserIndex: index,
-      minDistance: laser.laserHead.optimalDistanceMin,
-      maxDistance: laser.laserHead.optimalDistanceMax,
+      optimalDistance: dist.optimal,
+      maxDistance: dist.max,
     });
   });
   return distances;
@@ -138,7 +154,7 @@ export function getActiveLaserDistances(
 
 /**
  * Get optimal distance ranges for all active lasers across a mining group.
- * Filters out inactive ships, 'none' lasers, and unmanned MOLE lasers.
+ * Looks up distance data from the LASER_HEADS database to avoid stale localStorage.
  */
 export function getGroupLaserDistances(
   miningGroup: MiningGroup
@@ -149,14 +165,14 @@ export function getGroupLaserDistances(
     shipInstance.config.lasers.forEach((laser, index) => {
       if (!laser.laserHead || laser.laserHead.id === 'none') return;
       if (shipInstance.ship.id === 'mole' && laser.isManned === false) return;
-      if (laser.laserHead.optimalDistanceMin == null || laser.laserHead.optimalDistanceMax == null) return;
-      if (laser.laserHead.optimalDistanceMin === 0 && laser.laserHead.optimalDistanceMax === 0) return;
+      const dist = getDistanceFromDatabase(laser.laserHead.id);
+      if (!dist) return;
       distances.push({
         laserName: laser.laserHead.name,
         shipName: shipInstance.name,
         laserIndex: index,
-        minDistance: laser.laserHead.optimalDistanceMin,
-        maxDistance: laser.laserHead.optimalDistanceMax,
+        optimalDistance: dist.optimal,
+        maxDistance: dist.max,
       });
     });
   });
