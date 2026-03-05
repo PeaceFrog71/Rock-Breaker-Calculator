@@ -109,10 +109,7 @@
   transition: all 0.2s ease;
 }
 
-/* Hide "Gadgets" h2 in drawer content (already shown in header) */
-.mobile-drawer.right .gadget-header-compact h2 {
-  display: none;
-}
+
 
 /* Hide "Ship Library" h2 in bottom drawer (already shown in header) */
 .mobile-drawer.bottom .config-manager > h2 {
@@ -288,6 +285,34 @@
 .mobile-drawer-close:hover {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text);
+}
+
+/* Inline close button - floats to top-right of content area when no header */
+.mobile-drawer-close-inline {
+  float: right;
+  margin: -0.25rem -0.25rem 0.5rem 0.5rem;
+  min-height: unset !important;
+  padding: 0 !important;
+}
+
+/* Override drawer content button sizing for inline close */
+.mobile-drawer-content .mobile-drawer-close-inline {
+  font-size: 2rem !important;
+  width: 2rem !important;
+  height: 2rem !important;
+}
+
+/* Section titles in right drawer - matched pair */
+.mobile-drawer-content .optimal-distance-title,
+.mobile-drawer-content .gadget-header-compact h2 {
+  font-size: 1.25rem !important;
+  color: var(--text-primary) !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-weight: bold !important;
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+  margin-bottom: 0.5rem !important;
 }
 
 /* Drawer content - scrollable */

@@ -756,7 +756,7 @@ function App() {
                     onClose={() => setGadgetDrawerOpen(false)}
                     onOpen={() => { setRockDrawerOpen(false); setGadgetDrawerOpen(true); }}
                     side="right"
-                    title="Gadgets"
+                    title=""
                     tabLabel="Gadgets"
                     tabImage={gadgetLabelVertical}
                   >

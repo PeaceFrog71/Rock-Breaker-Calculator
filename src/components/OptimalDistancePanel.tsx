@@ -32,7 +32,7 @@ export default function OptimalDistancePanel({
 
   return (
     <div className="optimal-distance-panel">
-      <h3 className="optimal-distance-title">MINING LASER DISTANCES (m)</h3>
+      <h3 className="optimal-distance-title">Mining Laser Distances <span className="distance-unit">(m)</span></h3>
       <table className="optimal-distance-table">
         <thead>
           <tr>
@@ -44,7 +44,7 @@ export default function OptimalDistancePanel({
         <tbody>
           {uniqueDistances.map((d, i) => (
             <tr key={i}>
-              <td className="distance-col-label">{d.laserName.replace('Hofstede-S1', 'Hofs I').replace('Hofstede-S2', 'Hofs II').replace('Arbor MH1', 'Arbor I').replace('Arbor MH2', 'Arbor II').replace('Lancet MH1', 'Lancet I').replace('Lancet MH2', 'Lancet II')}</td>
+              <td className="distance-col-label">{d.laserName}</td>
               <td className="distance-col-value distance-optimal">{d.optimalDistance}</td>
               <td className="distance-col-value">{d.maxDistance}</td>
             </tr>

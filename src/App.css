@@ -296,7 +296,7 @@ button, .btn-primary, .btn-secondary {
 .content-wrapper {
   padding: 2rem;
   flex: 1;
-  max-width: 1190px;
+  max-width: 1400px;
   margin: 0 auto;
   width: 100%;
   min-width: 800px; /* Match overview-tab min-width for consistent scrolling */
@@ -308,7 +308,7 @@ button, .btn-primary, .btn-secondary {
 
 .overview-tab {
   display: grid;
-  grid-template-columns: 180px 1fr 180px;
+  grid-template-columns: 280px 1fr 280px;
   gap: 1rem;
   animation: fadeIn 0.3s ease-in-out;
   min-width: 800px; /* Prevent columns from overlapping on narrow screens */
@@ -509,13 +509,19 @@ button, .btn-primary, .btn-secondary {
   border-bottom: 2px solid var(--border);
 }
 
+.distance-unit {
+  text-transform: lowercase;
+}
+
 .optimal-distance-title {
-  font-size: 0.8rem;
+  font-size: 1rem;
   color: var(--accent-cyan);
-  
-  letter-spacing: 0.5px;
-  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   font-weight: 600;
+  margin-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.5rem;
 }
 
 .optimal-distance-table {
@@ -528,14 +534,14 @@ button, .btn-primary, .btn-secondary {
 .optimal-distance-table td {
   border: none;
   padding: 0.1rem 0.15rem;
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   white-space: nowrap;
 }
 
 .optimal-distance-table thead th {
   color: var(--text-secondary);
   font-weight: 500;
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.3px;
   padding-bottom: 0.2rem;
@@ -610,7 +616,7 @@ button, .btn-primary, .btn-secondary {
 .stepper-value {
   min-width: 16px;
   text-align: center;
-  font-size: 0.85rem;
+  font-size: 1.1rem;
   color: var(--text-primary);
   font-weight: 600;
 }
