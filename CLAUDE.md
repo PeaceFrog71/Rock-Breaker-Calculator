@@ -102,6 +102,25 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 - **POSSIBLE BREAK**: -15% <= margin < 0%
 - **CANNOT BREAK**: margin < -15%
 
+## Drew's Terminology
+
+- **"Create a feature for..."** or **"Create a bug for..."** = Create a **GitHub issue**, NOT implement the code
+- **"Build/implement/add..."** = Write the actual code (after issue + branch exist)
+
+When Drew says "create a feature" or "create a bug," respond by creating the GitHub issue and stop. Do NOT plan, design, or write code unless explicitly asked.
+
+## Pre-Implementation Gate
+
+**CRITICAL**: Before writing ANY code for a new feature or fix:
+
+1. **Verify a GitHub issue exists** — if not, create one first
+2. **Create a feature branch** using `/vc branch feat/<issue#>-<description>`
+3. **Confirm you're on the correct branch** — run `git branch` to verify
+
+This applies after plan approval too. Exiting plan mode does NOT mean "start coding" — it means "set up the branch, THEN start coding."
+
+No file edits until the branch is confirmed.
+
 ## Version Control
 
 **CRITICAL**: Always use `/vc` (Victor) for all git operations. Victor enforces:

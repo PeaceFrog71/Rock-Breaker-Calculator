@@ -5,7 +5,8 @@
  * ResultDisplay for rendering laser beams.
  */
 
-import type { MiningConfiguration, LaserConfiguration } from '../types';
+import type { MiningConfiguration, MiningGroup, LaserConfiguration } from '../types';
+import { LASER_HEADS } from '../types';
 
 /**
  * Get all manned lasers from a mining configuration.
@@ -99,4 +100,81 @@ export function calculateMoleLaserAngleOffsets(numLasers: number, rockMass: numb
 export function calculateLaserYOffset(angleOffset: number, laserLength: number): number {
   const angleRad = (angleOffset * Math.PI) / 180;
   return Math.tan(angleRad) * laserLength;
+}
+
+/**
+ * Distance info for a single active laser.
+ */
+export interface LaserDistanceInfo {
+  laserName: string;
+  shipName?: string;
+  laserIndex: number;
+  optimalDistance: number;
+  maxDistance: number;
+}
+
+/**
+ * Look up fresh distance data from LASER_HEADS database by ID.
+ * This avoids stale localStorage data missing new fields.
+ */
+function getDistanceFromDatabase(laserHeadId: string): { optimal: number; max: number } | null {
+  const dbLaser = LASER_HEADS.find(l => l.id === laserHeadId);
+  if (!dbLaser) return null;
+  if (dbLaser.optimalDistance == null || dbLaser.optimalDistanceMax == null) return null;
+  if (dbLaser.optimalDistance === 0 && dbLaser.optimalDistanceMax === 0) return null;
+  return {
+    optimal: dbLaser.optimalDistance,
+    max: dbLaser.optimalDistanceMax,
+  };
+}
+
+/**
+ * Get optimal distance ranges for all active lasers in a single-ship config.
+ * Looks up distance data from the LASER_HEADS database to avoid stale localStorage.
+ */
+export function getActiveLaserDistances(
+  config: MiningConfiguration,
+  shipId: string
+): LaserDistanceInfo[] {
+  const distances: LaserDistanceInfo[] = [];
+  config.lasers.forEach((laser, index) => {
+    if (!laser.laserHead || laser.laserHead.id === 'none') return;
+    if (shipId === 'mole' && laser.isManned === false) return;
+    const dist = getDistanceFromDatabase(laser.laserHead.id);
+    if (!dist) return;
+    distances.push({
+      laserName: laser.laserHead.name,
+      laserIndex: index,
+      optimalDistance: dist.optimal,
+      maxDistance: dist.max,
+    });
+  });
+  return distances;
+}
+
+/**
+ * Get optimal distance ranges for all active lasers across a mining group.
+ * Looks up distance data from the LASER_HEADS database to avoid stale localStorage.
+ */
+export function getGroupLaserDistances(
+  miningGroup: MiningGroup
+): LaserDistanceInfo[] {
+  const distances: LaserDistanceInfo[] = [];
+  miningGroup.ships.forEach((shipInstance) => {
+    if (shipInstance.isActive === false) return;
+    shipInstance.config.lasers.forEach((laser, index) => {
+      if (!laser.laserHead || laser.laserHead.id === 'none') return;
+      if (shipInstance.ship.id === 'mole' && laser.isManned === false) return;
+      const dist = getDistanceFromDatabase(laser.laserHead.id);
+      if (!dist) return;
+      distances.push({
+        laserName: laser.laserHead.name,
+        shipName: shipInstance.name,
+        laserIndex: index,
+        optimalDistance: dist.optimal,
+        maxDistance: dist.max,
+      });
+    });
+  });
+  return distances;
 }
