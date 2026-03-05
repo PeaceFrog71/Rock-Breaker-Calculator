@@ -502,6 +502,50 @@ button, .btn-primary, .btn-secondary {
   box-shadow: 0 0 8px rgba(0, 255, 136, 0.3);
 }
 
+/* Optimal Distance Panel - above gadgets in right sidebar */
+.optimal-distance-panel {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.optimal-distance-title {
+  font-size: 0.8rem;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.optimal-distance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.optimal-distance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0.4rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.distance-laser-name {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+.distance-range {
+  color: var(--accent-cyan);
+  font-weight: 600;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .gadget-header-compact {
   display: flex;
   justify-content: space-between;

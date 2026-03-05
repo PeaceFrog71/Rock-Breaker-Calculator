@@ -32,6 +32,7 @@ import ProfileModal from "./components/ProfileModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
 import GadgetsPanel from "./components/GadgetsPanel";
+import OptimalDistancePanel from "./components/OptimalDistancePanel";
 import MobileDrawer from "./components/MobileDrawer";
 import CollapsiblePanel from "./components/CollapsiblePanel";
 import { useMobileDetection } from "./hooks/useMobileDetection";
@@ -759,6 +760,11 @@ function App() {
                     tabLabel="Gadgets"
                     tabImage={gadgetLabelVertical}
                   >
+                    <OptimalDistancePanel
+                      config={!useMiningGroup ? config : undefined}
+                      shipId={!useMiningGroup ? selectedShip.id : undefined}
+                      miningGroup={useMiningGroup ? miningGroup : undefined}
+                    />
                     <GadgetsPanel
                       gadgets={gadgets}
                       gadgetCount={gadgetCount}
@@ -833,10 +839,15 @@ function App() {
                 />
               </div>
 
-              {/* Desktop Right Sidebar - Gadgets */}
+              {/* Desktop Right Sidebar - Optimal Distance + Gadgets */}
               {!isMobile && (
                 <div className="overview-sidebar overview-right">
                   <div className="sidebar-panel">
+                    <OptimalDistancePanel
+                      config={!useMiningGroup ? config : undefined}
+                      shipId={!useMiningGroup ? selectedShip.id : undefined}
+                      miningGroup={useMiningGroup ? miningGroup : undefined}
+                    />
                     <GadgetsPanel
                       gadgets={gadgets}
                       gadgetCount={gadgetCount}

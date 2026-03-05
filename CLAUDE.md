@@ -102,6 +102,18 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 - **POSSIBLE BREAK**: -15% <= margin < 0%
 - **CANNOT BREAK**: margin < -15%
 
+## Pre-Implementation Gate
+
+**CRITICAL**: Before writing ANY code for a new feature or fix:
+
+1. **Verify a GitHub issue exists** — if not, create one first
+2. **Create a feature branch** using `/vc branch feat/<issue#>-<description>`
+3. **Confirm you're on the correct branch** — run `git branch` to verify
+
+This applies after plan approval too. Exiting plan mode does NOT mean "start coding" — it means "set up the branch, THEN start coding."
+
+No file edits until the branch is confirmed.
+
 ## Version Control
 
 **CRITICAL**: Always use `/vc` (Victor) for all git operations. Victor enforces:
