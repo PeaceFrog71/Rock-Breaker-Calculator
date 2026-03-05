@@ -102,6 +102,13 @@ powerMargin = (totalPower - powerNeeded) / powerNeeded
 - **POSSIBLE BREAK**: -15% <= margin < 0%
 - **CANNOT BREAK**: margin < -15%
 
+## Drew's Terminology
+
+- **"Create a feature for..."** or **"Create a bug for..."** = Create a **GitHub issue**, NOT implement the code
+- **"Build/implement/add..."** = Write the actual code (after issue + branch exist)
+
+When Drew says "create a feature" or "create a bug," respond by creating the GitHub issue and stop. Do NOT plan, design, or write code unless explicitly asked.
+
 ## Pre-Implementation Gate
 
 **CRITICAL**: Before writing ANY code for a new feature or fix:
