@@ -36,14 +36,14 @@ export default function OptimalDistancePanel({
       <table className="optimal-distance-table">
         <thead>
           <tr>
-            <th className="distance-col-label"></th>
-            <th className="distance-col-value">OPTIMAL</th>
-            <th className="distance-col-value">MAX</th>
+            <th scope="col" className="distance-col-label">Laser</th>
+            <th scope="col" className="distance-col-value">OPTIMAL</th>
+            <th scope="col" className="distance-col-value">MAX</th>
           </tr>
         </thead>
         <tbody>
           {uniqueDistances.map((d, i) => (
-            <tr key={i}>
+            <tr key={d.laserName}>
               <td className="distance-col-label">{d.laserName}</td>
               <td className="distance-col-value distance-optimal">{d.optimalDistance}</td>
               <td className="distance-col-value">{d.maxDistance}</td>

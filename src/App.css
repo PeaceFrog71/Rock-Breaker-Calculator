@@ -550,9 +550,6 @@ button, .btn-primary, .btn-secondary {
 .distance-col-label {
   text-align: left;
   color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 55px;
 }
 
 .distance-col-value {
