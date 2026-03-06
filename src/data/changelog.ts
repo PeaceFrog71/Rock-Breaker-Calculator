@@ -36,6 +36,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.2.3',
+    date: '2026-03-06',
+    fixed: [
+      'Single Ship / Mining Group buttons now stretch to full width of the display area',
+    ],
+  },
+
+  {
     version: '3.2.2',
     date: '2026-03-05',
     improved: [
