@@ -16,7 +16,7 @@ export default function ResistanceHelpModal({ isOpen, onClose }: ResistanceHelpM
       <div className="resistance-help-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>×</button>
 
-        <h2>Scan Mode Setup</h2>
+        <h2>Scan Data Help</h2>
         <ResistanceHelpContent />
       </div>
     </div>,

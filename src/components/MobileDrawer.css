@@ -347,7 +347,8 @@
 
 /* Preserve help icon circular shape - override general button styling */
 .mobile-drawer-content .resistance-help-icon,
-.mobile-drawer-content .hint-help-icon {
+.mobile-drawer-content .hint-help-icon,
+.mobile-drawer-content .gadget-help-icon {
   width: 1.5rem !important;
   height: 1.5rem !important;
   min-width: 1.5rem !important;

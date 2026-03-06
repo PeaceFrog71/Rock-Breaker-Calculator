@@ -31,17 +31,7 @@ export default function ResistanceModeSelector({
 
   return (
     <div className="compact-form-group resistance-input-group">
-      <label>
-        Resistance
-        <button
-          className="resistance-help-icon"
-          onClick={() => setShowHelp(true)}
-          type="button"
-          aria-label="Resistance scanning help"
-        >
-          ?
-        </button>
-      </label>
+      <label>Resistance</label>
       <ResistanceHelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
 
       <input
@@ -70,16 +60,26 @@ export default function ResistanceModeSelector({
       />
 
       <div className="resistance-mode-controls">
-        <button
-          className={`mode-toggle ${mode === 'modified' ? 'modified-mode' : ''}`}
-          onClick={onModeToggle}
-          type="button"
-          title={mode === 'base'
-            ? "Currently: Base values (cockpit scan). Click if from laser scan."
-            : "Currently: Modified values (laser scan). Click if from cockpit scan."}
-        >
-          {mode === 'base' ? 'Base' : 'Modified'}
-        </button>
+        <div className="mode-toggle-row">
+          <button
+            className={`mode-toggle ${mode === 'modified' ? 'modified-mode' : ''}`}
+            onClick={onModeToggle}
+            type="button"
+            title={mode === 'base'
+              ? "Currently: Base values (cockpit scan). Click if from laser scan."
+              : "Currently: Modified values (laser scan). Click if from cockpit scan."}
+          >
+            {mode === 'base' ? 'Base' : 'Modified'}
+          </button>
+          <button
+            className="resistance-help-icon"
+            onClick={() => setShowHelp(true)}
+            type="button"
+            aria-label="Scan data help"
+          >
+            ?
+          </button>
+        </div>
 
         <label className="gadget-checkbox">
           <input
