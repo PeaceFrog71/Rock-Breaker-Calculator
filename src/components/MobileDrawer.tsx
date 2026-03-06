@@ -32,7 +32,7 @@ export default function MobileDrawer({
         <button
           className={`mobile-drawer-tab ${side}`}
           onClick={onOpen}
-          aria-label={`Open ${title}`}
+          aria-label={`Open ${title || tabLabel}`}
         >
           {tabImage ? (
             <img
@@ -65,17 +65,28 @@ export default function MobileDrawer({
 
       {/* Drawer Panel */}
       <div ref={drawerRef} className={`mobile-drawer ${side} ${isOpen ? 'open' : ''}`}>
-        <div className="mobile-drawer-header">
-          <h3>{title}</h3>
-          <button
-            className="mobile-drawer-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            ×
-          </button>
-        </div>
+        {title ? (
+          <div className="mobile-drawer-header">
+            <h3>{title}</h3>
+            <button
+              className="mobile-drawer-close"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          </div>
+        ) : null}
         <div className="mobile-drawer-content">
+          {!title && (
+            <button
+              className="mobile-drawer-close mobile-drawer-close-inline"
+              onClick={onClose}
+              aria-label="Close"
+            >
+              ×
+            </button>
+          )}
           {children}
         </div>
       </div>

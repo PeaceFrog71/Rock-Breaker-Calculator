@@ -11,6 +11,8 @@ export interface LaserHead {
   chargeRateModifier?: number; // Optimal Charge Rate (1.2 = +20%, 0.6 = -40%)
   chargeWindowModifier?: number; // Optimal Charge Window (1.4 = +40%, 0.6 = -40%)
   inertMaterialsModifier?: number; // Inert Materials (0.7 = -30%, 0.6 = -40%)
+  optimalDistance?: number; // Sweet spot / optimal mining distance in meters
+  optimalDistanceMax?: number; // Maximum optimal mining distance in meters
 }
 
 export interface Module {
@@ -125,19 +127,19 @@ export const SHIPS: Ship[] = [
 // e.g., instabilityModifier: 0.65 = -35% instability, chargeWindowModifier: 1.4 = +40% window
 export const LASER_HEADS: LaserHead[] = [
   { id: 'none', name: '---', maxPower: 0, resistModifier: 1, size: 1, moduleSlots: 0 },
-  { id: 'pitman', name: 'Pitman', maxPower: 3150, resistModifier: 1.25, size: 0, moduleSlots: 2, instabilityModifier: 1.35, chargeRateModifier: 0.6, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.6 },
-  { id: 'arbor-mh1', name: 'Arbor MH1', maxPower: 1890, resistModifier: 1.25, size: 1, moduleSlots: 1, instabilityModifier: 0.65, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.7 },
-  { id: 'arbor-mh2', name: 'Arbor MH2', maxPower: 2400, resistModifier: 1.25, size: 2, moduleSlots: 2, instabilityModifier: 0.65, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.6 },
-  { id: 'helix-1', name: 'Helix I', maxPower: 3150, resistModifier: 0.7, size: 1, moduleSlots: 2, chargeWindowModifier: 0.6, inertMaterialsModifier: 0.7 },
-  { id: 'helix-2', name: 'Helix II', maxPower: 4080, resistModifier: 0.7, size: 2, moduleSlots: 3, chargeWindowModifier: 0.6, inertMaterialsModifier: 0.6 },
-  { id: 'hofstede-s1', name: 'Hofstede-S1', maxPower: 2100, resistModifier: 0.7, size: 1, moduleSlots: 1, instabilityModifier: 1.1, chargeRateModifier: 1.2, chargeWindowModifier: 1.6, inertMaterialsModifier: 0.7 },
-  { id: 'hofstede-s2', name: 'Hofstede-S2', maxPower: 3360, resistModifier: 0.7, size: 2, moduleSlots: 2, instabilityModifier: 1.1, chargeRateModifier: 1.2, chargeWindowModifier: 1.6, inertMaterialsModifier: 0.6 },
-  { id: 'impact-1', name: 'Impact I', maxPower: 2100, resistModifier: 1.1, size: 1, moduleSlots: 2, instabilityModifier: 0.9, chargeRateModifier: 0.6, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.7 },
-  { id: 'impact-2', name: 'Impact II', maxPower: 3360, resistModifier: 1.1, size: 2, moduleSlots: 3, instabilityModifier: 0.9, chargeRateModifier: 0.6, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.6 },
-  { id: 'klein-s1', name: 'Klein-S1', maxPower: 2220, resistModifier: 0.55, size: 1, moduleSlots: 0, instabilityModifier: 1.35, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.7 },
-  { id: 'klein-s2', name: 'Klein-S2', maxPower: 3600, resistModifier: 0.55, size: 2, moduleSlots: 1, instabilityModifier: 1.35, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.6 },
-  { id: 'lancet-mh1', name: 'Lancet MH1', maxPower: 2520, resistModifier: 1.0, size: 1, moduleSlots: 1, instabilityModifier: 0.9, chargeRateModifier: 1.4, chargeWindowModifier: 0.4, inertMaterialsModifier: 0.7 },
-  { id: 'lancet-mh2', name: 'Lancet MH2', maxPower: 3600, resistModifier: 1.0, size: 2, moduleSlots: 2, instabilityModifier: 0.9, chargeRateModifier: 1.4, chargeWindowModifier: 0.4, inertMaterialsModifier: 0.6 },
+  { id: 'pitman', name: 'Pitman', maxPower: 3150, resistModifier: 1.25, size: 0, moduleSlots: 2, instabilityModifier: 1.35, chargeRateModifier: 0.6, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.6, optimalDistance: 40, optimalDistanceMax: 45 },
+  { id: 'arbor-mh1', name: 'Arbor MH1', maxPower: 1890, resistModifier: 1.25, size: 1, moduleSlots: 1, instabilityModifier: 0.65, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.7, optimalDistance: 60, optimalDistanceMax: 180 },
+  { id: 'arbor-mh2', name: 'Arbor MH2', maxPower: 2400, resistModifier: 1.25, size: 2, moduleSlots: 2, instabilityModifier: 0.65, chargeWindowModifier: 1.4, inertMaterialsModifier: 0.6, optimalDistance: 90, optimalDistanceMax: 270 },
+  { id: 'helix-1', name: 'Helix I', maxPower: 3150, resistModifier: 0.7, size: 1, moduleSlots: 2, chargeWindowModifier: 0.6, inertMaterialsModifier: 0.7, optimalDistance: 15, optimalDistanceMax: 45 },
+  { id: 'helix-2', name: 'Helix II', maxPower: 4080, resistModifier: 0.7, size: 2, moduleSlots: 3, chargeWindowModifier: 0.6, inertMaterialsModifier: 0.6, optimalDistance: 30, optimalDistanceMax: 90 },
+  { id: 'hofstede-s1', name: 'Hofstede-S1', maxPower: 2100, resistModifier: 0.7, size: 1, moduleSlots: 1, instabilityModifier: 1.1, chargeRateModifier: 1.2, chargeWindowModifier: 1.6, inertMaterialsModifier: 0.7, optimalDistance: 45, optimalDistanceMax: 135 },
+  { id: 'hofstede-s2', name: 'Hofstede-S2', maxPower: 3360, resistModifier: 0.7, size: 2, moduleSlots: 2, instabilityModifier: 1.1, chargeRateModifier: 1.2, chargeWindowModifier: 1.6, inertMaterialsModifier: 0.6, optimalDistance: 60, optimalDistanceMax: 180 },
+  { id: 'impact-1', name: 'Impact I', maxPower: 2100, resistModifier: 1.1, size: 1, moduleSlots: 2, instabilityModifier: 0.9, chargeRateModifier: 0.6, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.7, optimalDistance: 45, optimalDistanceMax: 135 },
+  { id: 'impact-2', name: 'Impact II', maxPower: 3360, resistModifier: 1.1, size: 2, moduleSlots: 3, instabilityModifier: 0.9, chargeRateModifier: 0.6, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.6, optimalDistance: 60, optimalDistanceMax: 180 },
+  { id: 'klein-s1', name: 'Klein-S1', maxPower: 2220, resistModifier: 0.55, size: 1, moduleSlots: 0, instabilityModifier: 1.35, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.7, optimalDistance: 45, optimalDistanceMax: 135 },
+  { id: 'klein-s2', name: 'Klein-S2', maxPower: 3600, resistModifier: 0.55, size: 2, moduleSlots: 1, instabilityModifier: 1.35, chargeWindowModifier: 1.2, inertMaterialsModifier: 0.6, optimalDistance: 60, optimalDistanceMax: 180 },
+  { id: 'lancet-mh1', name: 'Lancet MH1', maxPower: 2520, resistModifier: 1.0, size: 1, moduleSlots: 1, instabilityModifier: 0.9, chargeRateModifier: 1.4, chargeWindowModifier: 0.4, inertMaterialsModifier: 0.7, optimalDistance: 30, optimalDistanceMax: 90 },
+  { id: 'lancet-mh2', name: 'Lancet MH2', maxPower: 3600, resistModifier: 1.0, size: 2, moduleSlots: 2, instabilityModifier: 0.9, chargeRateModifier: 1.4, chargeWindowModifier: 0.4, inertMaterialsModifier: 0.6, optimalDistance: 45, optimalDistanceMax: 135 },
 ];
 
 // Modules database - values from RedMonsterSC's Mining Cheatsheet

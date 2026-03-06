@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { Gadget } from "../types";
 import { GADGETS } from "../types";
 import { formatGadgetTooltip, getGadgetEffects } from "../utils/formatters";
@@ -27,10 +29,20 @@ export default function GadgetsPanel({
   onToggleGadget,
   onToggleGadgetInScan,
 }: GadgetsPanelProps) {
+  const [showHelp, setShowHelp] = useState(false);
+
   return (
     <>
       <div className="gadget-header-compact">
         <h2>Gadgets</h2>
+        <button
+          className="gadget-help-icon"
+          onClick={() => setShowHelp(true)}
+          type="button"
+          aria-label="Gadgets help"
+        >
+          ?
+        </button>
         <div className="gadget-count-stepper">
           <button
             className="stepper-btn"
@@ -128,6 +140,31 @@ export default function GadgetsPanel({
               : 'Add gadgets that were on the rock when you scanned'}
           </span>
         </div>
+      )}
+
+      {showHelp && createPortal(
+        <div
+          className="gadget-help-overlay"
+          onClick={() => setShowHelp(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gadget-help-title"
+        >
+          <div className="gadget-help-modal" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="close-button"
+              onClick={() => setShowHelp(false)}
+              type="button"
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <h2 id="gadget-help-title">Gadgets Help</h2>
+            <p><strong>Multiple Gadgets:</strong> The game only allows one gadget per player on a rock. To stack multiple gadgets, coordinate with your mining crew — each player attaches their gadget simultaneously on a countdown (e.g., “3… 2… 1… attach!”). Use the arrows to add a gadget slot for each crew member contributing.</p>
+            <p><strong>Effects:</strong> Gadget modifiers multiply together. Toggle individual gadgets on/off by clicking their effect boxes.</p>
+          </div>
+        </div>,
+        document.body
       )}
     </>
   );
