@@ -36,6 +36,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.2.2',
+    date: '2026-03-05',
+    improved: [
+      'Renamed Results tab to Overview for clarity',
+    ],
+  },
+
+  {
     version: '3.2.1',
     date: '2026-03-05',
     fixed: [
