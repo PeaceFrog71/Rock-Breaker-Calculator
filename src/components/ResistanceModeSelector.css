@@ -125,14 +125,15 @@
 .resistance-hint {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.35rem;
   padding: 0.35rem 0.5rem;
   background: rgba(255, 200, 0, 0.1);
   border-left: 2px solid var(--warning, #ffc800);
   border-radius: 3px;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   animation: slideIn 0.3s ease-out;
+  width: 80%;
 }
 
 @keyframes slideIn {
@@ -161,10 +162,10 @@
   border: 1px solid var(--warning, #ffc800);
   color: var(--warning, #ffc800);
   cursor: pointer;
-  font-size: 0.6rem;
+  font-size: 0.75rem;
   font-weight: bold;
-  width: 14px;
-  height: 14px;
+  width: 1.2rem;
+  height: 1.2rem;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -227,16 +228,19 @@
 
 .hint-btn {
   padding: 0.25rem 0.5rem;
-  font-size: 0.65rem;
-  background: var(--warning, #ffc800);
-  color: var(--bg-dark, #0a0a0a);
-  border: none;
+  font-size: 0.85rem;
+  background: rgba(255, 200, 0, 0.1);
+  color: var(--warning, #ffc800);
+  border: 1px solid rgba(255, 200, 0, 0.4);
   border-radius: 3px;
   cursor: pointer;
   font-weight: 600;
+  transition: all 0.2s ease;
 }
 
+
 .hint-btn:hover {
-  background: var(--accent-gold, #ffaa00);
+  background: rgba(255, 200, 0, 0.2);
+  border-color: var(--warning, #ffc800);
 }
 
