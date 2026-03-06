@@ -35,6 +35,16 @@ export interface ChangelogEntry {
 
 
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '3.2.1',
+    date: '2026-03-05',
+    fixed: [
+      'Laser scan hint button now matches Base/Modified toggle styling',
+    ],
+    improved: [
+      'Increased font sizes for Laser scan hint text, button, and help icon',
+    ],
+  },
 
   {
 
