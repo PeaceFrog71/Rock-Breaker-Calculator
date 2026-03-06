@@ -14,7 +14,7 @@ export default function TabNavigation({ activeTab, onTabChange }: TabNavigationP
         className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
         onClick={() => onTabChange('overview')}
       >
-        Results
+        Overview
       </button>
       <button
         className={`tab-button ${activeTab === 'mining' ? 'active' : ''}`}
