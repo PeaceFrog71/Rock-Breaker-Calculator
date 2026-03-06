@@ -565,8 +565,8 @@ button, .btn-primary, .btn-secondary {
 
 .gadget-header-compact {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 0.25rem;
   margin-bottom: 0.75rem;
   border-bottom: 2px solid var(--border);
   padding-bottom: 0.5rem;
@@ -578,10 +578,113 @@ button, .btn-primary, .btn-secondary {
   padding-bottom: 0;
 }
 
+/* Gadget help icon - matches resistance help icon pattern */
+.gadget-help-icon {
+  background: transparent;
+  border: 1px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  width: 1.4rem;
+  height: 1.4rem;
+  min-width: 1.4rem;
+  min-height: 1.4rem;
+  max-width: 1.4rem;
+  max-height: 1.4rem;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-left: 0.5rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gadget-help-icon:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  box-shadow: 0 0 8px rgba(0, 217, 255, 0.5);
+}
+
+/* Gadget help modal */
+.gadget-help-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  backdrop-filter: blur(4px);
+}
+
+.gadget-help-modal {
+  background: linear-gradient(135deg, rgba(10, 15, 25, 0.98) 0%, rgba(15, 20, 35, 0.98) 100%);
+  border: 2px solid var(--accent-cyan);
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
+              0 0 80px rgba(0, 217, 255, 0.1);
+}
+
+.gadget-help-modal .close-button {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: 2px solid var(--accent-cyan);
+  color: var(--accent-cyan);
+  font-size: 1.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  line-height: 1;
+  padding: 0;
+}
+
+.gadget-help-modal .close-button:hover {
+  background: var(--accent-cyan);
+  color: var(--bg-dark);
+  transform: rotate(90deg);
+  box-shadow: 0 0 15px var(--accent-cyan);
+}
+
+.gadget-help-modal h2 {
+  color: var(--accent-cyan);
+  font-size: 1.5rem;
+  margin: 0 0 1rem 0;
+  text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
+}
+
+.gadget-help-modal p {
+  color: var(--text-secondary);
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.gadget-help-modal p strong {
+  color: var(--text-primary);
+}
+
 .gadget-count-stepper {
   display: flex;
   align-items: center;
   gap: 0.1rem;
+  margin-left: auto;
 }
 
 .stepper-btn {

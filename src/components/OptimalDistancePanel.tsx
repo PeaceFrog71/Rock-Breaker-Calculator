@@ -42,7 +42,7 @@ export default function OptimalDistancePanel({
           </tr>
         </thead>
         <tbody>
-          {uniqueDistances.map((d, i) => (
+          {uniqueDistances.map((d) => (
             <tr key={d.laserName}>
               <td className="distance-col-label">{d.laserName}</td>
               <td className="distance-col-value distance-optimal">{d.optimalDistance}</td>

@@ -18,6 +18,17 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.1.2',
+    date: '2026-03-05',
+    new: [
+      'Help icon (?) next to Gadgets title — explains multi-player gadget coordination and effect stacking',
+    ],
+    improved: [
+      'Moved Scan Data help icon next to Base/Modified toggle for better discoverability',
+      'Enlarged Base/Modified toggle button and help icons for easier interaction',
+    ],
+  },
+  {
     version: '3.1.1',
     date: '2026-03-05',
     new: [
