@@ -631,6 +631,8 @@ button, .btn-primary, .btn-secondary {
   padding: 2rem;
   max-width: 500px;
   width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
   position: relative;
   box-shadow: 0 0 40px rgba(0, 217, 255, 0.3),
               0 0 80px rgba(0, 217, 255, 0.1);

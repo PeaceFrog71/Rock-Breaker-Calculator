@@ -72,13 +72,13 @@ export default function ResistanceModeSelector({
             {mode === 'base' ? 'Base' : 'Modified'}
           </button>
           <button
-              className="resistance-help-icon"
-              onClick={() => setShowHelp(true)}
-              type="button"
-              aria-label="Scan data help"
-            >
-              ?
-            </button>
+            className="resistance-help-icon"
+            onClick={() => setShowHelp(true)}
+            type="button"
+            aria-label="Scan data help"
+          >
+            ?
+          </button>
         </div>
 
         <label className="gadget-checkbox">
