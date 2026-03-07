@@ -28,6 +28,7 @@ dist-electron
 *.njsproj
 *.sln
 *.sw?
+docs/charge-rate-data-collection.xlsx
 
 # Build outputs
 release
