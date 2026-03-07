@@ -954,10 +954,12 @@ button, .btn-primary, .btn-secondary {
   cursor: not-allowed;
 }
 
-.mode-toggle {
+.mining-config-tab > .mode-toggle {
   display: flex;
   justify-content: center;
   gap: 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
   background: var(--bg-medium);
   padding: 0.5rem;
   border-radius: 8px;
@@ -1427,12 +1429,6 @@ button, .btn-primary, .btn-secondary {
     padding-bottom: 4rem !important;
   }
 
-  .mining-config-tab .mode-toggle {
-    width: calc(100vw - 9rem);
-    margin-left: auto;
-    margin-right: auto;
-  }
-
   .mining-config-tab .lasers-setup {
     width: calc(100vw - 9rem);
     margin-left: auto;
@@ -1487,12 +1483,6 @@ button, .btn-primary, .btn-secondary {
 
   .mining-config-tab {
     padding-bottom: 4rem !important;
-  }
-
-  .mining-config-tab .mode-toggle {
-    width: calc(100vw - 16rem);
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .mining-config-tab .lasers-setup {
