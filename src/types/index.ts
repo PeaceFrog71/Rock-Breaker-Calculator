@@ -180,8 +180,8 @@ export const MODULES: Module[] = [
 export const GADGETS: Gadget[] = [
   { id: 'none', name: '---', resistModifier: 1, description: 'No gadget' },
   { id: 'boremax', name: 'BoreMax', resistModifier: 1.1, instabilityModifier: 0.3, clusterModifier: 1.3, description: 'Reduces instability significantly. Increases clustering.' },
-  { id: 'okunis', name: 'Okunis', resistModifier: 1.5, chargeWindowModifier: 2.0, clusterModifier: 0.8, description: 'Doubles charge window. Reduces clustering.' },
-  { id: 'optimax', name: 'OptiMax', resistModifier: 0.7, instabilityModifier: 0.7, clusterModifier: 1.6, description: 'Reduces resistance and instability. Increases clustering significantly.' },
+  { id: 'okunis', name: 'Okunis', resistModifier: 1, chargeWindowModifier: 1.5, chargeRateModifier: 2.0, clusterModifier: 0.8, description: 'Increases charge window and charge rate. Reduces clustering.' },
+  { id: 'optimax', name: 'OptiMax', resistModifier: 0.7, chargeWindowModifier: 0.7, clusterModifier: 1.6, description: 'Reduces resistance and charge window. Increases clustering significantly.' },
   { id: 'sabir', name: 'Sabir', resistModifier: 0.5, instabilityModifier: 1.15, chargeWindowModifier: 1.5, description: 'Best resistance reduction. Slightly increases instability.' },
   { id: 'stalwart', name: 'Stalwart', resistModifier: 1.0, instabilityModifier: 0.65, chargeWindowModifier: 0.7, chargeRateModifier: 1.5, clusterModifier: 1.3, description: 'Reduces instability. Increases charge rate and clustering.' },
   { id: 'waveshift', name: 'Waveshift', resistModifier: 1.0, instabilityModifier: 0.65, chargeWindowModifier: 2.0, chargeRateModifier: 0.7, description: 'Doubles charge window. Reduces instability and charge rate.' },

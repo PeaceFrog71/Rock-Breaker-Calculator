@@ -36,6 +36,15 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.4.0',
+    date: '2026-03-08',
+    fixed: [
+      'Corrected Okunis gadget stats: removed incorrect resistance bonus, fixed charge window and charge rate values',
+      'Corrected OptiMax gadget stats: replaced incorrect instability modifier with correct charge window modifier',
+    ],
+  },
+
+  {
     version: '3.3.0',
     date: '2026-03-06',
     fixed: [
