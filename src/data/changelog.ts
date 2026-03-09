@@ -36,7 +36,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '3.3.1',
+    version: '3.4.0',
     date: '2026-03-08',
     fixed: [
       'Corrected Okunis gadget stats: removed incorrect resistance bonus, fixed charge window and charge rate values',
