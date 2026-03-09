@@ -36,6 +36,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.5.0',
+    date: '2026-03-09',
+    improved: [
+      'Renamed charge rate label from "Rate" to "Opt Rate" for clarity across all equipment displays',
+    ],
+  },
+
+  {
     version: '3.4.0',
     date: '2026-03-08',
     fixed: [

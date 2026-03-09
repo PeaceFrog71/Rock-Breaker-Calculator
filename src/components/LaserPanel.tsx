@@ -18,7 +18,7 @@ const getBestModifierDisplay = (module: Module): string => {
     [module.resistModifier !== 1 ? module.resistModifier : undefined, 'Res', true],
     [module.instabilityModifier, 'Inst', true],
     [module.chargeWindowModifier, 'Win', false],
-    [module.chargeRateModifier, 'Rate', false],
+    [module.chargeRateModifier, 'Opt Rate', false],
     [module.overchargeRateModifier, 'OC', true],
     [module.shatterDamageModifier, 'Shtr', true],
     [module.extractionPowerModifier, 'Ext', false],
@@ -76,8 +76,8 @@ const formatModuleOption = (module: Module): string => {
 
   // Charge Rate: higher is better
   if (module.chargeRateModifier !== undefined && module.chargeRateModifier !== 1) {
-    if (module.chargeRateModifier > 1) good.push(`Charge Rate: ${formatPct(module.chargeRateModifier)}`);
-    else bad.push(`Charge Rate: ${formatPct(module.chargeRateModifier)}`);
+    if (module.chargeRateModifier > 1) good.push(`Opt Rate: ${formatPct(module.chargeRateModifier)}`);
+    else bad.push(`Opt Rate: ${formatPct(module.chargeRateModifier)}`);
   }
 
   // Overcharge Rate: lower is better
@@ -147,8 +147,8 @@ const formatLaserHeadOption = (head: LaserHead) => {
 
   // Charge Rate: higher is better
   if (head.chargeRateModifier !== undefined && head.chargeRateModifier !== 1) {
-    if (head.chargeRateModifier > 1) good.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
-    else bad.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
+    if (head.chargeRateModifier > 1) good.push(`Opt Rate: ${formatPct(head.chargeRateModifier)}`);
+    else bad.push(`Opt Rate: ${formatPct(head.chargeRateModifier)}`);
   }
 
   // Charge Window: higher is better
@@ -181,7 +181,7 @@ const formatLaserHeadTooltip = (head: LaserHead) => {
     effects.push(`Inst: ${formatPct(head.instabilityModifier)}`);
   }
   if (head.chargeRateModifier !== undefined && head.chargeRateModifier !== 1) {
-    effects.push(`Rate: ${formatPct(head.chargeRateModifier)}`);
+    effects.push(`Opt Rate: ${formatPct(head.chargeRateModifier)}`);
   }
   if (head.chargeWindowModifier !== undefined && head.chargeWindowModifier !== 1) {
     effects.push(`Win: ${formatPct(head.chargeWindowModifier)}`);
@@ -377,7 +377,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
               )}
               {laser.laserHead.chargeRateModifier !== undefined && laser.laserHead.chargeRateModifier !== 1 && (
                 <span className={`effect-badge ${laser.laserHead.chargeRateModifier > 1 ? 'positive' : 'negative'}`}>
-                  Rate {formatPct(laser.laserHead.chargeRateModifier)}
+                  Opt Rate {formatPct(laser.laserHead.chargeRateModifier)}
                 </span>
               )}
               {laser.laserHead.chargeWindowModifier !== undefined && laser.laserHead.chargeWindowModifier !== 1 && (
@@ -453,7 +453,7 @@ export default function LaserPanel({ laserIndex, laser, selectedShip, onChange, 
                     )}
                     {module.chargeRateModifier !== undefined && module.chargeRateModifier !== 1 && (
                       <span className={`effect-badge ${isPositive(module.chargeRateModifier, false) ? 'positive' : 'negative'}`}>
-                        Rate {formatPct(module.chargeRateModifier)}
+                        Opt Rate {formatPct(module.chargeRateModifier)}
                       </span>
                     )}
                     {module.overchargeRateModifier !== undefined && module.overchargeRateModifier !== 1 && (

@@ -46,7 +46,7 @@ export function formatModuleTooltip(module: Module): string {
   addEffect(module.resistModifier, 'Resist');
   addEffect(module.instabilityModifier, 'Instability');
   addEffect(module.chargeWindowModifier, 'Window');
-  addEffect(module.chargeRateModifier, 'Rate');
+  addEffect(module.chargeRateModifier, 'Opt Rate');
   addEffect(module.overchargeRateModifier, 'Overcharge');
   addEffect(module.shatterDamageModifier, 'Shatter');
   addEffect(module.extractionPowerModifier, 'Extraction');
@@ -82,7 +82,7 @@ export function formatGadgetTooltip(gadget: Gadget | null): string {
   addEffect(gadget.resistModifier, 'Resist');
   addEffect(gadget.instabilityModifier, 'Instability');
   addEffect(gadget.chargeWindowModifier, 'Window');
-  addEffect(gadget.chargeRateModifier, 'Rate');
+  addEffect(gadget.chargeRateModifier, 'Opt Rate');
   addEffect(gadget.clusterModifier, 'Cluster');
 
   if (effects.length === 0) return `${gadget.name}: No stat effects`;
@@ -133,7 +133,7 @@ export function getGadgetEffects(gadget: Gadget | null): GadgetEffect[] {
   addEffect(gadget.resistModifier, 'Resist');
   addEffect(gadget.instabilityModifier, 'Instability');
   addEffect(gadget.chargeWindowModifier, 'Window');
-  addEffect(gadget.chargeRateModifier, 'Rate');
+  addEffect(gadget.chargeRateModifier, 'Opt Rate');
   addEffect(gadget.clusterModifier, 'Cluster');
 
   return effects;
