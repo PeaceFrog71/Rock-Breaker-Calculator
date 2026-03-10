@@ -8,7 +8,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 999;
+  z-index: 2147483646; /* Max int - 1; Ko-fi overlay hidden via body.drawer-open class */
 }
 
 /* Main drawer panel */
@@ -20,7 +20,7 @@
   background: rgba(13, 18, 41, 0.98);
   border: 1px solid var(--border);
   border-radius: 20px;
-  z-index: 1000;
+  z-index: 2147483647; /* Max int; Ko-fi overlay (same z-index) hidden via body.drawer-open class */
   display: flex;
   flex-direction: column;
   transition: transform 0.3s ease;
@@ -45,7 +45,7 @@
 /* Right drawer positioning */
 .mobile-drawer.right {
   right: 0;
-  bottom: 10%;
+  bottom: 2%;
   border-right: none;
   border-left: 1px solid var(--accent-cyan);
   transform: translateX(100%);
@@ -60,9 +60,9 @@
   left: 5%;
   right: 5%;
   bottom: 0;
-  top: auto;
+  top: 0;
   width: 90% !important;
-  height: 85vh;
+  height: auto;
   border-bottom: none;
   border-top: 1px solid var(--accent-cyan);
   border-radius: 20px 20px 0 0;
@@ -108,8 +108,6 @@
   border-radius: 4px;
   transition: all 0.2s ease;
 }
-
-
 
 /* Hide "Ship Library" h2 in bottom drawer (already shown in header) */
 .mobile-drawer.bottom .config-manager > h2 {
@@ -821,7 +819,7 @@
 
   /* Single ship Library bottom tab - taller with larger icon */
   .mobile-drawer-tab.bottom {
-    height: 4.125rem !important;  /* 50% increase from 2.75rem */
+    height: 4.125rem !important; /* 50% increase from 2.75rem */
   }
 
   .mobile-drawer-tab.bottom .mobile-drawer-tab-image {
