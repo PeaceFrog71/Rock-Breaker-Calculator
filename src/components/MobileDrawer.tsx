@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSwipeToClose } from '../hooks/useSwipeToClose';
 import './MobileDrawer.css';
 
@@ -25,27 +26,23 @@ export default function MobileDrawer({
 }: MobileDrawerProps) {
   const drawerRef = useSwipeToClose({ side, isOpen, onClose });
 
-  return (
-    <>
-      {/* Edge Tab - visible when drawer is closed */}
-      {!isOpen && (
-        <button
-          className={`mobile-drawer-tab ${side}`}
-          onClick={onOpen}
-          aria-label={`Open ${title || tabLabel}`}
-        >
-          {tabImage ? (
-            <img
-              src={tabImage}
-              alt={tabLabel}
-              className="mobile-drawer-tab-image"
-            />
-          ) : (
-            <span className="mobile-drawer-tab-text">{tabLabel}</span>
-          )}
-        </button>
-      )}
+  // Toggle body class to hide Ko-fi overlay when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add('drawer-open');
+    }
+    return () => {
+      // Only remove if no other drawers are open
+      const openDrawers = document.querySelectorAll('.mobile-drawer.open');
+      if (openDrawers.length === 0) {
+        document.body.classList.remove('drawer-open');
+      }
+    };
+  }, [isOpen]);
 
+  // Render backdrop and drawer via portal to escape all stacking contexts
+  const drawerContent = (
+    <>
       {/* Backdrop - visible when drawer is open */}
       {isOpen && (
         <div
@@ -90,6 +87,32 @@ export default function MobileDrawer({
           {children}
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Edge Tab - stays in normal DOM flow for positioning */}
+      {!isOpen && (
+        <button
+          className={`mobile-drawer-tab ${side}`}
+          onClick={onOpen}
+          aria-label={`Open ${title || tabLabel}`}
+        >
+          {tabImage ? (
+            <img
+              src={tabImage}
+              alt={tabLabel}
+              className="mobile-drawer-tab-image"
+            />
+          ) : (
+            <span className="mobile-drawer-tab-text">{tabLabel}</span>
+          )}
+        </button>
+      )}
+
+      {/* Portal: render backdrop + drawer directly on document.body to escape stacking contexts */}
+      {createPortal(drawerContent, document.body)}
     </>
   );
 }
