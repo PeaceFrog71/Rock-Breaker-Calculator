@@ -34,7 +34,7 @@ export default function MobileDrawer({
     return () => {
       // Only remove if no other drawers are open
       const openDrawers = document.querySelectorAll('.mobile-drawer.open');
-      if (openDrawers.length <= 1) {
+      if (openDrawers.length === 0) {
         document.body.classList.remove('drawer-open');
       }
     };
