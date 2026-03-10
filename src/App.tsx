@@ -724,63 +724,6 @@ function App() {
           {/* Overview Tab */}
           {activeTab === "overview" && (
             <div className={`overview-tab ${isMobile ? 'mobile-single-column' : ''}`}>
-              {/* Mobile Drawers - Rock and Gadgets on Overview tab */}
-              {isMobile && (
-                <>
-                  <MobileDrawer
-                    isOpen={rockDrawerOpen}
-                    onClose={() => setRockDrawerOpen(false)}
-                    onOpen={() => { setGadgetDrawerOpen(false); setRockDrawerOpen(true); }}
-                    side="left"
-                    title="Rock Properties"
-                    tabLabel="Rock"
-                    tabImage={rockLabelVertical}
-                  >
-                    <RockPropertiesPanel
-                      rock={rock}
-                      rockSlots={rockSlots}
-                      activeRockSlot={activeRockSlot}
-                      isRockAtDefaults={isRockAtDefaults}
-                      showResistanceHint={showResistanceHint}
-                      onRockChange={setRock}
-                      onResistanceChange={handleResistanceChange}
-                      onResistanceModeToggle={handleResistanceModeToggle}
-                      onGadgetInclusionToggle={handleGadgetInclusionToggle}
-                      onRockResetClear={handleRockResetClear}
-                      onRockSlotSwitch={handleRockSlotSwitch}
-                      onRegolithImport={() => setShowRegolithModal(true)}
-                    />
-                  </MobileDrawer>
-                  <MobileDrawer
-                    isOpen={gadgetDrawerOpen}
-                    onClose={() => setGadgetDrawerOpen(false)}
-                    onOpen={() => { setRockDrawerOpen(false); setGadgetDrawerOpen(true); }}
-                    side="right"
-                    title=""
-                    tabLabel="Gadgets"
-                    tabImage={gadgetLabelVertical}
-                  >
-                    <OptimalDistancePanel
-                      config={!useMiningGroup ? config : undefined}
-                      shipId={!useMiningGroup ? selectedShip.id : undefined}
-                      miningGroup={useMiningGroup ? miningGroup : undefined}
-                    />
-                    <GadgetsPanel
-                      gadgets={gadgets}
-                      gadgetCount={gadgetCount}
-                      gadgetEnabled={gadgetEnabled}
-                      gadgetInScan={gadgetInScan}
-                      includeGadgetsInScan={rock.includeGadgetsInScan || false}
-                      onGadgetCountChange={setGadgetCount}
-                      onGadgetsChange={setGadgets}
-                      onGadgetInScanChange={setGadgetInScan}
-                      onToggleGadget={handleToggleGadget}
-                      onToggleGadgetInScan={handleToggleGadgetInScan}
-                    />
-                  </MobileDrawer>
-                </>
-              )}
-
               {/* Desktop Left Sidebar - Rock Parameters */}
               {!isMobile && (
                 <div className="overview-sidebar overview-left">
@@ -869,69 +812,6 @@ function App() {
           {/* Mining Config Tab */}
           {activeTab === "mining" && (
             <div className="mining-config-tab">
-              {/* Mobile Library Drawer - Single Ship mode only (bottom) */}
-              {isMobile && !useMiningGroup && (
-                <MobileDrawer
-                  isOpen={libraryDrawerOpen}
-                  onClose={() => setLibraryDrawerOpen(false)}
-                  onOpen={() => setLibraryDrawerOpen(true)}
-                  side="bottom"
-                  title="Ship Library"
-                  tabLabel="Library"
-                  tabImage={shipLibraryLabelHorz}
-                >
-                  <ConfigManager
-                    currentShip={selectedShip}
-                    currentConfig={config}
-                    currentConfigName={currentConfigName}
-                    onLoad={handleLoadConfiguration}
-                    onAfterLoad={() => setLibraryDrawerOpen(false)}
-                    hideSaveButton={true}
-                  />
-                </MobileDrawer>
-              )}
-
-              {/* Mobile Library Drawers - Mining Group mode (left/right) */}
-              {isMobile && useMiningGroup && (
-                <>
-                  <MobileDrawer
-                    isOpen={shipLibraryDrawerOpen}
-                    onClose={() => setShipLibraryDrawerOpen(false)}
-                    onOpen={() => { setGroupLibraryDrawerOpen(false); setShipLibraryDrawerOpen(true); }}
-                    side="left"
-                    title="Ship Library"
-                    tabLabel="Ship Library"
-                    tabImage={shipLibraryLabelVertical}
-                  >
-                    <ConfigManager
-                      onAddToGroup={(shipInstance) => {
-                        if (miningGroup.ships.length >= 4) {
-                          setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
-                          return;
-                        }
-                        shipInstance.isActive = true;
-                        setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
-                      }}
-                      onAfterLoad={() => setShipLibraryDrawerOpen(false)}
-                    />
-                  </MobileDrawer>
-                  <MobileDrawer
-                    isOpen={groupLibraryDrawerOpen}
-                    onClose={() => setGroupLibraryDrawerOpen(false)}
-                    onOpen={() => { setShipLibraryDrawerOpen(false); setGroupLibraryDrawerOpen(true); }}
-                    side="right"
-                    title="Group Library"
-                    tabLabel="Group Library"
-                    tabImage={groupLibraryLabelVertical}
-                  >
-                    <MiningGroupManager
-                      onLoad={setMiningGroup}
-                      onAfterLoad={() => setGroupLibraryDrawerOpen(false)}
-                    />
-                  </MobileDrawer>
-                </>
-              )}
-
               {/* Mode toggle */}
               <div className="mode-toggle">
                 <button
@@ -1100,6 +980,124 @@ function App() {
         onClose={() => setShowProfileModal(false)}
         initialTab={profileInitialTab}
       />
+
+      {/* Mobile Drawers - rendered at root level to escape tab stacking contexts (animation creates stacking context) */}
+      {/* Overview tab drawers: Rock Properties (left) and Gadgets (right) */}
+      {isMobile && activeTab === "overview" && (
+        <>
+          <MobileDrawer
+            isOpen={rockDrawerOpen}
+            onClose={() => setRockDrawerOpen(false)}
+            onOpen={() => { setGadgetDrawerOpen(false); setRockDrawerOpen(true); }}
+            side="left"
+            title="Rock Properties"
+            tabLabel="Rock"
+            tabImage={rockLabelVertical}
+          >
+            <RockPropertiesPanel
+              rock={rock}
+              rockSlots={rockSlots}
+              activeRockSlot={activeRockSlot}
+              isRockAtDefaults={isRockAtDefaults}
+              showResistanceHint={showResistanceHint}
+              onRockChange={setRock}
+              onResistanceChange={handleResistanceChange}
+              onResistanceModeToggle={handleResistanceModeToggle}
+              onGadgetInclusionToggle={handleGadgetInclusionToggle}
+              onRockResetClear={handleRockResetClear}
+              onRockSlotSwitch={handleRockSlotSwitch}
+              onRegolithImport={() => setShowRegolithModal(true)}
+            />
+          </MobileDrawer>
+          <MobileDrawer
+            isOpen={gadgetDrawerOpen}
+            onClose={() => setGadgetDrawerOpen(false)}
+            onOpen={() => { setRockDrawerOpen(false); setGadgetDrawerOpen(true); }}
+            side="right"
+            title=""
+            tabLabel="Gadgets"
+            tabImage={gadgetLabelVertical}
+          >
+            <OptimalDistancePanel
+              config={!useMiningGroup ? config : undefined}
+              shipId={!useMiningGroup ? selectedShip.id : undefined}
+              miningGroup={useMiningGroup ? miningGroup : undefined}
+            />
+            <GadgetsPanel
+              gadgets={gadgets}
+              gadgetCount={gadgetCount}
+              gadgetEnabled={gadgetEnabled}
+              gadgetInScan={gadgetInScan}
+              includeGadgetsInScan={rock.includeGadgetsInScan || false}
+              onGadgetCountChange={setGadgetCount}
+              onGadgetsChange={setGadgets}
+              onGadgetInScanChange={setGadgetInScan}
+              onToggleGadget={handleToggleGadget}
+              onToggleGadgetInScan={handleToggleGadgetInScan}
+            />
+          </MobileDrawer>
+        </>
+      )}
+      {/* Mining Config tab drawers: Ship Library (bottom/left) and Group Library (right) */}
+      {isMobile && activeTab === "mining" && !useMiningGroup && (
+        <MobileDrawer
+          isOpen={libraryDrawerOpen}
+          onClose={() => setLibraryDrawerOpen(false)}
+          onOpen={() => setLibraryDrawerOpen(true)}
+          side="bottom"
+          title="Ship Library"
+          tabLabel="Library"
+          tabImage={shipLibraryLabelHorz}
+        >
+          <ConfigManager
+            currentShip={selectedShip}
+            currentConfig={config}
+            currentConfigName={currentConfigName}
+            onLoad={handleLoadConfiguration}
+            onAfterLoad={() => setLibraryDrawerOpen(false)}
+            hideSaveButton={true}
+          />
+        </MobileDrawer>
+      )}
+      {isMobile && activeTab === "mining" && useMiningGroup && (
+        <>
+          <MobileDrawer
+            isOpen={shipLibraryDrawerOpen}
+            onClose={() => setShipLibraryDrawerOpen(false)}
+            onOpen={() => { setGroupLibraryDrawerOpen(false); setShipLibraryDrawerOpen(true); }}
+            side="left"
+            title="Ship Library"
+            tabLabel="Ship Library"
+            tabImage={shipLibraryLabelVertical}
+          >
+            <ConfigManager
+              onAddToGroup={(shipInstance) => {
+                if (miningGroup.ships.length >= 4) {
+                  setAlertDialog({ title: 'Fleet Full', message: 'Maximum of 4 ships allowed in mining group.' });
+                  return;
+                }
+                shipInstance.isActive = true;
+                setMiningGroup({ ...miningGroup, ships: [...miningGroup.ships, shipInstance] });
+              }}
+              onAfterLoad={() => setShipLibraryDrawerOpen(false)}
+            />
+          </MobileDrawer>
+          <MobileDrawer
+            isOpen={groupLibraryDrawerOpen}
+            onClose={() => setGroupLibraryDrawerOpen(false)}
+            onOpen={() => { setShipLibraryDrawerOpen(false); setGroupLibraryDrawerOpen(true); }}
+            side="right"
+            title="Group Library"
+            tabLabel="Group Library"
+            tabImage={groupLibraryLabelVertical}
+          >
+            <MiningGroupManager
+              onLoad={setMiningGroup}
+              onAfterLoad={() => setGroupLibraryDrawerOpen(false)}
+            />
+          </MobileDrawer>
+        </>
+      )}
 
       {/* Community Logo - desktop: lower right, tablet: lower left, phone: in data drawer */}
       {!(isMobile && isPhone) && (

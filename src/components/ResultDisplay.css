@@ -22,7 +22,7 @@
 
 /* Background layer using image */
 .rock-display::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -38,12 +38,12 @@
 
 /* Starfield background */
 .rock-display.bg-starfield::before {
-  background-image: url('../assets/starfield_background_1920x1080.png');
+  background-image: url("../assets/starfield_background_1920x1080.png");
 }
 
 /* Landscape background */
 .rock-display.bg-landscape::before {
-  background-image: url('../assets/landscape2.png');
+  background-image: url("../assets/landscape2.png");
   background-position: center bottom;
 }
 
@@ -180,7 +180,8 @@
 }
 
 .ship-image.has-active-lasers {
-  filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.8)) drop-shadow(0 0 25px rgba(255, 170, 0, 0.5));
+  filter: drop-shadow(0 0 15px rgba(255, 193, 7, 0.8))
+    drop-shadow(0 0 25px rgba(255, 170, 0, 0.5));
 }
 
 .ship-label {
@@ -254,7 +255,8 @@
 }
 
 @keyframes module-pulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
     border-color: var(--warning);
   }
@@ -306,7 +308,8 @@
 }
 
 .laser-beam line {
-  filter: drop-shadow(0 0 4px var(--warning)) drop-shadow(0 0 8px rgba(255, 170, 0, 0.4));
+  filter: drop-shadow(0 0 4px var(--warning))
+    drop-shadow(0 0 8px rgba(255, 170, 0, 0.4));
 }
 
 .laser-beam-gif {
@@ -415,11 +418,14 @@
 }
 
 .rock-symbol.trembling {
-  animation: tremble 1s infinite, overcharge-pulse-color 1s ease-in-out infinite !important;
+  animation:
+    tremble 1s infinite,
+    overcharge-pulse-color 1s ease-in-out infinite !important;
 }
 
 @keyframes tremble {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0);
   }
   10% {
@@ -611,13 +617,19 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 /* Overcharge warning animation - color pulse between red and green */
 @keyframes overcharge-pulse-color {
-  0%, 100% {
+  0%,
+  100% {
     color: #ff3366;
   }
   50% {
@@ -779,11 +791,16 @@
 }
 
 @keyframes pulse-critical-overcharge {
-  0%, 100% {
-    box-shadow: 0 4px 20px rgba(255, 51, 102, 0.4), 0 0 30px rgba(255, 51, 102, 0.3);
+  0%,
+  100% {
+    box-shadow:
+      0 4px 20px rgba(255, 51, 102, 0.4),
+      0 0 30px rgba(255, 51, 102, 0.3);
   }
   50% {
-    box-shadow: 0 4px 30px rgba(255, 51, 102, 0.8), 0 0 50px rgba(255, 51, 102, 0.6);
+    box-shadow:
+      0 4px 30px rgba(255, 51, 102, 0.8),
+      0 0 50px rgba(255, 51, 102, 0.6);
   }
 }
 
@@ -892,7 +909,8 @@
 }
 
 @keyframes pulse-yellow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 15px rgba(255, 170, 0, 0.6);
   }
   50% {
@@ -906,11 +924,16 @@
 }
 
 @keyframes pulse-red-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(255, 51, 102, 0.5), inset 0 0 10px rgba(255, 51, 102, 0.2);
+  0%,
+  100% {
+    box-shadow:
+      0 0 20px rgba(255, 51, 102, 0.5),
+      inset 0 0 10px rgba(255, 51, 102, 0.2);
   }
   50% {
-    box-shadow: 0 0 40px rgba(255, 51, 102, 0.9), inset 0 0 15px rgba(255, 51, 102, 0.4);
+    box-shadow:
+      0 0 40px rgba(255, 51, 102, 0.9),
+      inset 0 0 15px rgba(255, 51, 102, 0.4);
   }
 }
 
@@ -1079,17 +1102,27 @@
 
 .scanning-sensor.selected {
   opacity: 1;
-  filter: brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9));
+  filter: brightness(1.8) hue-rotate(90deg)
+    drop-shadow(0 0 8px rgba(0, 255, 136, 1))
+    drop-shadow(0 0 12px rgba(0, 255, 136, 1))
+    drop-shadow(0 0 16px rgba(0, 255, 136, 0.9));
 }
 
 @keyframes scanningPulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(-50%, -50%) scale(1);
-    filter: brightness(1.8) hue-rotate(90deg) drop-shadow(0 0 8px rgba(0, 255, 136, 1)) drop-shadow(0 0 12px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 0.9));
+    filter: brightness(1.8) hue-rotate(90deg)
+      drop-shadow(0 0 8px rgba(0, 255, 136, 1))
+      drop-shadow(0 0 12px rgba(0, 255, 136, 1))
+      drop-shadow(0 0 16px rgba(0, 255, 136, 0.9));
   }
   50% {
     transform: translate(-50%, -50%) scale(1.15);
-    filter: brightness(2) hue-rotate(90deg) drop-shadow(0 0 10px rgba(0, 255, 136, 1)) drop-shadow(0 0 16px rgba(0, 255, 136, 1)) drop-shadow(0 0 20px rgba(0, 255, 136, 0.9));
+    filter: brightness(2) hue-rotate(90deg)
+      drop-shadow(0 0 10px rgba(0, 255, 136, 1))
+      drop-shadow(0 0 16px rgba(0, 255, 136, 1))
+      drop-shadow(0 0 20px rgba(0, 255, 136, 0.9));
   }
 }
 
@@ -1128,7 +1161,8 @@
 }
 
 @keyframes messagePulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
     border-color: var(--accent-cyan);
   }
@@ -1139,7 +1173,8 @@
 }
 
 @keyframes iconRotate {
-  0%, 100% {
+  0%,
+  100% {
     transform: rotate(0deg);
   }
   25% {
@@ -1190,7 +1225,6 @@
   .ship-icon.mobile-tappable {
     cursor: pointer;
   }
-
 }
 
 /* Ship tap hint - anchored to .rock-display container, gated by localStorage in JS */
@@ -1206,7 +1240,9 @@
   padding: clamp(0.25rem, 0.8vw, 0.5rem) clamp(0.75rem, 2.5vw, 1.25rem);
   border-radius: 12px;
   border: 1px solid rgba(0, 217, 255, 0.3);
-  animation: hintFadeIn 0.5s ease-out, hintPulse 2s ease-in-out 0.5s infinite;
+  animation:
+    hintFadeIn 0.5s ease-out,
+    hintPulse 2s ease-in-out 0.5s infinite;
   white-space: nowrap;
   pointer-events: none;
   z-index: 10;
@@ -1214,13 +1250,24 @@
 }
 
 @keyframes hintFadeIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
-  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 @keyframes hintPulse {
-  0%, 100% { opacity: 0.8; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Hide hint on desktop - ships aren't tappable there */
@@ -1345,7 +1392,7 @@
   /* Smaller rock container for multi-ship visibility */
   .rock-container {
     min-height: clamp(150px, 30vh, 250px) !important;
-    width: 100% !important;  /* Prevent content-based sizing - fixes ship movement with rock size */
+    width: 100% !important; /* Prevent content-based sizing - fixes ship movement with rock size */
   }
 
   /* Single ship mode: rock positioning handled by JS inline style */
@@ -1426,7 +1473,7 @@
    NOTE: Some styles also appear in the DevTools-only query near EOF for additional
    rock-display sizing that only applies in viewport-based detection. */
 @media (orientation: portrait) and (pointer: coarse) and (min-width: 768px),
-       (orientation: portrait) and (min-width: 768px) and (max-width: 1180px) {
+  (orientation: portrait) and (min-width: 768px) and (max-width: 1180px) {
   /* Single ship mode: constrain entire results column to fit between drawer tabs */
   .result-display:not(:has(.multi-ship-mode)) {
     width: calc(100vw - 11rem) !important;

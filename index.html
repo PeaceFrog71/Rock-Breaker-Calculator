@@ -160,6 +160,13 @@
         line-height: 1.3;
         text-align: center;
       }
+      /* Hide Ko-fi when a mobile drawer is open */
+      body.drawer-open .kofi-overlay-btn,
+      body.drawer-open .floatingchat-container-wrap,
+      body.drawer-open .floatingchat-container-wrap-mobi,
+      body.drawer-open [class*="floatingchat-container-wrap"] {
+        display: none !important;
+      }
       /* On mobile: hide desktop Ko-fi overlay */
       @media screen and (max-width: 800px) {
         .floatingchat-container-wrap,
