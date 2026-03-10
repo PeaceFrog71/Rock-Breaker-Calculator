@@ -36,7 +36,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '3.5.1',
+    version: '3.6.0',
     date: '2026-03-10',
     fixed: [
       'Slide-out trays (Rock Properties, Gadgets, Ship Library) now render above all background elements including Ko-fi button and title bar',
