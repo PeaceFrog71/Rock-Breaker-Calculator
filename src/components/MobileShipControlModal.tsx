@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import type { ShipInstance, MiningConfiguration, Module, Rock } from '../types';
 import './MobileShipControlModal.css';
 
@@ -94,7 +95,7 @@ export default function MobileShipControlModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className="mobile-modal-overlay" onClick={onClose}>
       <div className="mobile-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="mobile-modal-header">
@@ -231,6 +232,7 @@ export default function MobileShipControlModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
