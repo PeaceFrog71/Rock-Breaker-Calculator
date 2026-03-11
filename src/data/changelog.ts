@@ -36,6 +36,25 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.7.0',
+    date: '2026-03-11',
+    fixed: [
+      'Ship control popup now renders above the title bar on all mobile devices',
+    ],
+  },
+
+  {
+    version: '3.6.1',
+    date: '2026-03-11',
+    fixed: [
+      'Ship control popup and laser select dropdowns no longer extend behind side drawer tabs on mobile and tablet',
+    ],
+    improved: [
+      'MOLE laser buttons in mobile popup now show "L1 - MANNED" in a single compact button',
+    ],
+  },
+
+  {
     version: '3.6.0',
     date: '2026-03-10',
     fixed: [

@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import type { ShipInstance, MiningConfiguration, Module, Rock } from '../types';
 import './MobileShipControlModal.css';
 
@@ -94,7 +95,7 @@ export default function MobileShipControlModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className="mobile-modal-overlay" onClick={onClose}>
       <div className="mobile-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="mobile-modal-header">
@@ -127,14 +128,13 @@ export default function MobileShipControlModal({
 
                   return (
                     <div key={laserIndex} className="mobile-laser-row">
-                      {/* Row 1: Laser label + Manned button */}
+                      {/* Row 1: Combined laser label + Manned button */}
                       <div className="mobile-laser-manned-row">
-                        <span className="mobile-laser-label">L{laserIndex + 1}</span>
                         <button
                           className={`mobile-toggle-button manned ${isManned ? 'active' : 'inactive'}`}
                           onClick={() => handleToggleLaser(laserIndex)}
                         >
-                          {isManned ? 'MANNED' : 'OFF'}
+                          L{laserIndex + 1} - {isManned ? 'MANNED' : 'UNMANNED'}
                         </button>
                       </div>
                       {/* Row 2: Module chips */}
@@ -232,6 +232,7 @@ export default function MobileShipControlModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
