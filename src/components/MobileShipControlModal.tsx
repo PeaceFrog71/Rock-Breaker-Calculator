@@ -127,14 +127,13 @@ export default function MobileShipControlModal({
 
                   return (
                     <div key={laserIndex} className="mobile-laser-row">
-                      {/* Row 1: Laser label + Manned button */}
+                      {/* Row 1: Combined laser label + Manned button */}
                       <div className="mobile-laser-manned-row">
-                        <span className="mobile-laser-label">L{laserIndex + 1}</span>
                         <button
                           className={`mobile-toggle-button manned ${isManned ? 'active' : 'inactive'}`}
                           onClick={() => handleToggleLaser(laserIndex)}
                         >
-                          {isManned ? 'MANNED' : 'OFF'}
+                          L{laserIndex + 1} - {isManned ? 'MANNED' : 'UNMANNED'}
                         </button>
                       </div>
                       {/* Row 2: Module chips */}

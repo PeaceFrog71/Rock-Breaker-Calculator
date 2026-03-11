@@ -1169,6 +1169,11 @@ button,
     box-sizing: border-box !important;
   }
 
+  /* Constrain form selects to fit between drawer tabs (6rem each side) */
+  .form-group select {
+    max-width: calc(100vw - 12.5rem) !important; /* 2 × 6rem tabs + 0.5rem gap */
+  }
+
   /* Ensure drawer tabs have vertical text on old browsers */
   .mobile-drawer-tab.left,
   .mobile-drawer-tab.right {
@@ -1392,6 +1397,18 @@ button,
   /* Panel headings - tighter on mobile */
   .panel h2 {
     margin-bottom: 0.5rem !important;
+  }
+
+  /* Constrain form selects to fit between drawer tabs (3rem each side) */
+  .form-group select {
+    max-width: calc(100vw - 6.5rem) !important; /* 2 × 3rem tabs + 0.5rem gap */
+  }
+}
+
+/* Tablet portrait - constrain selects for 4.5rem drawer tabs */
+@media (orientation: portrait) and (pointer: coarse) and (min-width: 768px) {
+  .form-group select {
+    max-width: calc(100vw - 9.5rem) !important; /* 2 × 4.5rem tabs + 0.5rem gap */
   }
 }
 
