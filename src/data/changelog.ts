@@ -36,6 +36,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.6.2',
+    date: '2026-03-11',
+    fixed: [
+      'Ship control popup now renders above the title bar on all mobile devices',
+    ],
+  },
+
+  {
     version: '3.6.1',
     date: '2026-03-11',
     fixed: [
