@@ -34,25 +34,45 @@
 
     <!-- JSON-LD Structured Data -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "Rock Breaker Calculator",
-      "description": "Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration",
-      "url": "https://rockbreaker.peacefroggaming.com/",
-      "applicationCategory": "GameApplication",
-      "operatingSystem": "Web Browser",
-      "author": {
-        "@type": "Organization",
-        "name": "PeaceFrog Gaming",
-        "url": "https://peacefroggaming.com"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Rock Breaker Calculator",
+        "description": "Star Citizen mining calculator - determine if your ship can break rocks based on mass, resistance, and equipment configuration",
+        "url": "https://rockbreaker.peacefroggaming.com/",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Web Browser",
+        "author": {
+          "@type": "Organization",
+          "name": "PeaceFrog Gaming",
+          "url": "https://peacefroggaming.com"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
       },
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "PeaceFrog Gaming",
+            "item": "https://peacefroggaming.com/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Rock Breaker Calculator",
+            "item": "https://rockbreaker.peacefroggaming.com/"
+          }
+        ]
       }
-    }
+    ]
     </script>
 
     <!-- RSI-style fonts -->
