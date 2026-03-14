@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateBreakability, calculateGroupBreakability, calculateLaserPower, calculateLaserInstabilityModifier, calculateInstability, calculateEffectiveInstability } from './calculator';
+import { calculateBreakability, calculateGroupBreakability, calculateLaserPower, calculateLaserInstabilityModifier, calculateInstability, calculateEffectiveInstability, calculateLaserChargeRateModifier, calculateLaserChargeWindowModifier, calculateConfigChargeRateModifier, calculateConfigChargeWindowModifier, calculateGadgetChargeRateModifier, calculateGadgetChargeWindowModifier, calculateChargeModifiers, calculateGroupChargeModifiers } from './calculator';
 import { LASER_HEADS, MODULES, GADGETS, SHIPS } from '../types';
 import type { MiningConfiguration, Rock, MiningGroup, ShipInstance, LaserConfiguration } from '../types';
 
@@ -2228,5 +2228,242 @@ describe('Regression: Issue #252 - Cleared rock data should not show break resul
     // the display layer must guard against mass <= 0 (issue #252)
     expect(result.baseLPNeeded).toBe(0);
     expect(result.canBreak).toBe(true);
+  });
+});
+
+// ─── Charge Rate / Charge Window Modifier Tests ──────────────────────
+
+describe('Charge Rate & Window Modifier Calculations', () => {
+  describe('calculateLaserChargeRateModifier', () => {
+    it('should return laser head chargeRateModifier with no modules', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const laser: LaserConfiguration = {
+        laserHead: lancetMH2,
+        modules: [],
+      };
+      expect(calculateLaserChargeRateModifier(laser)).toBeCloseTo(1.4, 2);
+    });
+
+    it('should default to 1.0 when laser has no chargeRateModifier', () => {
+      const helixI = LASER_HEADS.find(l => l.id === 'helix-1')!;
+      const laser: LaserConfiguration = {
+        laserHead: helixI,
+        modules: [],
+      };
+      expect(calculateLaserChargeRateModifier(laser)).toBeCloseTo(1.0, 2);
+    });
+
+    it('should stack module charge rate percentages additively then multiply by laser', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const torrentIII = MODULES.find(m => m.id === 'torrent-3')!;
+      const vaux = MODULES.find(m => m.id === 'vaux')!;
+      const laser: LaserConfiguration = {
+        laserHead: lancetMH2,
+        modules: [torrentIII, vaux],
+      };
+      // Torrent III: +40%, Vaux: -20% → sum = +20% → 1.20 multiplier
+      // Lancet MH2: 1.4 × 1.20 = 1.68
+      expect(calculateLaserChargeRateModifier(laser)).toBeCloseTo(1.68, 2);
+    });
+
+    it('should skip active modules when passiveOnly is true', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const torpid = MODULES.find(m => m.id === 'torpid')!;
+      const laser: LaserConfiguration = {
+        laserHead: lancetMH2,
+        modules: [torpid],
+        moduleActive: [true],
+      };
+      // With active: Torpid +60% → 1.4 × 1.60 = 2.24
+      expect(calculateLaserChargeRateModifier(laser)).toBeCloseTo(2.24, 2);
+      // passiveOnly: skip Torpid → just laser 1.4
+      expect(calculateLaserChargeRateModifier(laser, true)).toBeCloseTo(1.4, 2);
+    });
+
+    it('should return 1 for null laser head', () => {
+      const laser: LaserConfiguration = {
+        laserHead: null,
+        modules: [],
+      };
+      expect(calculateLaserChargeRateModifier(laser)).toBe(1);
+    });
+  });
+
+  describe('calculateLaserChargeWindowModifier', () => {
+    it('should return laser head chargeWindowModifier with no modules', () => {
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [],
+      };
+      expect(calculateLaserChargeWindowModifier(laser)).toBeCloseTo(1.6, 2);
+    });
+
+    it('should stack module charge window percentages additively then multiply by laser', () => {
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const focusIII = MODULES.find(m => m.id === 'focus-3')!;
+      const xtrXL = MODULES.find(m => m.id === 'xtr-xl')!;
+      const laser: LaserConfiguration = {
+        laserHead: hofstedeS2,
+        modules: [focusIII, xtrXL],
+      };
+      // Focus III: +40%, XTR-XL: +25% → sum = +65% → 1.65 multiplier
+      // Hofstede-S2: 1.6 × 1.65 = 2.64
+      expect(calculateLaserChargeWindowModifier(laser)).toBeCloseTo(2.64, 2);
+    });
+
+    it('should return smallest window for Lancet with Rieger', () => {
+      const lancetMH1 = LASER_HEADS.find(l => l.id === 'lancet-mh1')!;
+      const rieger = MODULES.find(m => m.id === 'rieger')!;
+      const laser: LaserConfiguration = {
+        laserHead: lancetMH1,
+        modules: [rieger],
+      };
+      // Rieger: -10% → 0.90 multiplier
+      // Lancet MH1: 0.4 × 0.90 = 0.36
+      expect(calculateLaserChargeWindowModifier(laser)).toBeCloseTo(0.36, 2);
+    });
+  });
+
+  describe('calculateConfigChargeRateModifier', () => {
+    it('should multiply charge rate modifiers across multiple MOLE lasers', () => {
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: hofstedeS2, modules: [], isManned: true },
+          { laserHead: hofstedeS2, modules: [], isManned: true },
+          { laserHead: null, modules: [], isManned: false },
+        ],
+      };
+      // Two Hofstede-S2 (1.2 each): 1.2 × 1.2 = 1.44
+      expect(calculateConfigChargeRateModifier(config, 'mole')).toBeCloseTo(1.44, 2);
+    });
+
+    it('should ignore unmanned MOLE lasers', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const config: MiningConfiguration = {
+        lasers: [
+          { laserHead: lancetMH2, modules: [], isManned: true },
+          { laserHead: lancetMH2, modules: [], isManned: false },
+          { laserHead: null, modules: [], isManned: false },
+        ],
+      };
+      // Only one manned Lancet: 1.4
+      expect(calculateConfigChargeRateModifier(config, 'mole')).toBeCloseTo(1.4, 2);
+    });
+  });
+
+  describe('calculateGadgetChargeRateModifier', () => {
+    it('should return gadget charge rate modifier for Okunis', () => {
+      const okunis = GADGETS.find(g => g.id === 'okunis')!;
+      expect(calculateGadgetChargeRateModifier([okunis])).toBeCloseTo(2.0, 2);
+    });
+
+    it('should multiply multiple gadget modifiers', () => {
+      const stalwart = GADGETS.find(g => g.id === 'stalwart')!;
+      const okunis = GADGETS.find(g => g.id === 'okunis')!;
+      // Stalwart (1.5) × Okunis (2.0) = 3.0
+      expect(calculateGadgetChargeRateModifier([stalwart, okunis])).toBeCloseTo(3.0, 2);
+    });
+
+    it('should return 1 for gadgets without chargeRateModifier', () => {
+      const sabir = GADGETS.find(g => g.id === 'sabir')!;
+      expect(calculateGadgetChargeRateModifier([sabir])).toBe(1);
+    });
+
+    it('should return 1 for all-null gadgets', () => {
+      expect(calculateGadgetChargeRateModifier([null, null, null])).toBe(1);
+    });
+  });
+
+  describe('calculateGadgetChargeWindowModifier', () => {
+    it('should return gadget charge window modifier for Waveshift', () => {
+      const waveshift = GADGETS.find(g => g.id === 'waveshift')!;
+      expect(calculateGadgetChargeWindowModifier([waveshift])).toBeCloseTo(2.0, 2);
+    });
+
+    it('should return 1 for gadgets without chargeWindowModifier', () => {
+      const boremax = GADGETS.find(g => g.id === 'boremax')!;
+      expect(calculateGadgetChargeWindowModifier([boremax])).toBe(1);
+    });
+  });
+
+  describe('calculateChargeModifiers (full integration)', () => {
+    it('should combine equipment and gadget modifiers for charge rate', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const torrentIII = MODULES.find(m => m.id === 'torrent-3')!;
+      const okunis = GADGETS.find(g => g.id === 'okunis')!;
+      const config: MiningConfiguration = {
+        lasers: [{
+          laserHead: lancetMH2,
+          modules: [torrentIII, null],
+        }],
+      };
+      const result = calculateChargeModifiers(config, [okunis]);
+      // Equipment: Lancet (1.4) × (1 + 0.40) = 1.4 × 1.4 = 1.96
+      // Gadget: Okunis (2.0)
+      // Total: 1.96 × 2.0 = 3.92
+      expect(result.chargeRateModifier).toBeCloseTo(3.92, 2);
+    });
+
+    it('should return baseline 1.0 for no equipment', () => {
+      const config: MiningConfiguration = {
+        lasers: [{ laserHead: null, modules: [] }],
+      };
+      const result = calculateChargeModifiers(config, [null]);
+      expect(result.chargeRateModifier).toBeCloseTo(1.0, 2);
+      expect(result.chargeWindowModifier).toBeCloseTo(1.0, 2);
+    });
+  });
+
+  describe('calculateBreakability includes charge modifiers', () => {
+    it('should include chargeRateModifier and chargeWindowModifier in result', () => {
+      const lancetMH2 = LASER_HEADS.find(l => l.id === 'lancet-mh2')!;
+      const rock: Rock = { mass: 5000, resistance: 30 };
+      const config: MiningConfiguration = {
+        lasers: [{
+          laserHead: lancetMH2,
+          modules: [null, null],
+        }],
+      };
+      const result = calculateBreakability(config, rock, [null]);
+      // Lancet MH2: chargeRate = 1.4, chargeWindow = 0.4
+      expect(result.chargeRateModifier).toBeCloseTo(1.4, 2);
+      expect(result.chargeWindowModifier).toBeCloseTo(0.4, 2);
+    });
+  });
+
+  describe('calculateGroupChargeModifiers', () => {
+    it('should multiply charge modifiers across active ships', () => {
+      const hofstedeS2 = LASER_HEADS.find(l => l.id === 'hofstede-s2')!;
+      const lancetMH1 = LASER_HEADS.find(l => l.id === 'lancet-mh1')!;
+      const prospector = SHIPS.find(s => s.id === 'prospector')!;
+
+      const group: MiningGroup = {
+        ships: [
+          {
+            id: 'ship1', ship: prospector, name: 'Ship 1', isActive: true,
+            config: { lasers: [{ laserHead: lancetMH1, modules: [] }] },
+          },
+          {
+            id: 'ship2', ship: prospector, name: 'Ship 2', isActive: true,
+            config: { lasers: [{ laserHead: hofstedeS2, modules: [] }] },
+          },
+        ],
+      };
+
+      const result = calculateGroupChargeModifiers(group, [null]);
+      // Rate: Lancet (1.4) × Hofstede (1.2) = 1.68
+      expect(result.chargeRateModifier).toBeCloseTo(1.68, 2);
+      // Window: Lancet (0.4) × Hofstede (1.6) = 0.64
+      expect(result.chargeWindowModifier).toBeCloseTo(0.64, 2);
+    });
+
+    it('should return 1.0 when no ships are active', () => {
+      const group: MiningGroup = { ships: [] };
+      const result = calculateGroupChargeModifiers(group, [null]);
+      expect(result.chargeRateModifier).toBe(1);
+      expect(result.chargeWindowModifier).toBe(1);
+    });
   });
 });

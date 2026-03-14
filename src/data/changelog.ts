@@ -36,6 +36,16 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.8.1',
+    date: '2026-03-14',
+    new: [
+      'Charge Rate & Window gauge — analog speedometer shows how your equipment affects charge speed (turtle-to-rabbit scale) and optimal charge window size',
+      'Instability-driven needle animation — needle wobble intensity reflects rock instability (Stable / Unstable / Erratic)',
+      'Color-coded gauge zones — red, yellow, and green arcs show at-a-glance whether your charge rate and window are below or above baseline',
+      'Mobile charge bars — compact horizontal bars for charge rate and window on small screens',
+    ],
+  },
+  {
     version: '3.8.0',
     date: '2026-03-14',
     fixed: [

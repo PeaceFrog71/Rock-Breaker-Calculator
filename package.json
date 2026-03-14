@@ -1,7 +1,7 @@
 {
   "name": "rock-breaker-app",
   "private": true,
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Star Citizen Rock Breaker Mining Calculator",
   "author": "PeaceFrog Gaming",
   "main": "dist-electron/main.js",
