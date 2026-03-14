@@ -1033,6 +1033,15 @@ function App() {
               shipId={!useMiningGroup ? selectedShip.id : undefined}
               miningGroup={useMiningGroup ? miningGroup : undefined}
             />
+            {result.chargeRateModifier !== undefined && result.chargeWindowModifier !== undefined && (
+              <ChargeBars
+                chargeRateModifier={result.chargeRateModifier}
+                chargeWindowModifier={result.chargeWindowModifier}
+                adjustedInstability={result.adjustedInstability}
+                ship={!useMiningGroup ? selectedShip : undefined}
+                laserCount={!useMiningGroup ? config.lasers.filter(l => l.laserHead && l.isManned !== false).length : undefined}
+              />
+            )}
             <GadgetsPanel
               gadgets={gadgets}
               gadgetCount={gadgetCount}
@@ -1045,14 +1054,6 @@ function App() {
               onToggleGadget={handleToggleGadget}
               onToggleGadgetInScan={handleToggleGadgetInScan}
             />
-            {result.chargeRateModifier !== undefined && result.chargeWindowModifier !== undefined && (
-              <ChargeBars
-                chargeRateModifier={result.chargeRateModifier}
-                chargeWindowModifier={result.chargeWindowModifier}
-                ship={!useMiningGroup ? selectedShip : undefined}
-                laserCount={!useMiningGroup ? config.lasers.filter(l => l.laserHead && l.isManned !== false).length : undefined}
-              />
-            )}
           </MobileDrawer>
         </>
       )}

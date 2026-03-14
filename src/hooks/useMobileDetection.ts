@@ -17,7 +17,7 @@ export function useMobileDetection(): boolean {
     // Mobile/tablet if: user agent says mobile, OR has touch screen with narrow viewport
     // Viewport check prevents desktop users with virtual touch devices (Game Glass, Tobii eye tracker,
     // RODECaster, drawing tablets) from incorrectly getting mobile layout
-    return isMobileDevice || (hasTouchScreen && window.innerWidth < 1024);
+    return isMobileDevice || (hasTouchScreen && window.innerWidth <= 1024);
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => {

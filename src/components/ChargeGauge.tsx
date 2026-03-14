@@ -530,11 +530,15 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
 interface ChargeBarsProps {
   chargeRateModifier: number;
   chargeWindowModifier: number;
+  adjustedInstability?: number;
   ship?: Ship;
   laserCount?: number;
 }
 
-export function ChargeBars({ chargeRateModifier, chargeWindowModifier, ship, laserCount = 1 }: ChargeBarsProps) {
+export function ChargeBars({ chargeRateModifier, chargeWindowModifier, adjustedInstability, ship, laserCount = 1 }: ChargeBarsProps) {
+  const instabilityRef = useRef<HTMLDivElement>(null);
+  const animRef = useRef<number>(0);
+
   const scales = useMemo(
     () => calculateScaleRanges(ship, laserCount),
     [ship?.id, laserCount]
@@ -554,32 +558,110 @@ export function ChargeBars({ chargeRateModifier, chargeWindowModifier, ship, las
     return ((logVal - logMin) / (logMax - logMin)) * 100;
   }, [chargeWindowModifier, scales.window.min, scales.window.max]);
 
+  // Instability bar animation — oscillates back and forth
+  const instab = adjustedInstability ?? 0;
+  const instabSeverity = useMemo(() => {
+    if (instab <= 100) return { color: 'var(--accent-cyan)', label: 'STABLE' };
+    if (instab <= 300) return { color: '#ff6600', label: 'UNSTABLE' };
+    return { color: '#ff3366', label: 'ERRATIC' };
+  }, [instab]);
+
+  useEffect(() => {
+    if (!instabilityRef.current || instab <= 0) return;
+
+    // Amplitude: how far the bar swings (% of track width)
+    // 0-75: minimal, 75-100: noticeable, 100-400: moderate, >400: wild
+    let amplitude: number;
+    let speed: number; // oscillations per second
+    if (instab <= 75) {
+      amplitude = 5;
+      speed = 0.3;
+    } else if (instab <= 100) {
+      amplitude = 5 + ((instab - 75) / 25) * 15;
+      speed = 0.3 + ((instab - 75) / 25) * 0.7;
+    } else if (instab <= 400) {
+      amplitude = 20 + ((instab - 100) / 300) * 25;
+      speed = 1.0 + ((instab - 100) / 300) * 2.0;
+    } else {
+      amplitude = 45 + Math.min((instab - 400) / 200, 1) * 5;
+      speed = 3.0 + Math.min((instab - 400) / 200, 1) * 2.0;
+    }
+
+    // Add jitter for erratic feel at high instability
+    let jitterOffset = 0;
+    let lastJitterTime = 0;
+
+    const animate = (time: number) => {
+      // Add random jitter at high instability
+      if (instab > 100) {
+        const jitterInterval = instab > 400 ? 50 : 120;
+        if (time - lastJitterTime > jitterInterval) {
+          jitterOffset = (Math.random() - 0.5) * (instab > 400 ? 10 : 5);
+          lastJitterTime = time;
+        }
+      }
+
+      // Base oscillation with sine wave
+      const t = time / 1000;
+      const basePosition = 50 + Math.sin(t * speed * Math.PI * 2) * amplitude;
+      const position = Math.max(2, Math.min(98, basePosition + jitterOffset));
+
+      if (instabilityRef.current) {
+        instabilityRef.current.style.width = `${position}%`;
+      }
+
+      animRef.current = requestAnimationFrame(animate);
+    };
+
+    animRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animRef.current);
+  }, [instab]);
+
   const formatMod = (v: number) => v >= 1 ? v.toFixed(1) : v.toFixed(2);
 
   return (
     <div className="charge-bars">
       <div className="charge-bar-row">
-        <span className="charge-bar-label">🐢</span>
+        <span className="charge-bar-label-text">OPT RATE</span>
         <div className="charge-bar-track">
           <div
             className="charge-bar-fill charge-bar-fill-rate"
             style={{ width: `${ratePercent}%` }}
           />
         </div>
-        <span className="charge-bar-label">🐇</span>
         <span className="charge-bar-value">{formatMod(chargeRateModifier)}x</span>
       </div>
       <div className="charge-bar-row">
-        <span className="charge-bar-label-text">WIN</span>
+        <span className="charge-bar-label-text">WINDOW</span>
         <div className="charge-bar-track">
           <div
             className="charge-bar-fill charge-bar-fill-window"
             style={{ width: `${windowPercent}%` }}
           />
         </div>
-        <span className="charge-bar-label-text" />
         <span className="charge-bar-value charge-bar-value-window">{formatMod(chargeWindowModifier)}x</span>
       </div>
+      {instab > 0 && (
+        <div className="charge-bar-row">
+          <span className="charge-bar-label-text" style={{ color: instabSeverity.color }}>
+            {instabSeverity.label}
+          </span>
+          <div className="charge-bar-track charge-bar-track-instability">
+            <div
+              ref={instabilityRef}
+              className="charge-bar-fill charge-bar-fill-instability"
+              style={{
+                width: '50%',
+                background: `linear-gradient(90deg, transparent 0%, ${instabSeverity.color} 50%, transparent 100%)`,
+                boxShadow: `0 0 6px ${instabSeverity.color}`,
+              }}
+            />
+          </div>
+          <span className="charge-bar-value" style={{ color: instabSeverity.color }}>
+            {instab.toFixed(0)}
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -88,9 +88,9 @@
 }
 
 .charge-bar-label-text {
-  font-size: 8px;
-  width: 20px;
-  text-align: center;
+  font-size: 10px;
+  width: 48px;
+  text-align: left;
   flex-shrink: 0;
   color: var(--text-secondary);
   font-family: monospace;
@@ -135,4 +135,9 @@
 
 .charge-bar-value-window {
   color: var(--success);
+}
+
+.charge-bar-fill-instability {
+  transition: none;
+  border-radius: 4px;
 }
