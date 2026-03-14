@@ -32,6 +32,7 @@ import ProfileModal from "./components/ProfileModal";
 import UserMenu from "./components/UserMenu";
 import RockPropertiesPanel from "./components/RockPropertiesPanel";
 import GadgetsPanel from "./components/GadgetsPanel";
+import ChargeGauge, { ChargeBars } from "./components/ChargeGauge";
 import OptimalDistancePanel from "./components/OptimalDistancePanel";
 import MobileDrawer from "./components/MobileDrawer";
 import CollapsiblePanel from "./components/CollapsiblePanel";
@@ -803,6 +804,15 @@ function App() {
                       onToggleGadget={handleToggleGadget}
                       onToggleGadgetInScan={handleToggleGadgetInScan}
                     />
+                    {result.chargeRateModifier !== undefined && result.chargeWindowModifier !== undefined && (
+                      <ChargeGauge
+                        chargeRateModifier={result.chargeRateModifier}
+                        chargeWindowModifier={result.chargeWindowModifier}
+                        adjustedInstability={result.adjustedInstability}
+                        ship={!useMiningGroup ? selectedShip : undefined}
+                        laserCount={!useMiningGroup ? Math.max(1, config.lasers.filter(l => l.laserHead && l.isManned !== false).length) : undefined}
+                      />
+                    )}
                   </div>
                 </div>
               )}
@@ -1023,6 +1033,15 @@ function App() {
               shipId={!useMiningGroup ? selectedShip.id : undefined}
               miningGroup={useMiningGroup ? miningGroup : undefined}
             />
+            {result.chargeRateModifier !== undefined && result.chargeWindowModifier !== undefined && (
+              <ChargeBars
+                chargeRateModifier={result.chargeRateModifier}
+                chargeWindowModifier={result.chargeWindowModifier}
+                adjustedInstability={result.adjustedInstability}
+                ship={!useMiningGroup ? selectedShip : undefined}
+                laserCount={!useMiningGroup ? Math.max(1, config.lasers.filter(l => l.laserHead && l.isManned !== false).length) : undefined}
+              />
+            )}
             <GadgetsPanel
               gadgets={gadgets}
               gadgetCount={gadgetCount}

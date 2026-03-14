@@ -385,6 +385,11 @@ export function calculateBreakability(
     adjustedInstability: instabilityResult.adjustedInstability,
   };
 
+  // Calculate charge rate/window modifiers
+  const chargeResult = calculateChargeModifiers(config, gadgets, shipId);
+  result.chargeRateModifier = chargeResult.chargeRateModifier;
+  result.chargeWindowModifier = chargeResult.chargeWindowModifier;
+
   // Add resistance context if in modified mode
   if (derivedBase !== undefined) {
     result.resistanceContext = {
@@ -731,6 +736,11 @@ export function calculateGroupBreakability(
     multiShipInstabilityPenalty,
   };
 
+  // Calculate charge rate/window modifiers for the group
+  const chargeResult = calculateGroupChargeModifiers(miningGroup, gadgets);
+  result.chargeRateModifier = chargeResult.chargeRateModifier;
+  result.chargeWindowModifier = chargeResult.chargeWindowModifier;
+
   // Add resistance context if in modified mode
   if (derivedBase !== undefined) {
     result.resistanceContext = {
@@ -748,4 +758,203 @@ export function calculateGroupBreakability(
   }
 
   return result;
+}
+
+// ─── Charge Rate / Charge Window Modifier Calculations ──────────────────────
+
+/**
+ * Charge rate/window calculation result
+ */
+export interface ChargeResult {
+  chargeRateModifier: number;   // Combined equipment + gadget charge rate modifier
+  chargeWindowModifier: number; // Combined equipment + gadget charge window modifier
+}
+
+/**
+ * Calculate charge rate modifier for a single laser with its modules
+ *
+ * Stacking logic (same as instability):
+ * - Module charge rate percentages ADD together
+ * - The combined module modifier is then MULTIPLIED by the laser head modifier
+ *
+ * @param passiveOnly - If true, only include passive modules
+ */
+export function calculateLaserChargeRateModifier(laser: LaserConfiguration, passiveOnly: boolean = false): number {
+  if (!laser.laserHead) return 1;
+
+  const laserMod = laser.laserHead.chargeRateModifier ?? 1;
+
+  let modulePercentageSum = 0;
+  laser.modules.forEach((module, index) => {
+    if (module && module.chargeRateModifier !== undefined) {
+      if (passiveOnly && module.category === 'active') {
+        return;
+      }
+      const isActive = module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
+      if (isActive) {
+        modulePercentageSum += (module.chargeRateModifier - 1);
+      }
+    }
+  });
+
+  const combinedModuleModifier = 1 + modulePercentageSum;
+  return laserMod * combinedModuleModifier;
+}
+
+/**
+ * Calculate charge window modifier for a single laser with its modules
+ *
+ * Stacking logic (same as instability):
+ * - Module charge window percentages ADD together
+ * - The combined module modifier is then MULTIPLIED by the laser head modifier
+ *
+ * @param passiveOnly - If true, only include passive modules
+ */
+export function calculateLaserChargeWindowModifier(laser: LaserConfiguration, passiveOnly: boolean = false): number {
+  if (!laser.laserHead) return 1;
+
+  const laserMod = laser.laserHead.chargeWindowModifier ?? 1;
+
+  let modulePercentageSum = 0;
+  laser.modules.forEach((module, index) => {
+    if (module && module.chargeWindowModifier !== undefined) {
+      if (passiveOnly && module.category === 'active') {
+        return;
+      }
+      const isActive = module.category === 'passive' ||
+        (laser.moduleActive ? laser.moduleActive[index] === true : false);
+      if (isActive) {
+        modulePercentageSum += (module.chargeWindowModifier - 1);
+      }
+    }
+  });
+
+  const combinedModuleModifier = 1 + modulePercentageSum;
+  return laserMod * combinedModuleModifier;
+}
+
+/**
+ * Calculate equipment charge rate modifier for a single mining configuration.
+ * Multiplies charge rate modifiers from all active/manned lasers.
+ */
+export function calculateConfigChargeRateModifier(
+  config: MiningConfiguration,
+  shipId?: string
+): number {
+  let modifier = 1;
+  config.lasers.forEach((laser) => {
+    if (laser.laserHead) {
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          modifier *= calculateLaserChargeRateModifier(laser);
+        }
+      } else {
+        modifier *= calculateLaserChargeRateModifier(laser);
+      }
+    }
+  });
+  return modifier;
+}
+
+/**
+ * Calculate equipment charge window modifier for a single mining configuration.
+ * Multiplies charge window modifiers from all active/manned lasers.
+ */
+export function calculateConfigChargeWindowModifier(
+  config: MiningConfiguration,
+  shipId?: string
+): number {
+  let modifier = 1;
+  config.lasers.forEach((laser) => {
+    if (laser.laserHead) {
+      if (shipId === 'mole') {
+        if (laser.isManned !== false) {
+          modifier *= calculateLaserChargeWindowModifier(laser);
+        }
+      } else {
+        modifier *= calculateLaserChargeWindowModifier(laser);
+      }
+    }
+  });
+  return modifier;
+}
+
+/**
+ * Calculate charge rate modifier from gadgets.
+ * Gadget charge rate modifiers multiply together.
+ */
+export function calculateGadgetChargeRateModifier(gadgets: (Gadget | null)[]): number {
+  let modifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.chargeRateModifier !== undefined) {
+      modifier *= gadget.chargeRateModifier;
+    }
+  });
+  return modifier;
+}
+
+/**
+ * Calculate charge window modifier from gadgets.
+ * Gadget charge window modifiers multiply together.
+ */
+export function calculateGadgetChargeWindowModifier(gadgets: (Gadget | null)[]): number {
+  let modifier = 1;
+  gadgets.forEach((gadget) => {
+    if (gadget && gadget.id !== 'none' && gadget.chargeWindowModifier !== undefined) {
+      modifier *= gadget.chargeWindowModifier;
+    }
+  });
+  return modifier;
+}
+
+/**
+ * Calculate combined charge rate and window modifiers for a mining configuration.
+ * Combines equipment modifiers with gadget modifiers.
+ */
+export function calculateChargeModifiers(
+  config: MiningConfiguration,
+  gadgets: (Gadget | null)[] = [],
+  shipId?: string
+): ChargeResult {
+  const equipmentRate = calculateConfigChargeRateModifier(config, shipId);
+  const gadgetRate = calculateGadgetChargeRateModifier(gadgets);
+  const equipmentWindow = calculateConfigChargeWindowModifier(config, shipId);
+  const gadgetWindow = calculateGadgetChargeWindowModifier(gadgets);
+
+  return {
+    chargeRateModifier: equipmentRate * gadgetRate,
+    chargeWindowModifier: equipmentWindow * gadgetWindow,
+  };
+}
+
+/**
+ * Calculate combined charge rate and window modifiers for a mining group.
+ * Multiplies modifiers across all active ships, then applies gadgets.
+ */
+export function calculateGroupChargeModifiers(
+  miningGroup: MiningGroup,
+  gadgets: (Gadget | null)[] = []
+): ChargeResult {
+  const activeShips = miningGroup.ships.filter(ship => ship.isActive !== false);
+
+  if (activeShips.length === 0) {
+    return { chargeRateModifier: 1, chargeWindowModifier: 1 };
+  }
+
+  let totalRateMod = 1;
+  let totalWindowMod = 1;
+
+  activeShips.forEach((shipInstance) => {
+    totalRateMod *= calculateConfigChargeRateModifier(shipInstance.config, shipInstance.ship.id);
+    totalWindowMod *= calculateConfigChargeWindowModifier(shipInstance.config, shipInstance.ship.id);
+  });
+
+  const gadgetRate = calculateGadgetChargeRateModifier(gadgets);
+  const gadgetWindow = calculateGadgetChargeWindowModifier(gadgets);
+
+  return {
+    chargeRateModifier: totalRateMod * gadgetRate,
+    chargeWindowModifier: totalWindowMod * gadgetWindow,
+  };
 }

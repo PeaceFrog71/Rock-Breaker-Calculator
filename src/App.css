@@ -1787,6 +1787,15 @@ button,
   left: 1rem;
 }
 
+/* Tablet landscape (CSS-only): move to lower left when Ko-fi is on the right
+   This catches iPad Pro landscape (1366px) where JS isMobile is false */
+@media (orientation: landscape) and (pointer: coarse) and (min-height: 600px) and (min-width: 768px) {
+  .community-logo-link {
+    right: auto;
+    left: 1rem;
+  }
+}
+
 .community-logo {
   width: clamp(80px, 8vw, 120px);
   height: auto;
