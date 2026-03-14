@@ -1,8 +1,8 @@
 /* ─── Charge Gauge (Desktop/Tablet) ──────────────────────── */
 
 .charge-gauge {
-  width: clamp(120px, 15vw, 180px);
-  height: clamp(120px, 15vw, 180px);
+  width: clamp(144px, 18vw, 216px);
+  height: clamp(144px, 18vw, 216px);
   margin: 8px auto 0;
   display: flex;
   justify-content: center;
