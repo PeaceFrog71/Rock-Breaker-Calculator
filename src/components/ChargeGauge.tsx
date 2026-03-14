@@ -522,6 +522,15 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
         >
           {formatMod(chargeWindowModifier)}x
         </text>
+
+        {/* Window label — below the bottom arc */}
+        <text
+          x={CX} y={CY + WINDOW_ARC_RADIUS + WINDOW_ARC_STROKE + 14}
+          textAnchor="middle"
+          className="gauge-label"
+        >
+          WINDOW
+        </text>
       </svg>
     </div>
   );
