@@ -14,9 +14,10 @@ export function useMobileDetection(): boolean {
     // Check touch capability - this catches iPads that report as Macintosh
     const hasTouchScreen = navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
 
-    // Mobile/tablet if: user agent says mobile, OR has touch screen
-    // Using classic iPad (768px) as baseline - any touch device gets mobile layout
-    return isMobileDevice || hasTouchScreen;
+    // Mobile/tablet if: user agent says mobile, OR has touch screen with narrow viewport
+    // Viewport check prevents desktop users with virtual touch devices (Game Glass, Tobii eye tracker,
+    // RODECaster, drawing tablets) from incorrectly getting mobile layout
+    return isMobileDevice || (hasTouchScreen && window.innerWidth < 1024);
   }, []);
 
   const [isMobile, setIsMobile] = useState(() => {
