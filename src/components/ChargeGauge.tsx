@@ -483,18 +483,6 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
           style={{ filter: `drop-shadow(0 0 4px ${instabSeverity.glowColor})` }}
         />
 
-        {/* Instability severity label — below the gauge center */}
-        {instab > 0 && (
-          <text
-            x={CX} y={CY + WINDOW_ARC_RADIUS + WINDOW_ARC_STROKE + 12}
-            textAnchor="middle"
-            fill={instabSeverity.color}
-            className="gauge-instability-label"
-          >
-            {instabSeverity.label}
-          </text>
-        )}
-
         {/* Rate label */}
         <text
           x={CX} y={CY - 24}
@@ -513,18 +501,30 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
           {formatMod(chargeRateModifier)}x
         </text>
 
-        {/* Window label */}
+        {/* Instability severity label — inside gauge center, below rate */}
+        {instab > 0 && (
+          <text
+            x={CX} y={CY + 18}
+            textAnchor="middle"
+            fill={instabSeverity.color}
+            className="gauge-instability-label"
+          >
+            {instabSeverity.label}
+          </text>
+        )}
+
+        {/* Window label — below the bottom arc */}
         <text
-          x={CX} y={CY + 18}
+          x={CX} y={CY + WINDOW_ARC_RADIUS + WINDOW_ARC_STROKE + 12}
           textAnchor="middle"
           className="gauge-label"
         >
           WINDOW
         </text>
 
-        {/* Window value */}
+        {/* Window value — below window label */}
         <text
-          x={CX} y={CY + 34}
+          x={CX} y={CY + WINDOW_ARC_RADIUS + WINDOW_ARC_STROKE + 26}
           textAnchor="middle"
           className="gauge-value gauge-value-window"
         >
