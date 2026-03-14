@@ -36,7 +36,7 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    version: '3.8.2',
+    version: '3.9.0',
     date: '2026-03-14',
     new: [
       'Charge Rate & Window gauge — analog speedometer shows how your equipment affects charge speed (turtle-to-rabbit scale) and optimal charge window size',
