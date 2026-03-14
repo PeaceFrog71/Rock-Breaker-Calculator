@@ -99,6 +99,9 @@ export interface CalculationResult {
     derivedBaseValue: number; // The derived base instability (for modified mode)
     appliedModifier: number; // The total modifier applied
   };
+  // Charge rate/window calculation results
+  chargeRateModifier?: number; // Combined charge rate modifier from equipment and gadgets
+  chargeWindowModifier?: number; // Combined charge window modifier from equipment and gadgets
 }
 
 // Mining Group types for multi-ship operations
