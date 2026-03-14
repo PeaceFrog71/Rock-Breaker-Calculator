@@ -36,6 +36,14 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '3.8.0',
+    date: '2026-03-14',
+    fixed: [
+      'Desktop users with virtual touch devices (Game Glass, Tobii eye tracker, RODECaster) no longer incorrectly see the mobile layout',
+    ],
+  },
+
+  {
     version: '3.7.0',
     date: '2026-03-11',
     fixed: [
