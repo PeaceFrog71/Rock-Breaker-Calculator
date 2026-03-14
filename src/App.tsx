@@ -810,7 +810,7 @@ function App() {
                         chargeWindowModifier={result.chargeWindowModifier}
                         adjustedInstability={result.adjustedInstability}
                         ship={!useMiningGroup ? selectedShip : undefined}
-                        laserCount={!useMiningGroup ? config.lasers.filter(l => l.laserHead && l.isManned !== false).length : undefined}
+                        laserCount={!useMiningGroup ? Math.max(1, config.lasers.filter(l => l.laserHead && l.isManned !== false).length) : undefined}
                       />
                     )}
                   </div>
@@ -1039,7 +1039,7 @@ function App() {
                 chargeWindowModifier={result.chargeWindowModifier}
                 adjustedInstability={result.adjustedInstability}
                 ship={!useMiningGroup ? selectedShip : undefined}
-                laserCount={!useMiningGroup ? config.lasers.filter(l => l.laserHead && l.isManned !== false).length : undefined}
+                laserCount={!useMiningGroup ? Math.max(1, config.lasers.filter(l => l.laserHead && l.isManned !== false).length) : undefined}
               />
             )}
             <GadgetsPanel

@@ -92,7 +92,8 @@ function calculateScaleRanges(
     windowMax = Math.pow(windowMax, laserCount);
   }
 
-  // Apply gadget extremes
+  // Apply gadget extremes — up to 3 gadgets can stack (modifiers multiply)
+  const MAX_GADGETS = 3;
   const gadgetRates = GADGETS
     .filter(g => g.id !== 'none' && g.chargeRateModifier !== undefined)
     .map(g => g.chargeRateModifier!);
@@ -100,10 +101,10 @@ function calculateScaleRanges(
     .filter(g => g.id !== 'none' && g.chargeWindowModifier !== undefined)
     .map(g => g.chargeWindowModifier!);
 
-  const gadgetRateMin = gadgetRates.length > 0 ? Math.min(...gadgetRates) : 1;
-  const gadgetRateMax = gadgetRates.length > 0 ? Math.max(...gadgetRates) : 1;
-  const gadgetWindowMin = gadgetWindows.length > 0 ? Math.min(...gadgetWindows) : 1;
-  const gadgetWindowMax = gadgetWindows.length > 0 ? Math.max(...gadgetWindows) : 1;
+  const gadgetRateMin = gadgetRates.length > 0 ? Math.pow(Math.min(...gadgetRates), MAX_GADGETS) : 1;
+  const gadgetRateMax = gadgetRates.length > 0 ? Math.pow(Math.max(...gadgetRates), MAX_GADGETS) : 1;
+  const gadgetWindowMin = gadgetWindows.length > 0 ? Math.pow(Math.min(...gadgetWindows), MAX_GADGETS) : 1;
+  const gadgetWindowMax = gadgetWindows.length > 0 ? Math.pow(Math.max(...gadgetWindows), MAX_GADGETS) : 1;
 
   return {
     rate: {
@@ -249,10 +250,6 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
 
   // Needle jitter animation using direct DOM manipulation
   useEffect(() => {
-    let currentJitter = 0;
-    let targetJitter = 0;
-    let lastTargetTime = 0;
-
     // Jitter amplitude driven by instability
     // 0-75: no movement, 75-100: noticeable wobble, 100-400: more wobble, >400: erratic
     const instab = adjustedInstability ?? 0;
@@ -269,6 +266,19 @@ export default function ChargeGauge({ chargeRateModifier, chargeWindowModifier, 
       // Erratic shaking: 16° → 28° (capped)
       amplitude = 16 + Math.min((instab - 400) / 200, 1) * 12;
     }
+
+    // No jitter needed — set static position and skip rAF loop
+    if (amplitude === 0) {
+      if (needleRef.current) {
+        const staticAngle = 90 - baseAngle;
+        needleRef.current.setAttribute('transform', `rotate(${staticAngle} ${CX} ${CY})`);
+      }
+      return;
+    }
+
+    let currentJitter = 0;
+    let targetJitter = 0;
+    let lastTargetTime = 0;
 
     const animate = (time: number) => {
       // Pick a new random target — faster at higher instability
